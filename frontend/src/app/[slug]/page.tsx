@@ -6,6 +6,8 @@ import DynamicPageClient from './DynamicPageClient';
 import { fetchPublicData } from '@/lib/api';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 interface DynamicPageProps {
   params: Promise<{ slug: string }>;
 }

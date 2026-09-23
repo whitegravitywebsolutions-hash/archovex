@@ -5,10 +5,13 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DesignsCatalogClient from './DesignsCatalogClient';
 import { fetchPublicData } from '@/lib/api';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Explore All Interior Designs | ARCHOVEX INFRA PRIVATE LIMITED',
   description: 'Browse hundreds of luxury modular kitchen designs, living rooms, sliding wardrobes, and turnkey home interiors across India.',
 };
+
 
 export default async function DesignsPage() {
   const homeData = await fetchPublicData('/home');
