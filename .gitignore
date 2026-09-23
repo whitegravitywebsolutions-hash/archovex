@@ -1,0 +1,41 @@
+# Dependencies
+**/node_modules
+**/vendor
+
+# Next.js Build & Cache
+**/frontend/.next
+**/frontend/out
+**/frontend/build
+**/.next
+
+# Laravel Cache & Storage Logs
+**/backend/bootstrap/cache/*
+!**/backend/bootstrap/cache/.gitkeep
+**/backend/storage/*.key
+**/backend/storage/logs/*.log
+**/backend/storage/framework/cache/data/*
+**/backend/storage/framework/sessions/*
+**/backend/storage/framework/testing/*
+**/backend/storage/framework/views/*
+
+# Environment Files
+.env
+.env.local
+.env.*.local
+**/backend/.env
+**/frontend/.env.local
+
+# IDE & OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temp / Scratch files
+**/backend/check_*.php
+**/backend/seed_*.php
+**/backend/delete_*.php
+**/backend/update_*.php
+**/backend/add_*.php
