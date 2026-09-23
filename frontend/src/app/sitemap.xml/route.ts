@@ -1,6 +1,8 @@
 import { fetchPublicData } from '@/lib/api';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://archovex.com';
 
