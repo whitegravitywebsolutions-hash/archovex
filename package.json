@@ -1,0 +1,19 @@
+{
+  "name": "archovex-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4",
+    "axios": "^1.20.0",
+    "lucide-react": "^1.47.0",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwindcss": "^4"
+  }
+}
