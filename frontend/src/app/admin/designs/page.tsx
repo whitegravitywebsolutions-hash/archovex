@@ -57,15 +57,15 @@ export default function AdminDesignsPage() {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Design Posts CMS</h1>
-          <p className="text-xs text-slate-500">Manage all reusable interior design posts & dynamic multi-image galleries.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">Blogs</h1>
+          <p className="text-xs text-slate-500">Manage all blog posts, articles & visual interior design guides.</p>
         </div>
 
         <Link
           href="/admin/designs/new"
           className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
         >
-          <Plus className="w-4 h-4" /> Add New Design
+          <Plus className="w-4 h-4" /> Add New Blog
         </Link>
       </div>
 
@@ -75,7 +75,7 @@ export default function AdminDesignsPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by title, style, finish..."
+            placeholder="Search by title, category, style..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && fetchPosts()}
@@ -114,7 +114,7 @@ export default function AdminDesignsPage() {
             <thead>
               <tr className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500 border-b border-slate-100">
                 <th className="p-4">Primary Image</th>
-                <th className="p-4">Design Name</th>
+                <th className="p-4">Blog Title</th>
                 <th className="p-4">Category</th>
                 <th className="p-4">Style</th>
                 <th className="p-4">City</th>
@@ -125,10 +125,11 @@ export default function AdminDesignsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {loading ? (
-                <tr><td colSpan={8} className="p-8 text-center text-slate-400">Loading design posts...</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-slate-400">Loading blogs...</td></tr>
               ) : posts.length === 0 ? (
-                <tr><td colSpan={8} className="p-8 text-center text-slate-400">No design posts found.</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-slate-400">No blogs found.</td></tr>
               ) : (
+
                 posts.map((post) => {
                   const imgUrl = post.primary_image?.image || post.featured_image || '/placeholder.jpg';
 

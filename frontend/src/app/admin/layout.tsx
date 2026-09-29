@@ -56,13 +56,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Page Builder', href: '/admin/pages', icon: BookOpen },
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Categories', href: '/admin/categories', icon: FolderTree },
-    { label: 'Designs CMS', href: '/admin/designs', icon: Compass },
+    { label: 'Blogs', href: '/admin/designs', icon: Compass },
     { label: 'Leads CRM', href: '/admin/leads', icon: Users },
     { label: 'Header & Menus', href: '/admin/menus', icon: Menu },
     { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
     { label: 'Custom Scripts', href: '/admin/scripts', icon: Code },
     { label: 'Site Settings', href: '/admin/settings', icon: Settings },
   ];
+
 
   return (
     <div className="min-h-screen bg-slate-100 flex font-sans">
@@ -125,8 +126,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span>ARCHOVEX Admin CMS</span>
             <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
             <span className="font-bold text-slate-900 uppercase">
-              {pathname.split('/')[2] || 'Dashboard'}
+              {pathname.split('/')[2] === 'designs' ? 'Blogs' : (pathname.split('/')[2] || 'Dashboard')}
             </span>
+
           </div>
 
           <div className="flex items-center gap-4">

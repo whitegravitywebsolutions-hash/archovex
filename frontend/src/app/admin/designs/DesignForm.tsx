@@ -8,6 +8,8 @@ import { Category, City, DesignPost } from '@/types';
 import { Plus, Trash2, Star, Upload, ArrowLeft, Loader2, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+
 
 interface DesignFormProps {
   initialData?: DesignPost | null;
@@ -249,7 +251,7 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <h1 className="text-xl font-extrabold text-slate-900">
-            {initialData?.id ? `Edit Design: ${initialData.title}` : 'Add New Interior Design Post'}
+            {initialData?.id ? `Edit Blog: ${initialData.title}` : 'Add New Blog Post'}
           </h1>
         </div>
 
@@ -266,7 +268,7 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
             disabled={saving}
             className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl uppercase tracking-wider shadow-lg flex items-center gap-1.5 disabled:opacity-50"
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Publish Design'}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Publish Blog'}
           </button>
         </div>
       </div>
@@ -294,11 +296,11 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Design Post Name *</label>
+            <label className="block font-bold text-slate-700 mb-1">Blog Title *</label>
             <input
               type="text"
               required
-              placeholder="e.g. Modern L-Shaped Modular Kitchen"
+              placeholder="e.g. Modern L-Shaped Modular Kitchen Ideas & Guide"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold"
@@ -330,15 +332,14 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
 
         <div>
           <label className="block font-bold text-slate-700 mb-1">Detailed Description & Content</label>
-          <textarea
-            rows={4}
-            placeholder="Detailed description of layout, space planning, lighting..."
+          <RichTextEditor
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2.5 bg-slate-50 border rounded-xl"
+            onChange={setDescription}
+            placeholder="Write full blog content, detailed description, space planning, lighting specs..."
           />
         </div>
       </div>
+
 
       {/* SECTION 2: DESIGN DETAILS & TAXONOMY */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
