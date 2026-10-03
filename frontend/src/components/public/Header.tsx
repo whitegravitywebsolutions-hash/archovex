@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import MegaMenu from './MegaMenu';
@@ -33,11 +33,29 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
 
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMenuEnter = (idx: number) => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    setActiveMegaIdx(idx);
+  };
+
+  const handleMenuLeave = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+    }
+    leaveTimeoutRef.current = setTimeout(() => {
+      setActiveMegaIdx(null);
+    }, 220);
+  };
+
   useEffect(() => {
     if (initialMenu.length > 0) {
       setMenuItems(initialMenu);
     }
-    // Always fetch fresh menu from API on client mount for live CMS sync
     apiClient.get('/menus').then((res) => {
       if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
         const unique = Array.from(new Map<number, MenuItem>(res.data.data.map((item: MenuItem) => [item.id, item])).values());
@@ -98,13 +116,13 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
               return (
                 <div
                   key={item.id}
-                  className="relative h-full flex items-center group"
-                  onMouseEnter={() => hasDropdown && setActiveMegaIdx(idx)}
-                  onMouseLeave={() => hasDropdown && setActiveMegaIdx(null)}
+                  className="relative h-full flex items-center group py-4"
+                  onMouseEnter={() => hasDropdown && handleMenuEnter(idx)}
+                  onMouseLeave={() => hasDropdown && handleMenuLeave()}
                 >
                   <Link
                     href={item.url || '#'}
-                    className={`inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider h-full flex items-center px-1 transition-colors ${
+                    className={`inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider h-full px-1 transition-colors ${
                       isHovered ? 'text-[#0C4A6E] font-black' : 'text-slate-800 hover:text-[#0C4A6E]'
                     }`}
                   >
@@ -173,9 +191,14 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
           {/* Active Container-Bounded Mega Menu Dropdown */}
           {activeMegaIdx !== null && menuItems[activeMegaIdx] && (
             <div
-              className="absolute top-full left-0 right-0 w-full z-50 px-4 sm:px-6 lg:px-8 pointer-events-auto"
-              onMouseEnter={() => setActiveMegaIdx(activeMegaIdx)}
-              onMouseLeave={() => setActiveMegaIdx(null)}
+              className="absolute top-full left-0 right-0 w-full z-50 px-4 sm:px-6 lg:px-8 pointer-events-auto pt-1 -mt-1"
+              onMouseEnter={() => {
+                if (leaveTimeoutRef.current) {
+                  clearTimeout(leaveTimeoutRef.current);
+                  leaveTimeoutRef.current = null;
+                }
+              }}
+              onMouseLeave={handleMenuLeave}
             >
               {(() => {
                 const item = menuItems[activeMegaIdx];
