@@ -55,16 +55,19 @@ export default function CategoryPageClient({ category, initialPosts, faqs, citie
 
       {/* CATEGORY HERO */}
       <section className="relative bg-gradient-to-br from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white py-16 sm:py-24 overflow-hidden border-b border-sky-900">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={category.image || '/placeholder.jpg'}
-            alt={category.name}
-            fill
-            className="object-cover opacity-25 scale-105"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E] via-[#0C4A6E]/80 to-transparent" />
-        </div>
+        {category.image && (
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={category.image}
+              alt=""
+              aria-hidden="true"
+              fill
+              className="object-cover opacity-25 scale-105 text-transparent select-none"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E] via-[#0C4A6E]/80 to-transparent" />
+          </div>
+        )}
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <span className="text-xs font-black uppercase tracking-widest text-[#FFEDD5] bg-[#F97316]/20 border border-[#F97316]/40 px-4 py-1.5 rounded-full inline-block shadow-sm">

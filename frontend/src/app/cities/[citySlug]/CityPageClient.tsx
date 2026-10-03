@@ -34,16 +34,19 @@ export default function CityPageClient({
     <>
       {/* CITY HERO */}
       <section className="relative bg-gradient-to-br from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white py-20 overflow-hidden border-b border-sky-900">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={city.hero_image || '/placeholder.jpg'}
-            alt={`Interiors in ${city.name}`}
-            fill
-            priority
-            className="object-cover opacity-25 scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E] via-[#0C4A6E]/80 to-transparent" />
-        </div>
+        {city.hero_image && (
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={city.hero_image}
+              alt=""
+              aria-hidden="true"
+              fill
+              priority
+              className="object-cover opacity-25 scale-105 text-transparent select-none"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E] via-[#0C4A6E]/80 to-transparent" />
+          </div>
+        )}
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <span className="text-xs font-black uppercase tracking-widest text-[#FFEDD5] bg-[#F97316]/20 border border-[#F97316]/40 px-4 py-1.5 rounded-full inline-block shadow-sm">
