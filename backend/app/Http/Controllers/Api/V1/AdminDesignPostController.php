@@ -39,6 +39,10 @@ class AdminDesignPostController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('is_featured') && $request->is_featured !== null && $request->is_featured !== '') {
+            $query->where('is_featured', filter_var($request->is_featured, FILTER_VALIDATE_BOOLEAN));
+        }
+
         $posts = $query->orderBy('updated_at', 'desc')->paginate(15);
 
         return response()->json(['success' => true, 'data' => $posts]);
@@ -70,6 +74,7 @@ class AdminDesignPostController extends Controller
             'status' => 'required|string|in:published,draft,archived',
             'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'published_at' => 'nullable|date',
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
@@ -213,6 +218,7 @@ class AdminDesignPostController extends Controller
             'status' => 'required|string|in:published,draft,archived',
             'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'published_at' => 'nullable|date',
             'meta_title' => 'nullable|string',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string',
@@ -404,6 +410,19 @@ class AdminDesignPostController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Image deleted successfully'
+        ]);
+    }
+
+    public function toggleFeatured($id)
+    {
+        $post = DesignPost::findOrFail($id);
+        $post->is_featured = !$post->is_featured;
+        $post->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Featured status updated',
+            'is_featured' => $post->is_featured
         ]);
     }
 }

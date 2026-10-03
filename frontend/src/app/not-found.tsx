@@ -1,35 +1,59 @@
 import React from 'react';
 import Link from 'next/link';
-import Logo from '@/components/public/Logo';
-import { Home, ArrowLeft } from 'lucide-react';
+import Header from '@/components/public/Header';
+import Footer from '@/components/public/Footer';
+import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
+import { fetchPublicData } from '@/lib/api';
+import { Home, SearchX, Compass } from 'lucide-react';
 
-export default function NotFound() {
+export default async function NotFound() {
+  const homeData = await fetchPublicData('/home').catch(() => null);
+  const cities = homeData?.cities || [];
+  const settings = homeData?.settings || {};
+  const socialLinks = homeData?.social_links || [];
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6 sm:p-12 font-sans">
-      <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-        <Logo light />
-      </div>
+    <div className="min-h-screen bg-[#FAF8F3] flex flex-col font-sans text-slate-800">
+      {/* Website Navigation Header */}
+      <Header cities={cities} />
 
-      <div className="max-w-xl mx-auto text-center space-y-6 py-20">
-        <span className="text-6xl font-extrabold text-blue-500 block">404</span>
-        <h1 className="text-3xl font-extrabold uppercase tracking-tight">PAGE NOT FOUND</h1>
-        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          The requested interior design page or category could not be found or has been relocated.
-        </p>
+      {/* 404 Main Message Section */}
+      <main className="flex-grow flex items-center justify-center py-16 px-4">
+        <div className="max-w-xl w-full bg-white rounded-3xl shadow-xl p-8 sm:p-12 text-center space-y-6 border border-[#E4DCD0] relative overflow-hidden">
+          <div className="w-20 h-20 bg-[#F97316]/10 text-[#F97316] rounded-3xl flex items-center justify-center mx-auto border border-[#F97316]/20 shadow-inner">
+            <SearchX className="w-10 h-10" />
+          </div>
 
-        <div className="pt-4 flex justify-center gap-4">
-          <Link
-            href="/"
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center gap-2"
-          >
-            <Home className="w-4 h-4" /> RETURN TO HOMEPAGE
-          </Link>
+          <div className="space-y-2">
+            <span className="text-6xl font-black text-[#0C4A6E] tracking-tight block">404</span>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0C4A6E] uppercase tracking-wide">
+              PAGE NOT FOUND
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto font-medium">
+              We couldn’t find the page or interior design collection you were looking for. It might have been relocated or renamed.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/"
+              className="w-full sm:w-auto px-6 py-3 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 border border-amber-300/30"
+            >
+              <Home className="w-4 h-4" /> Return To Homepage
+            </Link>
+            <Link
+              href="/designs"
+              className="w-full sm:w-auto px-6 py-3 bg-[#0C4A6E] hover:bg-[#075985] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+            >
+              <Compass className="w-4 h-4" /> Explore Designs
+            </Link>
+          </div>
         </div>
-      </div>
+      </main>
 
-      <div className="text-center text-xs text-slate-600">
-        © {new Date().getFullYear()} ARCHOVEX INFRA PRIVATE LIMITED.
-      </div>
+      {/* Website Footer & Floating Action Widgets */}
+      <Footer settings={settings} socialLinks={socialLinks} />
+      <FloatingWhatsAppButton number={settings.whatsapp} />
     </div>
   );
 }

@@ -37,64 +37,64 @@ export default function AdminDashboardPage() {
       {/* Title & Quick Add Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Dashboard Overview</h1>
-          <p className="text-xs text-slate-500">Welcome to ARCHOVEX INFRA CMS control center.</p>
+          <h1 className="text-2xl font-black text-[#0C4A6E] uppercase tracking-tight">Dashboard Overview</h1>
+          <p className="text-xs text-slate-600">Welcome to ARCHOVEX INFRA CMS control center.</p>
         </div>
 
         <div className="flex gap-3">
           <Link
             href="/admin/designs/new"
-            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+            className="px-5 py-3 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center gap-1.5 border border-amber-300/40"
           >
-            <Plus className="w-4 h-4" /> Add New Design
+            <Plus className="w-4 h-4 text-white" /> Add New Design
           </Link>
         </div>
       </div>
 
       {/* Metrics Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-6 rounded-2xl border border-[#E4DCD0] shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Designs</span>
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><Compass className="w-5 h-5" /></div>
+            <span className="text-xs font-black uppercase tracking-wider text-[#0C4A6E]">Total Designs</span>
+            <div className="p-2.5 bg-sky-50 text-[#0891B2] rounded-xl border border-sky-100"><Compass className="w-5 h-5" /></div>
           </div>
-          <span className="text-3xl font-extrabold text-slate-900">{stats?.total_designs || 0}</span>
-          <span className="text-[11px] font-semibold text-emerald-600 block">{stats?.published_designs || 0} Published</span>
+          <span className="text-3xl font-black text-[#0C4A6E]">{stats?.total_designs || 0}</span>
+          <span className="text-[11px] font-bold text-emerald-600 block">{stats?.published_designs || 0} Published</span>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-6 rounded-2xl border border-[#E4DCD0] shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Categories</span>
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><FolderTree className="w-5 h-5" /></div>
+            <span className="text-xs font-black uppercase tracking-wider text-[#0C4A6E]">Categories</span>
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100"><FolderTree className="w-5 h-5" /></div>
           </div>
-          <span className="text-3xl font-extrabold text-slate-900">{stats?.total_categories || 0}</span>
+          <span className="text-3xl font-black text-[#0C4A6E]">{stats?.total_categories || 0}</span>
           <span className="text-[11px] font-semibold text-slate-500 block">Dynamic CMS Categories</span>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-6 rounded-2xl border border-[#E4DCD0] shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Consultation Leads</span>
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><Users className="w-5 h-5" /></div>
+            <span className="text-xs font-black uppercase tracking-wider text-[#0C4A6E]">Consultation Leads</span>
+            <div className="p-2.5 bg-orange-50 text-[#F97316] rounded-xl border border-orange-100"><Users className="w-5 h-5" /></div>
           </div>
-          <span className="text-3xl font-extrabold text-slate-900">{stats?.total_leads || 0}</span>
-          <span className="text-[11px] font-bold text-amber-600 block">{stats?.new_leads || 0} New Requests</span>
+          <span className="text-3xl font-black text-[#0C4A6E]">{stats?.total_leads || 0}</span>
+          <span className="text-[11px] font-black text-[#F97316] block">{stats?.new_leads || 0} New Requests</span>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div className="bg-white p-6 rounded-2xl border border-[#E4DCD0] shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Cities Served</span>
-            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl"><MapPin className="w-5 h-5" /></div>
+            <span className="text-xs font-black uppercase tracking-wider text-[#0C4A6E]">Cities Served</span>
+            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl border border-purple-100"><MapPin className="w-5 h-5" /></div>
           </div>
-          <span className="text-3xl font-extrabold text-slate-900">{stats?.total_cities || 0}</span>
+          <span className="text-3xl font-black text-[#0C4A6E]">{stats?.total_cities || 0}</span>
           <span className="text-[11px] font-semibold text-slate-500 block">Experience Centers</span>
         </div>
       </div>
 
       {/* Recent Leads CRM Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-900">Recent Customer Consultation Leads</h2>
-          <Link href="/admin/leads" className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 uppercase">
+      <div className="bg-white rounded-2xl border border-[#E4DCD0] shadow-xs overflow-hidden">
+        <div className="p-6 border-b border-[#E4DCD0] flex items-center justify-between">
+          <h2 className="text-base font-black text-[#0C4A6E] uppercase tracking-tight">Recent Customer Consultation Leads</h2>
+          <Link href="/admin/leads" className="text-xs font-black text-[#F97316] hover:text-[#EA580C] flex items-center gap-1 uppercase tracking-wider">
             View All Leads <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500 border-b border-slate-100">
+              <tr className="bg-[#F3EEE4] text-[11px] font-black uppercase text-[#0C4A6E] border-b border-[#E4DCD0]">
                 <th className="p-4">Customer Name</th>
                 <th className="p-4">Contact</th>
                 <th className="p-4">City</th>
@@ -111,21 +111,21 @@ export default function AdminDashboardPage() {
                 <th className="p-4">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+            <tbody className="divide-y divide-[#E4DCD0]/60 text-xs text-slate-700 font-medium">
               {stats?.recent_leads?.map((lead: any) => (
-                <tr key={lead.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 font-bold text-slate-900">{lead.name}</td>
-                  <td className="p-4">{lead.phone} <span className="text-slate-400 block text-[10px]">{lead.email}</span></td>
+                <tr key={lead.id} className="hover:bg-[#FAF8F3] transition-colors">
+                  <td className="p-4 font-bold text-[#0C4A6E]">{lead.name}</td>
+                  <td className="p-4">{lead.phone} <span className="text-slate-500 block text-[10px]">{lead.email}</span></td>
                   <td className="p-4">{lead.city?.name || 'General'}</td>
                   <td className="p-4">{lead.requirement || 'Full Home'}</td>
                   <td className="p-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      lead.status === 'New' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                      lead.status === 'New' ? 'bg-[#F97316]/15 text-[#F97316] border border-[#F97316]/30' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                     }`}>
                       {lead.status}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-400 text-[11px]">
+                  <td className="p-4 text-slate-500 text-[11px]">
                     {new Date(lead.created_at).toLocaleDateString()}
                   </td>
                 </tr>

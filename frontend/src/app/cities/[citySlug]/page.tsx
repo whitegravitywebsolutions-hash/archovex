@@ -47,7 +47,7 @@ export default async function CityDetailPage({ params }: PageProps) {
   const socialLinks = homeData?.social_links || [];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
       <Header cities={cities} />
 
       <main className="flex-grow">

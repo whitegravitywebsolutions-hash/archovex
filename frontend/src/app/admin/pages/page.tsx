@@ -27,6 +27,7 @@ export default function AdminPagesListPage() {
     title: '',
     slug: '',
     status: 'published',
+    published_at: '',
   });
 
   const fetchPages = async () => {
@@ -148,6 +149,7 @@ export default function AdminPagesListPage() {
                 <th className="p-4">Page Title</th>
                 <th className="p-4">URL Path / Slug</th>
                 <th className="p-4">Sections</th>
+                <th className="p-4">Publish Date & Time</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Last Modified</th>
                 <th className="p-4 text-right">Actions</th>
@@ -156,7 +158,7 @@ export default function AdminPagesListPage() {
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
                       <span>Loading pages...</span>
@@ -165,7 +167,7 @@ export default function AdminPagesListPage() {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
                     No pages found. Click "+ Create New Page" to add one.
                   </td>
                 </tr>
@@ -173,6 +175,7 @@ export default function AdminPagesListPage() {
                 filtered.map((page) => {
                   const path = page.slug === 'home' ? '/' : `/${page.slug}`;
                   const sectionCount = Array.isArray(page.sections) ? page.sections.length : 0;
+                  const pubDateStr = page.published_at || page.updated_at;
 
                   return (
                     <tr key={page.id} className="hover:bg-slate-50/80 transition-colors">
@@ -190,6 +193,20 @@ export default function AdminPagesListPage() {
                           <Layers className="w-3.5 h-3.5 text-indigo-600" />
                           <span>{sectionCount} Sections</span>
                         </span>
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        {pubDateStr ? (
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-800">
+                              {new Date(pubDateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(pubDateStr).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic">—</span>
+                        )}
                       </td>
                       <td className="p-4">
                         <span
@@ -296,6 +313,16 @@ export default function AdminPagesListPage() {
                   <option value="published">Published</option>
                   <option value="draft">Draft</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Publish Date & Time (Optional)</label>
+                <input
+                  type="datetime-local"
+                  value={newPageData.published_at}
+                  onChange={(e) => setNewPageData({ ...newPageData, published_at: e.target.value })}
+                  className="w-full p-2.5 border rounded-xl"
+                />
               </div>
 
               <div className="pt-2 flex justify-end gap-3">

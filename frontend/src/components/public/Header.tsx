@@ -61,19 +61,27 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const updateWishlist = () => {
-        const list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-        setWishlistCount(list.length);
+        try {
+          const list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
+          setWishlistCount(Array.isArray(list) ? list.length : 0);
+        } catch {
+          setWishlistCount(0);
+        }
       };
       updateWishlist();
       window.addEventListener('storage', updateWishlist);
-      return () => window.removeEventListener('storage', updateWishlist);
+      window.addEventListener('wishlistUpdated', updateWishlist);
+      return () => {
+        window.removeEventListener('storage', updateWishlist);
+        window.removeEventListener('wishlistUpdated', updateWishlist);
+      };
     }
   }, []);
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full header-glass border-b border-slate-200/80 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full header-glass border-b border-[#e4dcd0] transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[88px] py-2 flex items-center justify-between relative">
           {/* Brand Logo */}
           <Logo />
 
@@ -97,38 +105,22 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
                   <Link
                     href={item.url || '#'}
                     className={`inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider h-full flex items-center px-1 transition-colors ${
-                      isHovered ? 'text-slate-950 font-black' : 'text-slate-800 hover:text-slate-950'
+                      isHovered ? 'text-[#0C4A6E] font-black' : 'text-slate-800 hover:text-[#0C4A6E]'
                     }`}
                   >
                     <span>{item.label}</span>
                     {hasDropdown && (
                       <ChevronDown
                         className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                          isHovered ? 'text-slate-950 rotate-180' : 'text-slate-500 group-hover:text-slate-950'
+                          isHovered ? 'text-[#F97316] rotate-180' : 'text-slate-500 group-hover:text-[#0C4A6E]'
                         }`}
                       />
                     )}
                   </Link>
 
-                  {/* Header Bottom Touch Active Dark Line */}
+                  {/* Bottom Touch Active Line */}
                   {isHovered && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-slate-950 rounded-t-full transition-all animate-fade-in" />
-                  )}
-
-                  {hasMega && !isCityItem && (
-                    <MegaMenu
-                      columns={megaCols}
-                      isOpen={isHovered}
-                      onClose={() => setActiveMegaIdx(null)}
-                    />
-                  )}
-
-                  {isCityItem && (
-                    <CityMegaMenu
-                      cities={cityList}
-                      isOpen={isHovered}
-                      onClose={() => setActiveMegaIdx(null)}
-                    />
+                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F97316] rounded-t-full transition-all animate-fade-in" />
                   )}
                 </div>
               );
@@ -140,21 +132,21 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
             {/* Phone Quick Link */}
             <a
               href="tel:+919876543210"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 px-3 py-2 rounded-lg transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-[#0C4A6E] hover:text-[#F97316] px-3 py-2 rounded-lg transition-colors"
             >
-              <Phone className="w-4 h-4 text-blue-600" />
+              <Phone className="w-4 h-4 text-[#F97316]" />
               <span>+91 98765 43210</span>
             </a>
 
             {/* Wishlist Link */}
             <Link
               href="/designs?wishlist=true"
-              className="relative p-2 text-slate-700 hover:text-rose-500 rounded-full hover:bg-slate-100 transition-all"
+              className="relative p-2 text-slate-700 hover:text-[#F97316] rounded-full hover:bg-[#F3EEE4] transition-all"
               title="View Wishlist"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-5 h-5 text-[#0C4A6E]" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white font-bold text-[9px] rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-[#F97316] text-white font-black text-[9px] rounded-full flex items-center justify-center shadow-xs">
                   {wishlistCount}
                 </span>
               )}
@@ -163,7 +155,7 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
             {/* Book Consultation Button */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="hidden sm:inline-flex px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+              className="hidden sm:inline-flex px-5 py-2.5 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 border border-amber-400/30"
             >
               BOOK CONSULTATION
             </button>
@@ -177,6 +169,45 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
               <MenuIcon className="w-6 h-6" />
             </button>
           </div>
+
+          {/* Active Container-Bounded Mega Menu Dropdown */}
+          {activeMegaIdx !== null && menuItems[activeMegaIdx] && (
+            <div
+              className="absolute top-full left-0 right-0 w-full z-50 px-4 sm:px-6 lg:px-8 pointer-events-auto"
+              onMouseEnter={() => setActiveMegaIdx(activeMegaIdx)}
+              onMouseLeave={() => setActiveMegaIdx(null)}
+            >
+              {(() => {
+                const item = menuItems[activeMegaIdx];
+                const megaCols = item.mega_columns || item.megaColumns || [];
+                const isCityItem = item.label.toLowerCase() === 'cities' || item.url === '/cities' || item.type === 'city';
+                const isDesignItem = item.label.toLowerCase().includes('design') || item.url === '/designs';
+                const hasMega = megaCols.length > 0 || item.type === 'megamenu' || isDesignItem;
+
+                if (isCityItem) {
+                  return (
+                    <CityMegaMenu
+                      cities={cityList}
+                      isOpen={true}
+                      onClose={() => setActiveMegaIdx(null)}
+                    />
+                  );
+                }
+
+                if (hasMega) {
+                  return (
+                    <MegaMenu
+                      columns={megaCols}
+                      isOpen={true}
+                      onClose={() => setActiveMegaIdx(null)}
+                    />
+                  );
+                }
+
+                return null;
+              })()}
+            </div>
+          )}
         </div>
       </header>
 

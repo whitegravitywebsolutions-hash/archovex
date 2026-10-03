@@ -84,12 +84,105 @@ class AdminMediaController extends Controller
         return response()->json(['success' => true, 'message' => 'Media updated successfully', 'data' => $media]);
     }
 
+    public function base64($id)
+    {
+        $media = Media::findOrFail($id);
+
+        if (!Storage::disk('public')->exists($media->path)) {
+            return response()->json(['success' => false, 'message' => 'File not found'], 404);
+        }
+
+        $fileContent = Storage::disk('public')->get($media->path);
+        $mime = $media->mime_type ?? 'image/jpeg';
+        $base64 = 'data:' . $mime . ';base64,' . base64_encode($fileContent);
+
+        return response()->json([
+            'success' => true,
+            'data_url' => $base64
+        ]);
+    }
+
+    public function crop(Request $request, $id)
+    {
+        $media = Media::findOrFail($id);
+
+        $file = null;
+        $tempPath = null;
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+        } elseif ($request->input('image_data')) {
+            $base64Data = $request->input('image_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                $ext = strtolower($type[1]);
+                if ($ext === 'jpeg') $ext = 'jpg';
+                $base64Data = base64_decode($base64Data);
+
+                if ($base64Data !== false) {
+                    $tempPath = sys_get_temp_dir() . '/' . uniqid('crop_') . '.' . $ext;
+                    file_put_contents($tempPath, $base64Data);
+                    $file = new \Illuminate\Http\UploadedFile($tempPath, 'cropped_' . ($media->filename ?? 'image.jpg'), 'image/' . $ext, null, true);
+                }
+            }
+        }
+
+        if (!$file) {
+            return response()->json(['success' => false, 'message' => 'The file field is required.'], 422);
+        }
+
+        // Safely delete old file if exists
+        try {
+            if ($media->path && Storage::disk('public')->exists($media->path)) {
+                Storage::disk('public')->delete($media->path);
+            }
+        } catch (\Exception $e) {
+            // Ignore lock error on Windows OS
+        }
+
+        $folder = $media->folder ?? 'general';
+        $path = $file->store('media/' . $folder, 'public');
+        $storageUrl = Storage::url($path);
+        $url = str_starts_with($storageUrl, 'http') ? $storageUrl : url($storageUrl);
+
+        $dimensions = @getimagesize($file->getRealPath());
+        $width = $dimensions[0] ?? null;
+        $height = $dimensions[1] ?? null;
+
+        $media->update([
+            'filename' => basename($path),
+            'mime_type' => $file->getClientMimeType(),
+            'file_size' => $file->getSize(),
+            'width' => $width,
+            'height' => $height,
+            'path' => $path,
+            'url' => $url,
+            'alt_text' => $request->input('alt_text', $media->alt_text),
+            'title' => $request->input('title', $media->title),
+            'caption' => $request->input('caption', $media->caption),
+        ]);
+
+        if ($tempPath && file_exists($tempPath)) {
+            @unlink($tempPath);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image cropped and updated successfully',
+            'data' => $media
+        ]);
+    }
+
+
     public function destroy($id)
     {
         $media = Media::findOrFail($id);
-        Storage::disk('public')->delete($media->path);
+        if ($media->path && Storage::disk('public')->exists($media->path)) {
+            Storage::disk('public')->delete($media->path);
+        }
         $media->delete();
 
         return response()->json(['success' => true, 'message' => 'Media deleted successfully']);
     }
 }
+

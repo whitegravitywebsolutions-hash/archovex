@@ -264,26 +264,55 @@ export default function RichTextEditor({
         </div>
 
         {/* Clear Formatting & HTML Source Toggle */}
-        <div className="flex items-center ml-auto space-x-1">
+        <div className="flex items-center ml-auto gap-1">
           <button
             type="button"
             onClick={() => handleExecCommand('removeFormat')}
-            className="p-1.5 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors mr-1"
             title="Clear Formatting"
           >
             <RemoveFormatting className="w-4 h-4" />
           </button>
 
-          <button
-            type="button"
-            onClick={() => setShowHtml(!showHtml)}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ${
-              showHtml ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-            }`}
-          >
-            {showHtml ? <Eye className="w-3.5 h-3.5" /> : <Code className="w-3.5 h-3.5" />}
-            {showHtml ? 'Visual Editor' : 'HTML Source'}
-          </button>
+          <div className="bg-slate-200 p-0.5 rounded-lg flex items-center gap-0.5 text-[11px] font-bold">
+            <button
+              type="button"
+              onClick={() => {
+                if (showHtml) {
+                  setShowHtml(false);
+                  setTimeout(() => {
+                    if (editorRef.current) {
+                      editorRef.current.innerHTML = htmlSource;
+                    }
+                  }, 0);
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
+                !showHtml ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5 text-blue-600" />
+              <span>Visual Editor</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!showHtml) {
+                  if (editorRef.current) {
+                    setHtmlSource(editorRef.current.innerHTML);
+                  }
+                  setShowHtml(true);
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
+                showHtml ? 'bg-slate-900 text-emerald-400 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Code className="w-3.5 h-3.5" />
+              <span>HTML Source</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -293,8 +322,9 @@ export default function RichTextEditor({
           value={htmlSource}
           onChange={handleHtmlSourceChange}
           style={{ minHeight }}
-          className="w-full p-4 font-mono text-xs text-slate-800 bg-slate-900 text-slate-100 focus:outline-none resize-y"
+          className="w-full p-4 font-mono text-xs text-emerald-300 bg-slate-950 focus:outline-none resize-y leading-relaxed border-t border-slate-800 selection:bg-blue-600 selection:text-white"
           placeholder="<h1>Write HTML here...</h1>"
+          spellCheck={false}
         />
       ) : (
         <div
@@ -302,7 +332,7 @@ export default function RichTextEditor({
           contentEditable
           onInput={handleEditorInput}
           style={{ minHeight }}
-          className="p-4 text-xs text-slate-800 focus:outline-none prose max-w-none prose-slate prose-sm leading-relaxed overflow-y-auto"
+          className="p-4 text-xs text-slate-900 focus:outline-none prose max-w-none prose-slate prose-sm leading-relaxed overflow-y-auto"
           data-placeholder={placeholder}
         />
       )}

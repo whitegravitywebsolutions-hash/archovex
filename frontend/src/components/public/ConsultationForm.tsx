@@ -75,48 +75,48 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Your Name *</label>
+          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Your Name *</label>
           <input
             type="text"
             required
             placeholder="e.g. Rahul Sharma"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-medium focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Mobile Number *</label>
+          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Mobile Number *</label>
           <input
             type="tel"
             required
             placeholder="+91 98765 43210"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-medium focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Email Address</label>
+          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Email Address</label>
           <input
             type="email"
             placeholder="rahul@example.com"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-medium focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Select City</label>
+          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Select City</label>
           <select
             value={formData.city_id}
             onChange={(e) => setFormData({ ...formData, city_id: e.target.value })}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
           >
             <option value="">Select your city...</option>
             {cities.map((city) => (
@@ -131,11 +131,11 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
       {!compact && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Property Type</label>
+            <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Property Type</label>
             <select
               value={formData.property_type}
               onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+              className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
             >
               <option value="1 BHK">1 BHK Apartment</option>
               <option value="2 BHK">2 BHK Apartment</option>
@@ -146,11 +146,11 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Requirement</label>
+            <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Requirement</label>
             <select
               value={formData.requirement}
               onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+              className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
             >
               <option value="Full Home Interiors">Full Home Interiors</option>
               <option value="Modular Kitchen">Modular Kitchen</option>
@@ -161,11 +161,11 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-700 mb-1">Budget Range</label>
+            <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Budget Range</label>
             <select
               value={formData.budget}
               onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+              className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
             >
               <option value="Under ₹5L">Under ₹5 Lakhs</option>
               <option value="₹5L – ₹10L">₹5L – ₹10 Lakhs</option>
@@ -179,7 +179,7 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+        className="w-full py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl shadow-[#F97316]/25 transition-all flex items-center justify-center gap-2 border border-amber-300/40 disabled:opacity-50"
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'GET FREE CONSULTATION'}
       </button>

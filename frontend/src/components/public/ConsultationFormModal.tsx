@@ -15,24 +15,24 @@ export default function ConsultationFormModal({ isOpen, onClose, cities = [] }: 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C4A6E]/80 backdrop-blur-md animate-fade-in">
       <div
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg bg-[#FAF8F3] rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[90vh] overflow-y-auto border border-[#E4DCD0]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-[#0C4A6E] hover:bg-[#F3EEE4] rounded-full transition-all"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="text-center mb-6">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full inline-block mb-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/30 px-3.5 py-1 rounded-full inline-block mb-2 shadow-xs">
             ARCHOVEX INFRA STUDIO
           </span>
-          <h2 className="text-2xl font-bold text-slate-900">Book Free Consultation</h2>
-          <p className="text-xs text-slate-600 mt-1">
+          <h2 className="text-2xl font-black text-[#0C4A6E] uppercase tracking-tight">Book Free Consultation</h2>
+          <p className="text-xs text-slate-600 mt-1 font-normal">
             Get 3D designs, estimated budget breakdown & 10-year warranty advice.
           </p>
         </div>

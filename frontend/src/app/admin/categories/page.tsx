@@ -7,6 +7,14 @@ import { Category } from '@/types';
 import { Plus, Edit2, Trash2, Search, X, CheckCircle2, Loader2 } from 'lucide-react';
 import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 
+const formatDateForInput = (dateStr?: string | null) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +31,7 @@ export default function AdminCategoriesPage() {
     status: 'published',
     is_featured: false,
     sort_order: 0,
+    published_at: '',
     meta_title: '',
     meta_description: '',
   });
@@ -77,6 +86,7 @@ export default function AdminCategoriesPage() {
       status: 'published',
       is_featured: false,
       sort_order: categories.length + 1,
+      published_at: formatDateForInput(new Date().toISOString()),
       meta_title: '',
       meta_description: '',
     });
@@ -112,6 +122,7 @@ export default function AdminCategoriesPage() {
       status: cat.status,
       is_featured: cat.is_featured,
       sort_order: cat.sort_order,
+      published_at: formatDateForInput(cat.published_at || cat.created_at),
       meta_title: cat.meta_title || '',
       meta_description: cat.meta_description || '',
     });
@@ -156,6 +167,7 @@ export default function AdminCategoriesPage() {
 
     const payload = {
       ...formData,
+      published_at: formData.published_at ? new Date(formData.published_at).toISOString() : null,
       meta_title: seoData.meta_title || formData.name,
       meta_description: seoData.meta_description || formData.short_description,
       seo_data: {
@@ -236,6 +248,7 @@ export default function AdminCategoriesPage() {
                 <th className="p-4">Category Name</th>
                 <th className="p-4">Slug</th>
                 <th className="p-4">Posts</th>
+                <th className="p-4">Publish Date & Time</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Featured</th>
                 <th className="p-4">Order</th>
@@ -244,9 +257,9 @@ export default function AdminCategoriesPage() {
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {loading ? (
-                <tr><td colSpan={8} className="p-8 text-center text-slate-400">Loading categories...</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-slate-400">Loading categories...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="p-8 text-center text-slate-400">No categories found.</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-slate-400">No categories found.</td></tr>
               ) : (
                 filtered.map((cat) => (
                   <tr key={cat.id} className="hover:bg-slate-50 transition-colors">
@@ -258,6 +271,20 @@ export default function AdminCategoriesPage() {
                     <td className="p-4 font-bold text-slate-900">{cat.name}</td>
                     <td className="p-4 text-slate-500 font-mono text-[11px]">{cat.slug}</td>
                     <td className="p-4 font-bold">{cat.design_posts_count || 0} Posts</td>
+                    <td className="p-4 whitespace-nowrap">
+                      {cat.published_at || cat.created_at ? (
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-800">
+                            {new Date(cat.published_at || cat.created_at!).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(cat.published_at || cat.created_at!).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 italic">—</span>
+                      )}
+                    </td>
                     <td className="p-4">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
                         cat.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
@@ -342,17 +369,36 @@ export default function AdminCategoriesPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full p-2.5 border rounded-xl bg-white"
+                      className="w-full p-2.5 border rounded-xl bg-white font-bold"
                     >
                       <option value="published">Published</option>
                       <option value="draft">Draft</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block font-bold text-slate-700">Publish Date & Time</label>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, published_at: formatDateForInput(new Date().toISOString()) })}
+                        className="text-[10px] text-blue-600 hover:underline font-bold"
+                      >
+                        Set to Now
+                      </button>
+                    </div>
+                    <input
+                      type="datetime-local"
+                      value={formData.published_at}
+                      onChange={(e) => setFormData({ ...formData, published_at: e.target.value })}
+                      className="w-full p-2.5 border rounded-xl bg-white font-medium"
+                    />
                   </div>
 
                   <div className="flex items-center gap-2 pt-6">

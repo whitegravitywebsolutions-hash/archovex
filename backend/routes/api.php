@@ -66,6 +66,7 @@ Route::prefix('v1')->group(function () {
 
         // Design Posts & Multi-Image Upload
         Route::apiResource('design-posts', AdminDesignPostController::class);
+        Route::post('/design-posts/{id}/toggle-featured', [AdminDesignPostController::class, 'toggleFeatured']);
         Route::post('/design-posts/{id}/images', [AdminDesignPostController::class, 'uploadImages']);
         Route::post('/design-posts/{id}/images/primary/{imageId}', [AdminDesignPostController::class, 'setPrimaryImage']);
         Route::post('/design-posts/{id}/images/reorder', [AdminDesignPostController::class, 'reorderImages']);
@@ -95,9 +96,13 @@ Route::prefix('v1')->group(function () {
 
         // Media Library
         Route::get('/media', [AdminMediaController::class, 'index']);
+        Route::get('/media/{id}/base64', [AdminMediaController::class, 'base64']);
         Route::post('/media', [AdminMediaController::class, 'upload']);
         Route::put('/media/{id}', [AdminMediaController::class, 'update']);
+        Route::post('/media/{id}/crop', [AdminMediaController::class, 'crop']);
         Route::delete('/media/{id}', [AdminMediaController::class, 'destroy']);
+
+
 
         // Leads CRM
         Route::get('/leads', [AdminLeadController::class, 'index']);

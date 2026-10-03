@@ -6,11 +6,13 @@ import CategoryPageClient from './CategoryPageClient';
 import { fetchPublicData } from '@/lib/api';
 import { notFound } from 'next/navigation';
 
+import { Metadata } from 'next';
+
 interface PageProps {
   params: Promise<{ categorySlug: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { categorySlug } = await params;
   const data = await fetchPublicData(`/design-categories/${categorySlug}`);
   const cat = data?.category;
@@ -19,14 +21,49 @@ export async function generateMetadata({ params }: PageProps) {
     return { title: 'Category Not Found | ARCHOVEX INFRA' };
   }
 
+  const seo = cat.seo_data || {};
+  const title = seo.meta_title || cat.meta_title || `${cat.name} | ARCHOVEX INFRA PRIVATE LIMITED`;
+  const description = seo.meta_description || cat.meta_description || cat.short_description || `Browse custom ${cat.name} by ARCHOVEX INFRA.`;
+  const canonical = seo.canonical_url || cat.canonical_url || `https://archovex.com/designs/${cat.slug}`;
+  const ogTitle = seo.og_title || cat.og_title || title;
+  const ogDesc = seo.og_description || cat.og_description || description;
+  const ogImg = seo.og_image || cat.og_image || cat.image || '/logo.png';
+  const twitterCard = seo.twitter_card || 'summary_large_image';
+  const twitterSite = seo.twitter_site || '@archovex';
+  const robotsIndex = seo.robots_index ?? true;
+  const robotsFollow = seo.robots_follow ?? true;
+
   return {
-    title: cat.meta_title || `${cat.name} | ARCHOVEX INFRA PRIVATE LIMITED`,
-    description: cat.meta_description || cat.short_description || `Browse custom ${cat.name} by ARCHOVEX INFRA.`,
-    canonical: cat.canonical_url || `https://archovex.com/designs/${cat.slug}`,
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    robots: {
+      index: robotsIndex,
+      follow: robotsFollow,
+    },
     openGraph: {
-      title: cat.og_title || cat.meta_title || cat.name,
-      description: cat.og_description || cat.meta_description || cat.short_description,
-      images: [cat.og_image || cat.image || '/logo.png'],
+      title: ogTitle,
+      description: ogDesc,
+      url: canonical,
+      siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
+      images: [
+        {
+          url: ogImg,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      type: (seo.og_type as any) || 'website',
+    },
+    twitter: {
+      card: twitterCard,
+      site: twitterSite,
+      title: ogTitle,
+      description: ogDesc,
+      images: [ogImg],
     },
   };
 }
@@ -48,8 +85,41 @@ export default async function CategoryPage({ params }: PageProps) {
   const settings = homeData?.settings || {};
   const socialLinks = homeData?.social_links || [];
 
+  const seo = category.seo_data || {};
+  const customSchemaCode = seo.schema_code || '';
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://archovex.com/'
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': category.name,
+        'item': `https://archovex.com/designs/${category.slug}`
+      }
+    ]
+  };
+
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {customSchemaCode && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: customSchemaCode }}
+        />
+      )}
+
       <Header cities={cities} />
 
       <main className="flex-grow">

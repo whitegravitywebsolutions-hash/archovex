@@ -42,6 +42,8 @@ export interface Category {
   status: 'published' | 'draft' | 'archived';
   is_featured: boolean;
   sort_order: number;
+  published_at?: string | null;
+  created_at?: string;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
@@ -113,6 +115,7 @@ export interface DesignPost {
   status: 'published' | 'draft' | 'archived';
   is_featured: boolean;
   sort_order: number;
+  published_at?: string | null;
   views: number;
   meta_title?: string;
   meta_description?: string;
@@ -311,3 +314,23 @@ export interface SocialLink {
   sort_order: number;
   is_active: boolean;
 }
+
+export interface Page {
+  id: number;
+  title: string;
+  slug: string;
+  content?: string;
+  sections?: any[];
+  status: 'published' | 'draft';
+  published_at?: string | null;
+  meta_title?: string;
+  meta_description?: string;
+  canonical_url?: string;
+  og_title?: string;
+  og_description?: string;
+  og_image?: string;
+  robots?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+

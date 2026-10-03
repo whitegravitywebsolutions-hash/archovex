@@ -66,12 +66,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
   return (
-    <div className="min-h-screen bg-slate-100 flex font-sans">
+    <div className="min-h-screen bg-[#FAF8F3] flex font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-950 text-white flex flex-col justify-between p-4 border-r border-slate-900 fixed h-full z-30">
+      <aside className="w-64 bg-[#0C4A6E] text-white flex flex-col justify-between p-4 border-r border-[#075985] fixed h-full z-30 shadow-xl">
         <div className="space-y-6">
-          <div className="pt-2 px-2">
-            <Logo light />
+          <div className="pt-2 px-1 flex justify-center w-full">
+            <Logo light className="w-full justify-center" />
           </div>
 
           <nav className="space-y-1">
@@ -85,11 +85,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                      ? 'bg-[#F97316] text-white shadow-md shadow-[#F97316]/25 border border-amber-300/30'
+                      : 'text-sky-100 hover:text-white hover:bg-[#0369A1]/60'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-sky-200'}`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -98,22 +98,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* User Badge & Logout */}
-        <div className="pt-4 border-t border-slate-900 space-y-3">
+        <div className="pt-4 border-t border-[#075985] space-y-3">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-[#F97316] text-white flex items-center justify-center font-black text-xs shadow-sm">
               {user?.name ? user.name.charAt(0) : 'A'}
             </div>
             <div className="flex flex-col truncate">
               <span className="text-xs font-bold text-white truncate">{user?.name || 'Administrator'}</span>
-              <span className="text-[10px] text-blue-400 font-semibold">{user?.role || 'SUPER_ADMIN'}</span>
+              <span className="text-[10px] text-sky-200 font-bold uppercase tracking-wider">{user?.role || 'SUPER_ADMIN'}</span>
             </div>
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 bg-slate-900 hover:bg-rose-950 text-slate-300 hover:text-rose-300 text-xs font-bold rounded-xl transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2 bg-[#075985] hover:bg-rose-900/80 text-sky-100 hover:text-white text-xs font-bold rounded-xl transition-all border border-sky-600/40"
           >
-            <LogOut className="w-3.5 h-3.5" /> Logout
+            <LogOut className="w-3.5 h-3.5 text-rose-300" /> Logout
           </button>
         </div>
       </aside>
@@ -121,29 +121,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Workspace */}
       <div className="pl-64 flex-grow flex flex-col min-h-screen">
         {/* Topbar */}
-        <header className="bg-white border-b border-slate-200 h-16 px-8 flex items-center justify-between sticky top-0 z-20">
+        <header className="bg-white border-b border-[#E4DCD0] h-16 px-8 flex items-center justify-between sticky top-0 z-20 shadow-xs">
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span>ARCHOVEX Admin CMS</span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            <span className="font-bold text-slate-900 uppercase">
+            <span className="font-bold text-[#0C4A6E]">ARCHOVEX Admin CMS</span>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <span className="font-black text-[#F97316] uppercase">
               {pathname.split('/')[2] === 'designs' ? 'Blogs' : (pathname.split('/')[2] || 'Dashboard')}
             </span>
-
           </div>
 
           <div className="flex items-center gap-4">
             <Link
               href="/"
               target="_blank"
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xs font-black text-white bg-[#F97316] hover:bg-[#EA580C] px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1 border border-amber-300/30"
             >
-              View Live Website ↗
+              <span>View Live Website</span> ↗
             </Link>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="p-8 flex-grow">{children}</main>
+        <main className="p-8 flex-grow bg-[#FAF8F3]">{children}</main>
       </div>
     </div>
   );

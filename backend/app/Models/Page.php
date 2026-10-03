@@ -13,5 +13,6 @@ class Page extends Model
 
     protected $casts = [
         'sections' => 'array',
+        'published_at' => 'datetime',
     ];
 }

@@ -60,7 +60,7 @@ export default async function HomePage() {
   const dynamicSections = Array.isArray(customHomePage?.sections) ? customHomePage.sections : [];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       
       <main className="flex-grow">

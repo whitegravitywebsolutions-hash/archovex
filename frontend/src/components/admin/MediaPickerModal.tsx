@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { apiClient, getImageUrl } from '@/lib/api';
 import { Media } from '@/types';
-import { Upload, Search, X, Check, Loader2, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Upload, Search, X, Check, Loader2, Trash2, Image as ImageIcon, Edit3 } from 'lucide-react';
+import MediaDetailModal from './MediaDetailModal';
 
 interface MediaPickerModalProps {
   isOpen: boolean;
@@ -24,6 +25,10 @@ export default function MediaPickerModal({
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
+
+  // Selected media for Edit/Crop Modal
+  const [selectedDetailMedia, setSelectedDetailMedia] = useState<Media | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const fetchMedia = async () => {
     setLoading(true);
@@ -89,6 +94,12 @@ export default function MediaPickerModal({
     }
   };
 
+  const openEditModal = (e: React.MouseEvent, m: Media) => {
+    e.stopPropagation();
+    setSelectedDetailMedia(m);
+    setIsDetailModalOpen(true);
+  };
+
   const toggleSelect = (rawUrl: string) => {
     const url = getImageUrl(rawUrl);
     if (!allowMultiple) {
@@ -112,7 +123,7 @@ export default function MediaPickerModal({
   };
 
   const filtered = mediaList.filter((m) =>
-    (m.original_name || m.filename || '').toLowerCase().includes(search.toLowerCase())
+    (m.original_name || m.filename || m.alt_text || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -126,7 +137,7 @@ export default function MediaPickerModal({
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">Select Asset from Media Library</h3>
-              <p className="text-[11px] text-slate-500">Upload a new file, pick existing assets, or delete unwanted media.</p>
+              <p className="text-[11px] text-slate-500">Upload a new file, edit Alt tags, crop image (WordPress style), or pick existing assets.</p>
             </div>
           </div>
 
@@ -182,8 +193,8 @@ export default function MediaPickerModal({
                         : 'border-slate-200 hover:border-slate-400'
                     }`}
                   >
-                    <Image src={fullUrl} alt={m.original_name} fill className="object-cover" unoptimized />
-                    
+                    <Image src={fullUrl} alt={m.alt_text || m.original_name} fill className="object-cover" unoptimized />
+
                     {/* Selection Checkmark */}
                     <div
                       className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
@@ -195,15 +206,26 @@ export default function MediaPickerModal({
                       <Check className="w-3.5 h-3.5" />
                     </div>
 
-                    {/* Delete Icon on Hover */}
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteMedia(e, m.id, m.url)}
-                      className="absolute top-2 left-2 p-1.5 bg-rose-600/90 hover:bg-rose-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow"
-                      title="Delete Asset from Library"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {/* Quick Edit & Delete Buttons on Hover */}
+                    <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={(e) => openEditModal(e, m)}
+                        className="p-1.5 bg-slate-900/90 hover:bg-slate-900 text-white rounded-lg shadow"
+                        title="Edit Alt Text & Crop Image"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteMedia(e, m.id, m.url)}
+                        className="p-1.5 bg-rose-600/90 hover:bg-rose-600 text-white rounded-lg shadow"
+                        title="Delete Asset from Library"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
 
                     <div className="absolute inset-x-0 bottom-0 bg-slate-900/70 p-2 text-white text-[10px] truncate">
                       {m.original_name}
@@ -238,6 +260,14 @@ export default function MediaPickerModal({
           </div>
         </div>
       </div>
+
+      {/* WordPress Style Media Detail & Edit Modal */}
+      <MediaDetailModal
+        isOpen={isDetailModalOpen}
+        media={selectedDetailMedia}
+        onClose={() => setIsDetailModalOpen(false)}
+        onUpdateSuccess={fetchMedia}
+      />
     </div>
   );
 }

@@ -4,12 +4,19 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { apiClient, getImageUrl } from '@/lib/api';
-import { Category, City, DesignPost } from '@/types';
-import { Plus, Trash2, Star, Upload, ArrowLeft, Loader2, CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { Category, DesignPost } from '@/types';
+import { Trash2, Star, ArrowLeft, Loader2, Image as ImageIcon, Calendar, Clock } from 'lucide-react';
 import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 
+const formatDateForInput = (dateStr?: string | null) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 interface DesignFormProps {
   initialData?: DesignPost | null;
@@ -19,8 +26,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
   const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [allPosts, setAllPosts] = useState<DesignPost[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,39 +36,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [shortDescription, setShortDescription] = useState(initialData?.short_description || '');
   const [description, setDescription] = useState(initialData?.description || '');
-
-  // Section 2 Details
-  const [style, setStyle] = useState(initialData?.style || 'Modern');
-  const [roomType, setRoomType] = useState(initialData?.room_type || 'Kitchen');
-  const [layout, setLayout] = useState(initialData?.layout || 'L-Shaped');
-  const [dimensions, setDimensions] = useState(initialData?.dimensions || '12 x 10 Feet');
-  const [colour, setColour] = useState(initialData?.colour || 'White + Wood');
-  const [material, setMaterial] = useState(initialData?.material || 'Engineered Wood');
-  const [finish, setFinish] = useState(initialData?.finish || 'Acrylic');
-  const [budgetMin, setBudgetMin] = useState<number | string>(initialData?.budget_min || 400000);
-  const [budgetMax, setBudgetMax] = useState<number | string>(initialData?.budget_max || 600000);
-  const [propertyType, setPropertyType] = useState(initialData?.property_type || '3 BHK');
-  const [area, setArea] = useState(initialData?.area || '120 Sq Ft');
-  const [cityId, setCityId] = useState<number | string>(initialData?.city_id || '');
-  const [location, setLocation] = useState(initialData?.location || '');
-
-  // Section 3 Specs repeater
-  const [specifications, setSpecifications] = useState<Array<{ label: string; value: string }>>(
-    initialData?.specifications?.map(s => ({ label: s.label, value: s.value })) || [
-      { label: 'Style', value: 'Modern' },
-      { label: 'Hardware', value: 'Blum Soft-Close' },
-      { label: 'Warranty', value: '10 Years Warranty' },
-    ]
-  );
-
-  // Section 4 Features repeater
-  const [features, setFeatures] = useState<string[]>(
-    initialData?.features?.map(f => f.feature) || [
-      'German soft-close tandem drawers',
-      'Tall pantry pull-out unit',
-      'Concealed under-cabinet LED task illumination',
-    ]
-  );
 
   // Section 5 Images
   const [images, setImages] = useState<Array<{ id?: number; image: string; is_primary?: boolean }>>(
@@ -129,13 +101,12 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
 
   // Section 8 Publish
   const [status, setStatus] = useState(initialData?.status || 'published');
+  const [publishedAt, setPublishedAt] = useState<string>(formatDateForInput(initialData?.published_at));
   const [isFeatured, setIsFeatured] = useState(initialData?.is_featured || false);
   const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 1);
 
   useEffect(() => {
     apiClient.get('/admin/categories').then((res) => setCategories(res.data.data || []));
-    apiClient.get('/admin/cities').then((res) => setCities(res.data.data || []));
-    apiClient.get('/admin/design-posts').then((res) => setAllPosts(res.data.data?.data || res.data.data || []));
 
     if (initialData?.slug) {
       apiClient.get(`/admin/seo/by-path?path=/designs/${initialData.slug}`).then((res) => {
@@ -150,22 +121,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
       }).catch(() => {});
     }
   }, [initialData]);
-
-  const addSpecification = () => {
-    setSpecifications([...specifications, { label: '', value: '' }]);
-  };
-
-  const removeSpecification = (index: number) => {
-    setSpecifications(specifications.filter((_, idx) => idx !== index));
-  };
-
-  const addFeature = () => {
-    setFeatures([...features, '']);
-  };
-
-  const removeFeature = (index: number) => {
-    setFeatures(features.filter((_, idx) => idx !== index));
-  };
 
   const addImageUrl = () => {
     if (!imageUrlInput) return;
@@ -199,25 +154,26 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
       slug,
       short_description: shortDescription,
       description,
-      style,
-      room_type: roomType,
-      layout,
-      dimensions,
-      colour,
-      material,
-      finish,
-      budget_min: budgetMin,
-      budget_max: budgetMax,
-      property_type: propertyType,
-      area,
-      city_id: cityId || null,
-      location,
+      style: initialData?.style || null,
+      room_type: initialData?.room_type || null,
+      layout: initialData?.layout || null,
+      dimensions: initialData?.dimensions || null,
+      colour: initialData?.colour || null,
+      material: initialData?.material || null,
+      finish: initialData?.finish || null,
+      budget_min: initialData?.budget_min || null,
+      budget_max: initialData?.budget_max || null,
+      property_type: initialData?.property_type || null,
+      area: initialData?.area || null,
+      city_id: initialData?.city_id || null,
+      location: initialData?.location || null,
       featured_image: images.find(i => i.is_primary)?.image || images[0]?.image || '',
       status,
+      published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
       is_featured: isFeatured,
       sort_order: sortOrder,
-      specifications: specifications.filter(s => s.label && s.value),
-      features: features.filter(f => f.trim() !== ''),
+      specifications: initialData?.specifications || [],
+      features: initialData?.features || [],
       images: images.map(i => i.image),
       meta_title: seoData.meta_title || title,
       meta_description: seoData.meta_description || shortDescription,
@@ -275,9 +231,9 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
 
       {error && <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 font-bold rounded-xl">{error}</div>}
 
-      {/* SECTION 1: BASIC INFORMATION */}
+      {/* BASIC INFORMATION */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Section 1: Basic Information</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Basic Information</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -331,155 +287,28 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
         </div>
 
         <div>
-          <label className="block font-bold text-slate-700 mb-1">Detailed Description & Content</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block font-bold text-slate-700">Detailed Description & Content</label>
+            <span className="text-[11px] font-semibold text-slate-500">
+              Supports Visual Editor & Raw HTML Source Mode
+            </span>
+          </div>
           <RichTextEditor
             value={description}
             onChange={setDescription}
-            placeholder="Write full blog content, detailed description, space planning, lighting specs..."
+            placeholder="Write full blog content, detailed description, space planning, specs or paste HTML source code..."
           />
         </div>
       </div>
 
 
-      {/* SECTION 2: DESIGN DETAILS & TAXONOMY */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Section 2: Design Details & Attributes</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Style</label>
-            <input type="text" value={style} onChange={(e) => setStyle(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
 
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Layout</label>
-            <input type="text" value={layout} onChange={(e) => setLayout(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Dimensions</label>
-            <input type="text" value={dimensions} onChange={(e) => setDimensions(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Colour Palette</label>
-            <input type="text" value={colour} onChange={(e) => setColour(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Material</label>
-            <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Finish</label>
-            <input type="text" value={finish} onChange={(e) => setFinish(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Budget Min (₹)</label>
-            <input type="number" value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Budget Max (₹)</label>
-            <input type="number" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} className="w-full p-2.5 border rounded-xl" />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Assigned City</label>
-            <select value={cityId} onChange={(e) => setCityId(e.target.value)} className="w-full p-2.5 border rounded-xl">
-              <option value="">All Cities</option>
-              {cities.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3: SPECIFICATIONS REPEATER */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-        <div className="flex items-center justify-between border-b pb-2">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">Section 3: Design Specifications</h2>
-          <button type="button" onClick={addSpecification} className="px-3 py-1 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100">
-            + Add Specification
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {specifications.map((spec, idx) => (
-            <div key={idx} className="flex gap-3 items-center">
-              <input
-                type="text"
-                placeholder="Label (e.g. Countertop)"
-                value={spec.label}
-                onChange={(e) => {
-                  const updated = [...specifications];
-                  updated[idx].label = e.target.value;
-                  setSpecifications(updated);
-                }}
-                className="w-1/2 p-2.5 border rounded-xl"
-              />
-              <input
-                type="text"
-                placeholder="Value (e.g. Engineered Quartz)"
-                value={spec.value}
-                onChange={(e) => {
-                  const updated = [...specifications];
-                  updated[idx].value = e.target.value;
-                  setSpecifications(updated);
-                }}
-                className="w-1/2 p-2.5 border rounded-xl"
-              />
-              <button type="button" onClick={() => removeSpecification(idx)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* SECTION 4: SPECIAL FEATURES REPEATER */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-        <div className="flex items-center justify-between border-b pb-2">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">Section 4: Special Features</h2>
-          <button type="button" onClick={addFeature} className="px-3 py-1 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100">
-            + Add Feature
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {features.map((ft, idx) => (
-            <div key={idx} className="flex gap-3 items-center">
-              <input
-                type="text"
-                placeholder="Feature description (e.g. Soft-close German Blum hinges)"
-                value={ft}
-                onChange={(e) => {
-                  const updated = [...features];
-                  updated[idx] = e.target.value;
-                  setFeatures(updated);
-                }}
-                className="w-full p-2.5 border rounded-xl"
-              />
-              <button type="button" onClick={() => removeFeature(idx)} className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* SECTION 5: IMAGE GALLERY MANAGER */}
+      {/* MULTI-IMAGE GALLERY MANAGER */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-3">
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">Section 5: Multi-Image Gallery</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">Multi-Image Gallery</h2>
             <p className="text-[11px] text-slate-500">Choose assets from Central Media Library or paste external image URLs.</p>
           </div>
 
@@ -538,6 +367,117 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
         </div>
       </div>
 
+      {/* SECTION 6: PUBLISHING & FEATURED SETTINGS */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+        <div className="flex items-center justify-between border-b pb-2">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+            Publishing & Featured Settings
+          </h2>
+          {status === 'draft' ? (
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200 flex items-center gap-1.5">
+              ⚪ Draft Mode (Hidden)
+            </span>
+          ) : publishedAt && new Date(publishedAt) > new Date() ? (
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full border bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              Scheduled for {new Date(publishedAt).toLocaleString()}
+            </span>
+          ) : (
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+              {publishedAt ? `Published on ${new Date(publishedAt).toLocaleDateString()}` : 'Published Live'}
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div>
+            <label className="block font-bold text-xs text-slate-700 mb-1">Publish Status</label>
+            <select
+              value={status === 'published' && isFeatured ? 'featured' : status}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'featured') {
+                  setStatus('published');
+                  setIsFeatured(true);
+                } else if (val === 'published') {
+                  setStatus('published');
+                } else {
+                  setStatus(val);
+                }
+              }}
+              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+            >
+              <option value="published">🟢 Published / Scheduled</option>
+              <option value="featured">⭐ Published & Featured Blog</option>
+              <option value="draft">⚪ Draft (Hidden)</option>
+            </select>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block font-bold text-xs text-slate-700">Publish Date & Time</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setPublishedAt(formatDateForInput(new Date().toISOString()));
+                  if (status === 'draft') setStatus('published');
+                }}
+                className="text-[10px] text-blue-600 hover:underline font-bold"
+              >
+                Set to Now
+              </button>
+            </div>
+            <input
+              type="datetime-local"
+              value={publishedAt}
+              onChange={(e) => {
+                setPublishedAt(e.target.value);
+                if (status === 'draft' && e.target.value) {
+                  setStatus('published');
+                }
+              }}
+              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-xs text-slate-700 mb-1">Sort Order</label>
+            <input
+              type="number"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(parseInt(e.target.value) || 1)}
+              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2.5 cursor-pointer p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors">
+              <input
+                type="checkbox"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+              />
+              <div>
+                <span className="font-extrabold text-xs text-slate-900 block">★ Featured Blog</span>
+                <span className="text-[10px] text-slate-500 block leading-tight">Highlight on homepage</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {publishedAt && new Date(publishedAt) > new Date() && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>Scheduled Publishing Active:</strong> This post will remain scheduled and will go live automatically on{' '}
+              <strong>{new Date(publishedAt).toLocaleString()}</strong>.
+            </span>
+          </div>
+        )}
+      </div>
+
       {/* Media Picker Modal */}
       <MediaPickerModal
         isOpen={isMediaPickerOpen}
@@ -551,3 +491,4 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
     </form>
   );
 }
+

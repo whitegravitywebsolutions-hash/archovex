@@ -15,6 +15,7 @@ class DesignPost extends Model
         'is_featured' => 'boolean',
         'budget_min' => 'decimal:2',
         'budget_max' => 'decimal:2',
+        'published_at' => 'datetime',
     ];
 
     public function category()

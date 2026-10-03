@@ -13,6 +13,7 @@ class Category extends Model
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'published_at' => 'datetime',
     ];
 
     public function designPosts()

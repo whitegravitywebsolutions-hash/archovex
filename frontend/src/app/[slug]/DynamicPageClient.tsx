@@ -23,7 +23,7 @@ export default function DynamicPageClient({ page, cities = [] }: DynamicPageClie
         />
       ) : (
         <div className="py-20 px-4 text-center max-w-3xl mx-auto">
-          <h1 className="text-3xl font-black text-slate-900 uppercase">{page?.title || 'Page Content'}</h1>
+          <h1 className="text-3xl font-black text-[#0B132B] uppercase">{page?.title || 'Page Content'}</h1>
           <p className="text-sm text-slate-500 mt-2">This page currently has no section content configured.</p>
         </div>
       )}

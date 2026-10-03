@@ -132,6 +132,9 @@ class PublicController extends Controller
     public function categoryBySlug($categorySlug, Request $request)
     {
         $category = Category::where('slug', $categorySlug)->firstOrFail();
+        $catSeo = SeoMetadata::where('path', '/designs/' . $category->slug)->first();
+        $catData = $category->toArray();
+        $catData['seo_data'] = $catSeo;
 
         $query = DesignPost::with(['category', 'city', 'primaryImage', 'images', 'specifications', 'features'])
             ->where('category_id', $category->id)
@@ -157,7 +160,7 @@ class PublicController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'category' => $category,
+                'category' => $catData,
                 'posts' => $posts,
                 'faqs' => $faqs,
             ]
@@ -185,6 +188,10 @@ class PublicController extends Controller
         // Increment view count
         $post->increment('views');
 
+        $seo = SeoMetadata::where('path', '/designs/' . $post->slug)->first();
+        $postData = $post->toArray();
+        $postData['seo_data'] = $seo;
+
         // Fallback related designs if manual related designs empty
         $related = $post->relatedPosts;
         if ($related->isEmpty()) {
@@ -200,7 +207,7 @@ class PublicController extends Controller
             'success' => true,
             'data' => [
                 'category' => $category,
-                'post' => $post,
+                'post' => $postData,
                 'related' => $related,
             ]
         ]);

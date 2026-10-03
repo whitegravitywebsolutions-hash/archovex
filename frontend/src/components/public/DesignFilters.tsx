@@ -14,7 +14,6 @@ export default function DesignFilters({ cities = [], onFilterChange, activeCateg
   const [search, setSearch] = useState('');
   const [style, setStyle] = useState('');
   const [layout, setLayout] = useState('');
-  const [budgetMax, setBudgetMax] = useState('');
   const [cityId, setCityId] = useState('');
 
   // Debounced search
@@ -24,26 +23,24 @@ export default function DesignFilters({ cities = [], onFilterChange, activeCateg
         search,
         style,
         layout,
-        budget_max: budgetMax,
         city_id: cityId,
       });
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, style, layout, budgetMax, cityId]);
+  }, [search, style, layout, cityId]);
 
   const clearFilters = () => {
     setSearch('');
     setStyle('');
     setLayout('');
-    setBudgetMax('');
     setCityId('');
     onFilterChange({});
   };
 
-  const hasActive = search || style || layout || budgetMax || cityId;
+  const hasActive = search || style || layout || cityId;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+    <div className="bg-[#F3EEE4] rounded-2xl border border-[#E4DCD0] p-4 sm:p-6 shadow-sm space-y-4">
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         {/* Search Input */}
         <div className="relative w-full md:w-1/3">
@@ -53,17 +50,17 @@ export default function DesignFilters({ cities = [], onFilterChange, activeCateg
             placeholder="Search designs by title, style, finish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0C4A6E] font-bold focus:ring-2 focus:ring-[#0891B2] focus:outline-none transition-all"
           />
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-2/3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-2/3">
           {/* Style */}
           <select
             value={style}
             onChange={(e) => setStyle(e.target.value)}
-            className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none"
+            className="px-3 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs font-bold text-[#0C4A6E] focus:ring-2 focus:ring-[#0891B2] focus:outline-none"
           >
             <option value="">All Styles</option>
             <option value="Modern">Modern</option>
@@ -78,7 +75,7 @@ export default function DesignFilters({ cities = [], onFilterChange, activeCateg
           <select
             value={layout}
             onChange={(e) => setLayout(e.target.value)}
-            className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none"
+            className="px-3 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs font-bold text-[#0C4A6E] focus:ring-2 focus:ring-[#0891B2] focus:outline-none"
           >
             <option value="">All Layouts</option>
             <option value="L-Shaped">L-Shaped</option>
@@ -90,24 +87,11 @@ export default function DesignFilters({ cities = [], onFilterChange, activeCateg
             <option value="Walk-In U-Shape">Walk-In Closet</option>
           </select>
 
-          {/* Budget */}
-          <select
-            value={budgetMax}
-            onChange={(e) => setBudgetMax(e.target.value)}
-            className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none"
-          >
-            <option value="">All Budgets</option>
-            <option value="300000">Under ₹3 Lakhs</option>
-            <option value="500000">Under ₹5 Lakhs</option>
-            <option value="800000">Under ₹8 Lakhs</option>
-            <option value="1500000">Under ₹15 Lakhs</option>
-          </select>
-
           {/* City */}
           <select
             value={cityId}
             onChange={(e) => setCityId(e.target.value)}
-            className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none"
+            className="px-3 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs font-bold text-[#0C4A6E] focus:ring-2 focus:ring-[#0891B2] focus:outline-none"
           >
             <option value="">All Cities</option>
             {cities.map((c) => (
@@ -118,7 +102,7 @@ export default function DesignFilters({ cities = [], onFilterChange, activeCateg
       </div>
 
       {hasActive && (
-        <div className="flex items-center justify-between pt-2 border-t text-xs text-slate-500">
+        <div className="flex items-center justify-between pt-2 border-t border-[#E4DCD0] text-xs text-slate-500">
           <span>Active filters applied</span>
           <button
             onClick={clearFilters}
