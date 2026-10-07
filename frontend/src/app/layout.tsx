@@ -23,9 +23,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const homeData = await fetchPublicData('/home');
   const settings = homeData?.settings || {};
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://archovex.vercel.app';
+
   return {
+    metadataBase: new URL(siteUrl),
     title: settings.default_meta_title || "ARCHOVEX INFRA PRIVATE LIMITED | Premium Interior Design",
     description: settings.default_meta_description || "Luxury home interior design and turnkey execution across India.",
+    alternates: {
+      canonical: siteUrl,
+    },
     icons: {
       icon: [
         { url: '/icon.png', type: 'image/png' },
