@@ -96,9 +96,9 @@ export default function DesignDetailClient({ post, category, related, cities }: 
             <Home className="w-3.5 h-3.5" /> Home
           </Link>
           <ChevronRight className="w-3 h-3 text-slate-300" />
-          <Link href="/designs" className="hover:text-slate-900">Designs</Link>
+          <Link href="/blogs" className="hover:text-slate-900">Blogs</Link>
           <ChevronRight className="w-3 h-3 text-slate-300" />
-          <Link href={`/designs/${category.slug}`} className="hover:text-slate-900">{category.name}</Link>
+          <Link href={`/blogs/${category.slug}`} className="hover:text-slate-900">{category.name}</Link>
           <ChevronRight className="w-3 h-3 text-slate-300" />
           <span className="font-bold text-slate-900 line-clamp-1">{post.title}</span>
         </div>

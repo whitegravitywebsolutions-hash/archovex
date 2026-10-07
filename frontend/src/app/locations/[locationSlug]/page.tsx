@@ -2,33 +2,33 @@ import React from 'react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
-import CityPageClient from './CityPageClient';
+import LocationPageClient from '@/components/public/LocationPageClient';
 import { fetchPublicData } from '@/lib/api';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
-  params: Promise<{ citySlug: string }>;
+  params: Promise<{ locationSlug: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { citySlug } = await params;
-  const data = await fetchPublicData(`/cities/${citySlug}`);
+  const { locationSlug } = await params;
+  const data = await fetchPublicData(`/cities/${locationSlug}`);
   const city = data?.city;
 
   if (!city) {
-    return { title: 'City Not Found | ARCHOVEX INFRA' };
+    return { title: 'Location Not Found | ARCHOVEX INFRA' };
   }
 
   return {
     title: city.meta_title || `Best Interior Designers in ${city.name} | ARCHOVEX INFRA`,
     description: city.meta_description || city.description || `Turnkey interior design services in ${city.name}.`,
-    canonical: city.canonical_url || `https://archovex.com/cities/${city.slug}`,
+    canonical: city.canonical_url || `https://archovex.com/locations/${city.slug}`,
   };
 }
 
-export default async function CityDetailPage({ params }: PageProps) {
-  const { citySlug } = await params;
-  const data = await fetchPublicData(`/cities/${citySlug}`);
+export default async function LocationDetailPage({ params }: PageProps) {
+  const { locationSlug } = await params;
+  const data = await fetchPublicData(`/cities/${locationSlug}`);
 
   if (!data || !data.city) {
     notFound();
@@ -48,10 +48,10 @@ export default async function CityDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
-      <Header cities={cities} />
+      <Header initialMenu={homeData?.menus || []} cities={cities} />
 
       <main className="flex-grow">
-        <CityPageClient
+        <LocationPageClient
           city={city}
           designs={designs}
           services={services}

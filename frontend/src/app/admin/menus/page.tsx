@@ -1,28 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import { MenuItem, MegaMenuColumn, MegaMenuItem } from '@/types';
 import {
   Plus,
-  Edit2,
   Trash2,
-  ArrowDown,
-  ArrowUp,
-  CheckCircle2,
   Save,
   ChevronDown,
   ChevronUp,
-  Layers,
-  Link as LinkIcon,
   Grid,
-  PlusCircle,
   Loader2,
   MoveUp,
   MoveDown,
   Sparkles,
-  Eye,
-  EyeOff
+  ExternalLink,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function AdminMenusPage() {
@@ -33,7 +27,7 @@ export default function AdminMenusPage() {
   const [message, setMessage] = useState('');
   const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
 
-  // New Item Modals / Quick Add States
+  // Quick Add State for Top Navigation Item
   const [newTopItem, setNewTopItem] = useState({
     label: '',
     url: '',
@@ -49,6 +43,14 @@ export default function AdminMenusPage() {
         setMenuId(res.data.data.id);
         const rawItems = res.data.data.items || [];
         setMenuItems(rawItems);
+
+        // Auto-expand item if it has mega columns
+        if (expandedItemId === null) {
+          const firstMega = rawItems.find((it: MenuItem) => it.type === 'megamenu' || (it.megaColumns && it.megaColumns.length > 0) || (it as any).mega_columns?.length > 0);
+          if (firstMega) {
+            setExpandedItemId(firstMega.id);
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to fetch menu:', err);
@@ -103,7 +105,7 @@ export default function AdminMenusPage() {
         is_active: item.is_active,
         open_new_tab: item.open_new_tab,
       });
-      setMessage(`Updated "${item.label}" successfully!`);
+      setMessage(`Saved "${item.label}" successfully!`);
       setTimeout(() => setMessage(''), 3000);
       fetchMenu();
     } catch (err: any) {
@@ -148,18 +150,15 @@ export default function AdminMenusPage() {
   /* MEGA MENU COLUMNS HANDLERS                                                 */
   /* -------------------------------------------------------------------------- */
   const handleAddMegaColumn = async (menuItemId: number) => {
-    const title = prompt('Enter Column Title (e.g. KITCHENS & DINING):', 'NEW COLUMN');
-    if (!title) return;
-
     try {
       const res = await apiClient.post('/admin/mega-columns', {
         menu_item_id: menuItemId,
-        title,
+        title: 'COLUMN',
         sort_order: 1,
       });
 
       if (res.data.success) {
-        setMessage(`Added mega column "${title}"`);
+        setMessage('Added mega column layout');
         fetchMenu();
       }
     } catch (err: any) {
@@ -169,7 +168,7 @@ export default function AdminMenusPage() {
 
   const handleUpdateMegaColumn = async (columnId: number, title: string) => {
     try {
-      await apiClient.put(`/admin/mega-columns/${columnId}`, { title });
+      await apiClient.put(`/admin/mega-columns/${columnId}`, { title: title.toUpperCase() });
       setMessage(`Updated column heading "${title}"`);
       setTimeout(() => setMessage(''), 3000);
       fetchMenu();
@@ -179,7 +178,7 @@ export default function AdminMenusPage() {
   };
 
   const handleDeleteMegaColumn = async (columnId: number, title: string) => {
-    if (!confirm(`Are you sure you want to delete mega column "${title}" and all its links?`)) return;
+    if (!confirm(`Are you sure you want to delete mega column "${title}" and all its sub-links?`)) return;
     try {
       await apiClient.delete(`/admin/mega-columns/${columnId}`);
       setMessage(`Deleted column "${title}"`);
@@ -195,13 +194,14 @@ export default function AdminMenusPage() {
   const handleAddMegaItem = async (columnId: number) => {
     const label = prompt('Enter Sub-link Label (e.g. L-Shaped Kitchens):', 'New Sub Link');
     if (!label) return;
-    const url = prompt('Enter Sub-link Target URL (e.g. /designs/l-shaped-kitchens):', '/designs');
+    const url = prompt('Enter Sub-link Target URL Path (e.g. /services/modular-kitchen-design?style=L-Shaped):', '/services');
 
     try {
       const res = await apiClient.post('/admin/mega-items', {
         mega_menu_column_id: columnId,
         label,
         url: url || '#',
+        description: 'HOT',
         sort_order: 1,
         is_active: true,
       });
@@ -224,7 +224,7 @@ export default function AdminMenusPage() {
         is_active: item.is_active,
         sort_order: item.sort_order,
       });
-      setMessage(`Updated sub-link "${item.label}"`);
+      setMessage(`Saved sub-link "${item.label}"`);
       setTimeout(() => setMessage(''), 3000);
       fetchMenu();
     } catch (err: any) {
@@ -253,28 +253,33 @@ export default function AdminMenusPage() {
   }
 
   return (
-    <div className="space-y-6 text-xs max-w-5xl font-sans pb-20">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-            <span>Header & Mega Menu Manager</span>
-            <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full border border-blue-200">
-              Live Navigation CMS
-            </span>
-          </h1>
-          <p className="text-xs text-slate-500">
-            Edit primary navigation titles, URLs, menu types, mega menu columns, and sub-link items with live public reflection.
-          </p>
+    <div className="space-y-6 text-xs max-w-6xl font-sans pb-20">
+      {/* Top Breadcrumb & Live Link Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <span className="text-slate-900 font-extrabold">ARCHOVEX Admin CMS</span>
+          <span>&gt;</span>
+          <span className="text-[#F97316] font-black">MENUS</span>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsAddingTopItem(!isAddingTopItem)}
-          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-2 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Add Navigation Item
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsAddingTopItem(!isAddingTopItem)}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" /> Add Navigation Item
+          </button>
+
+          <Link
+            href="/"
+            target="_blank"
+            className="px-4 py-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-black rounded-xl text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+          >
+            <span>View Live Website</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
 
       {message && (
@@ -284,17 +289,17 @@ export default function AdminMenusPage() {
         </div>
       )}
 
-      {/* CREATE NEW TOP MENU ITEM MODAL / FORM */}
+      {/* CREATE NEW TOP MENU ITEM FORM */}
       {isAddingTopItem && (
         <div className="bg-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4 animate-fade-in">
-          <h3 className="font-extrabold text-sm uppercase tracking-wider text-blue-400">Add New Top Navigation Item</h3>
+          <h3 className="font-extrabold text-sm uppercase tracking-wider text-[#F97316]">Add New Top Navigation Item</h3>
           <form onSubmit={handleAddTopItem} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1">Navigation Label *</label>
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">LABEL *</label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Special Offers / Portfolio"
+                placeholder="e.g. Services / Portfolio"
                 value={newTopItem.label}
                 onChange={(e) => setNewTopItem({ ...newTopItem, label: e.target.value })}
                 className="w-full p-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs"
@@ -302,11 +307,11 @@ export default function AdminMenusPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1">Target URL / Path *</label>
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">URL PATH *</label>
               <input
                 type="text"
                 required
-                placeholder="/offers or #"
+                placeholder="/services or #"
                 value={newTopItem.url}
                 onChange={(e) => setNewTopItem({ ...newTopItem, url: e.target.value })}
                 className="w-full p-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs font-mono"
@@ -314,13 +319,13 @@ export default function AdminMenusPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-300 mb-1">Navigation Type</label>
+              <label className="block text-[11px] font-bold text-slate-300 mb-1">TYPE</label>
               <select
                 value={newTopItem.type}
                 onChange={(e) => setNewTopItem({ ...newTopItem, type: e.target.value })}
-                className="w-full p-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs"
+                className="w-full p-2.5 bg-slate-800 border border-slate-700 text-white rounded-xl text-xs font-semibold"
               >
-                <option value="link">Direct Page Link</option>
+                <option value="link">Direct Link</option>
                 <option value="megamenu">Mega Menu Dropdown</option>
                 <option value="city">City Locations Dropdown</option>
               </select>
@@ -337,7 +342,7 @@ export default function AdminMenusPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md flex items-center gap-2"
+                className="px-6 py-2 bg-[#F97316] hover:bg-[#EA580C] text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md flex items-center gap-2"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Top Item'}
               </button>
@@ -355,15 +360,15 @@ export default function AdminMenusPage() {
 
           return (
             <div key={item.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-all">
-              {/* ITEM HEADER STRIP */}
-              <div className="p-4 bg-slate-50/80 flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-slate-100">
-                <div className="flex items-center gap-3 w-full lg:w-auto">
+              {/* ITEM HEADER ROW */}
+              <div className="p-4 bg-slate-50/90 flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-slate-200">
+                <div className="flex items-center gap-3 w-full lg:w-auto flex-grow">
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
                       disabled={idx === 0}
                       onClick={() => moveTopItem(idx, 'up')}
-                      className="p-1 text-slate-500 hover:text-slate-900 disabled:opacity-30 rounded hover:bg-slate-200"
+                      className="p-1.5 text-slate-500 hover:text-slate-900 disabled:opacity-30 rounded-lg hover:bg-slate-200"
                       title="Move Up"
                     >
                       <MoveUp className="w-3.5 h-3.5" />
@@ -372,7 +377,7 @@ export default function AdminMenusPage() {
                       type="button"
                       disabled={idx === menuItems.length - 1}
                       onClick={() => moveTopItem(idx, 'down')}
-                      className="p-1 text-slate-500 hover:text-slate-900 disabled:opacity-30 rounded hover:bg-slate-200"
+                      className="p-1.5 text-slate-500 hover:text-slate-900 disabled:opacity-30 rounded-lg hover:bg-slate-200"
                       title="Move Down"
                     >
                       <MoveDown className="w-3.5 h-3.5" />
@@ -381,7 +386,7 @@ export default function AdminMenusPage() {
 
                   <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">Label</label>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">LABEL</label>
                       <input
                         type="text"
                         value={item.label}
@@ -389,12 +394,12 @@ export default function AdminMenusPage() {
                           const updated = menuItems.map(it => it.id === item.id ? { ...it, label: e.target.value } : it);
                           setMenuItems(updated);
                         }}
-                        className="w-full p-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 text-xs"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 text-xs focus:outline-none focus:border-slate-900"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">URL Path</label>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">URL PATH</label>
                       <input
                         type="text"
                         value={item.url || ''}
@@ -402,19 +407,19 @@ export default function AdminMenusPage() {
                           const updated = menuItems.map(it => it.id === item.id ? { ...it, url: e.target.value } : it);
                           setMenuItems(updated);
                         }}
-                        className="w-full p-2 bg-white border border-slate-200 rounded-xl font-mono text-[11px]"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:border-slate-900"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">Type</label>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">TYPE</label>
                       <select
                         value={item.type}
                         onChange={(e) => {
                           const updated = menuItems.map(it => it.id === item.id ? { ...it, type: e.target.value as any } : it);
                           setMenuItems(updated);
                         }}
-                        className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-slate-900"
                       >
                         <option value="link">Direct Link</option>
                         <option value="megamenu">Mega Menu Dropdown</option>
@@ -428,21 +433,21 @@ export default function AdminMenusPage() {
                   <button
                     type="button"
                     onClick={() => handleUpdateTopItem(item)}
-                    className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl uppercase tracking-wider text-[11px] flex items-center gap-1 shadow-sm"
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl uppercase tracking-wider text-xs flex items-center gap-1.5 shadow-sm"
                   >
-                    <Save className="w-3.5 h-3.5" /> Save
+                    <Save className="w-3.5 h-3.5" /> SAVE
                   </button>
 
                   {isMegaMenu && (
                     <button
                       type="button"
                       onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                      className={`px-3.5 py-1.5 rounded-xl font-bold uppercase tracking-wider text-[11px] flex items-center gap-1 border transition-all ${
-                        isExpanded ? 'bg-blue-700 text-white border-blue-700' : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
+                      className={`px-4 py-2 rounded-xl font-bold uppercase tracking-wider text-xs flex items-center gap-1.5 border transition-all ${
+                        isExpanded ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm'
                       }`}
                     >
                       <Grid className="w-3.5 h-3.5" />
-                      <span>Mega Menu ({megaCols.length} Cols)</span>
+                      <span>MEGA MENU ({megaCols.length} COLS)</span>
                       {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     </button>
                   )}
@@ -450,7 +455,7 @@ export default function AdminMenusPage() {
                   <button
                     type="button"
                     onClick={() => handleDeleteTopItem(item.id, item.label)}
-                    className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-xl"
+                    className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl"
                     title="Delete Item"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -460,22 +465,22 @@ export default function AdminMenusPage() {
 
               {/* MEGA MENU BUILDER ACCORDION */}
               {isExpanded && isMegaMenu && (
-                <div className="p-6 bg-slate-100/60 border-t border-slate-200 space-y-6 animate-fade-in">
+                <div className="p-6 bg-slate-50/50 border-t border-slate-200 space-y-6 animate-fade-in">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                     <div>
                       <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-blue-700" />
+                        <Sparkles className="w-4 h-4 text-blue-600" />
                         <span>Mega Menu Columns for "{item.label}"</span>
                       </h4>
-                      <p className="text-[11px] text-slate-500">Configure multi-column mega menu headings and sub-links.</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Configure multi-column mega menu headings and sub-links.</p>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => handleAddMegaColumn(item.id)}
-                      className="px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl uppercase text-[11px] tracking-wider shadow-sm flex items-center gap-1.5"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl uppercase text-xs tracking-wider shadow-md flex items-center gap-1.5"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Add Column Heading
+                      <Plus className="w-4 h-4" /> ADD COLUMN
                     </button>
                   </div>
 
@@ -483,7 +488,7 @@ export default function AdminMenusPage() {
                     <div className="p-8 text-center text-slate-400 bg-white rounded-2xl border-2 border-dashed border-slate-200 space-y-2">
                       <Grid className="w-8 h-8 mx-auto text-slate-300" />
                       <p className="font-bold text-slate-700 text-xs">No Mega Menu Columns created yet.</p>
-                      <p className="text-[11px]">Click "+ Add Column Heading" to start building your mega menu dropdown.</p>
+                      <p className="text-[11px]">Click "+ ADD COLUMN" to start building your multi-column mega menu.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -492,37 +497,27 @@ export default function AdminMenusPage() {
 
                         return (
                           <div key={col.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
-                            <div className="space-y-3">
-                              {/* COLUMN HEADER */}
-                              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-                                  Col #{colIdx + 1}
+                            <div className="space-y-4">
+                              {/* COLUMN HEADER STRIP */}
+                              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                <span className="text-[11px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200 shrink-0">
+                                  COL #{colIdx + 1}
                                 </span>
-
-                                <div className="flex-grow">
-                                  <input
-                                    type="text"
-                                    defaultValue={col.title || ''}
-                                    onBlur={(e) => handleUpdateMegaColumn(col.id, e.target.value)}
-                                    placeholder="Column Title (e.g. KITCHENS)"
-                                    className="w-full p-1.5 bg-slate-50 border rounded-lg font-extrabold text-slate-900 text-xs uppercase"
-                                  />
-                                </div>
 
                                 <button
                                   type="button"
-                                  onClick={() => handleDeleteMegaColumn(col.id, col.title || 'Column')}
-                                  className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg shrink-0"
+                                  onClick={() => handleDeleteMegaColumn(col.id, `Column #${colIdx + 1}`)}
+                                  className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg shrink-0"
                                   title="Delete Column"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
 
                               {/* SUB-LINKS LIST */}
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                                  Sub-Links / Items ({colItems.length})
+                                  SUB-LINKS / ITEMS ({colItems.length})
                                 </span>
 
                                 {colItems.map((subItem: MegaMenuItem) => (
@@ -542,62 +537,66 @@ export default function AdminMenusPage() {
                                           setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
                                         }}
                                         placeholder="Sub-link Title"
-                                        className="w-full p-1.5 bg-white border rounded-md font-bold text-slate-900 text-xs"
+                                        className="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 text-xs focus:outline-none focus:border-blue-500"
                                       />
 
                                       <button
                                         type="button"
                                         onClick={() => handleDeleteMegaItem(subItem.id, subItem.label)}
-                                        className="p-1 text-rose-600 hover:bg-rose-100 rounded-md shrink-0"
+                                        className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg shrink-0"
                                         title="Delete Sub-link"
                                       >
-                                        <Trash2 className="w-3 h-3" />
+                                        <Trash2 className="w-3.5 h-3.5" />
                                       </button>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                      <input
-                                        type="text"
-                                        value={subItem.url || ''}
-                                        onChange={(e) => {
-                                          const updatedCols = megaCols.map((c: MegaMenuColumn) => {
-                                            if (c.id !== col.id) return c;
-                                            return {
-                                              ...c,
-                                              items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, url: e.target.value } : i)
-                                            };
-                                          });
-                                          setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
-                                        }}
-                                        placeholder="Target URL (/designs/...)"
-                                        className="w-full p-1.5 bg-white border rounded-md font-mono text-[10px]"
-                                      />
+                                      <div>
+                                        <input
+                                          type="text"
+                                          value={subItem.url || ''}
+                                          onChange={(e) => {
+                                            const updatedCols = megaCols.map((c: MegaMenuColumn) => {
+                                              if (c.id !== col.id) return c;
+                                              return {
+                                                ...c,
+                                                items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, url: e.target.value } : i)
+                                              };
+                                            });
+                                            setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
+                                          }}
+                                          placeholder="/services/..."
+                                          className="w-full p-2 bg-white border border-slate-200 rounded-xl font-mono text-[10px] text-blue-600 focus:outline-none"
+                                        />
+                                      </div>
 
-                                      <input
-                                        type="text"
-                                        value={subItem.description || ''}
-                                        onChange={(e) => {
-                                          const updatedCols = megaCols.map((c: MegaMenuColumn) => {
-                                            if (c.id !== col.id) return c;
-                                            return {
-                                              ...c,
-                                              items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, description: e.target.value } : i)
-                                            };
-                                          });
-                                          setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
-                                        }}
-                                        placeholder="Badge (e.g. HOT / NEW)"
-                                        className="w-full p-1.5 bg-white border rounded-md text-[10px]"
-                                      />
+                                      <div>
+                                        <input
+                                          type="text"
+                                          value={subItem.description || ''}
+                                          onChange={(e) => {
+                                            const updatedCols = megaCols.map((c: MegaMenuColumn) => {
+                                              if (c.id !== col.id) return c;
+                                              return {
+                                                ...c,
+                                                items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, description: e.target.value } : i)
+                                              };
+                                            });
+                                            setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
+                                          }}
+                                          placeholder="Short Description"
+                                          className="w-full p-2 bg-white border border-slate-200 rounded-xl text-[10px] text-slate-700 focus:outline-none"
+                                        />
+                                      </div>
                                     </div>
 
                                     <div className="flex justify-end pt-1">
                                       <button
                                         type="button"
                                         onClick={() => handleUpdateMegaItem(subItem)}
-                                        className="px-2.5 py-1 bg-slate-900 text-white font-bold rounded-md text-[10px] uppercase flex items-center gap-1"
+                                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
                                       >
-                                        <Save className="w-3 h-3" /> Save Sub-link
+                                        <Save className="w-3 h-3" /> SAVE SUB-LINK
                                       </button>
                                     </div>
                                   </div>
@@ -608,9 +607,9 @@ export default function AdminMenusPage() {
                             <button
                               type="button"
                               onClick={() => handleAddMegaItem(col.id)}
-                              className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 mt-3"
+                              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 mt-3 shadow-md"
                             >
-                              <Plus className="w-3.5 h-3.5" /> Add Sub-Link
+                              <Plus className="w-4 h-4" /> ADD SUB-LINK
                             </button>
                           </div>
                         );

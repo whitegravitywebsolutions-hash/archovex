@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
 
         <div className="flex gap-3">
           <Link
-            href="/admin/designs/new"
+            href="/admin/blogs/new"
             className="px-5 py-3 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center gap-1.5 border border-amber-300/40"
           >
             <Plus className="w-4 h-4 text-white" /> Add New Design

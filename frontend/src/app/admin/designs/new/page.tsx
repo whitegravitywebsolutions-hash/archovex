@@ -1,6 +1,5 @@
-import React from 'react';
-import DesignForm from '../DesignForm';
+import { redirect } from 'next/navigation';
 
-export default function NewDesignPage() {
-  return <DesignForm />;
+export default function LegacyAdminNewDesignPage() {
+  redirect('/admin/blogs/new');
 }

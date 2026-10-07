@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
-import { Save, CheckCircle2, Loader2 } from 'lucide-react';
+import { Save, CheckCircle2, Loader2, Share2 } from 'lucide-react';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({
@@ -10,10 +10,9 @@ export default function AdminSettingsPage() {
     phone: '+91 98765 43210',
     email: 'contact@archovex.com',
     whatsapp: '+919876543210',
+    instagram_url: 'https://instagram.com',
+    facebook_url: 'https://facebook.com',
     address: 'ARCHOVEX INFRA HQ, Connaught Place, New Delhi 110001',
-    hero_heading: 'DESIGN YOUR DREAM HOME',
-    hero_subheading: 'Thoughtfully designed luxury interiors built around the way you live.',
-    copyright: '© 2026 ARCHOVEX INFRA PRIVATE LIMITED. All rights reserved.',
   });
 
   const [loading, setLoading] = useState(true);
@@ -46,8 +45,8 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6 text-xs max-w-4xl">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Global Site & Footer Settings</h1>
-        <p className="text-xs text-slate-500">Manage common website parameters, phone numbers, WhatsApp, hero text, and address.</p>
+        <h1 className="text-2xl font-extrabold text-slate-900">Global Site Settings</h1>
+        <p className="text-xs text-slate-500">Manage common website contact parameters, social media URLs, phone numbers, WhatsApp, email, and address.</p>
       </div>
 
       {message && (
@@ -58,31 +57,7 @@ export default function AdminSettingsPage() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Hero Section Settings</h2>
-
-        <div className="space-y-3">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Homepage Hero Heading</label>
-            <input
-              type="text"
-              value={settings.hero_heading || ''}
-              onChange={(e) => setSettings({ ...settings, hero_heading: e.target.value })}
-              className="w-full p-2.5 border rounded-xl font-bold"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Homepage Hero Subheading</label>
-            <textarea
-              rows={2}
-              value={settings.hero_subheading || ''}
-              onChange={(e) => setSettings({ ...settings, hero_subheading: e.target.value })}
-              className="w-full p-2.5 border rounded-xl"
-            />
-          </div>
-        </div>
-
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2 pt-4">Contact Information & Footer Settings</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Contact Information & Office Settings</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -102,30 +77,19 @@ export default function AdminSettingsPage() {
               value={settings.whatsapp || ''}
               onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
               className="w-full p-2.5 border rounded-xl font-bold text-emerald-700"
+              placeholder="+919876543210"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Contact Email Address</label>
-            <input
-              type="email"
-              value={settings.email || ''}
-              onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-              className="w-full p-2.5 border rounded-xl"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Footer Copyright Text</label>
-            <input
-              type="text"
-              value={settings.copyright || ''}
-              onChange={(e) => setSettings({ ...settings, copyright: e.target.value })}
-              className="w-full p-2.5 border rounded-xl"
-            />
-          </div>
+        <div>
+          <label className="block font-bold text-slate-700 mb-1">Contact Email Address</label>
+          <input
+            type="email"
+            value={settings.email || ''}
+            onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+            className="w-full p-2.5 border rounded-xl"
+          />
         </div>
 
         <div>
@@ -136,6 +100,38 @@ export default function AdminSettingsPage() {
             onChange={(e) => setSettings({ ...settings, address: e.target.value })}
             className="w-full p-2.5 border rounded-xl"
           />
+        </div>
+
+        {/* SOCIAL MEDIA URLS */}
+        <div className="pt-4 border-t border-slate-200 space-y-4">
+          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#0C4A6E]">
+            <Share2 className="w-4 h-4 text-[#F97316]" />
+            <span>Social Media Links (Footer Icons)</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Instagram Page URL</label>
+              <input
+                type="text"
+                value={settings.instagram_url || settings.instagram || ''}
+                onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value, instagram: e.target.value })}
+                placeholder="https://instagram.com/archovex"
+                className="w-full p-2.5 bg-white border rounded-xl font-mono text-[11px]"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Facebook Page URL</label>
+              <input
+                type="text"
+                value={settings.facebook_url || settings.facebook || ''}
+                onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value, facebook: e.target.value })}
+                placeholder="https://facebook.com/archovex"
+                className="w-full p-2.5 bg-white border rounded-xl font-mono text-[11px]"
+              />
+            </div>
+          </div>
         </div>
 
         <button

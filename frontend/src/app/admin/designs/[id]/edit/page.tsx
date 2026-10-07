@@ -1,28 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import DesignForm from '../../DesignForm';
-import { apiClient } from '@/lib/api';
-import { DesignPost } from '@/types';
+import React, { useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 
-export default function EditDesignPage() {
+export default function LegacyAdminEditDesignPage() {
   const params = useParams();
-  const id = params?.id;
-  const [post, setPost] = useState<DesignPost | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    if (id) {
-      apiClient.get(`/admin/design-posts/${id}`).then((res) => {
-        if (res.data.success) {
-          setPost(res.data.data);
-        }
-      }).catch((err) => console.error(err)).finally(() => setLoading(false));
+    if (params?.id) {
+      router.replace(`/admin/blogs/${params.id}/edit`);
     }
-  }, [id]);
+  }, [params, router]);
 
-  if (loading) return <div className="p-8 text-xs font-bold text-slate-500 animate-pulse">Loading design data...</div>;
-
-  return <DesignForm initialData={post} />;
+  return null;
 }

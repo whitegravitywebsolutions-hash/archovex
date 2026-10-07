@@ -35,6 +35,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/designs/{slug}', [PublicController::class, 'designDetail']);
     Route::get('/cities', [PublicController::class, 'cities']);
     Route::get('/cities/{slug}', [PublicController::class, 'cityBySlug']);
+    Route::get('/locations', [PublicController::class, 'cities']);
+    Route::get('/locations/{slug}', [PublicController::class, 'cityBySlug']);
+
     Route::get('/services', [PublicController::class, 'services']);
     Route::get('/services/{slug}', [PublicController::class, 'serviceBySlug']);
     Route::get('/projects', [PublicController::class, 'projects']);
@@ -72,8 +75,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/design-posts/{id}/images/reorder', [AdminDesignPostController::class, 'reorderImages']);
         Route::delete('/design-posts/{id}/images/{imageId}', [AdminDesignPostController::class, 'deleteImage']);
 
-        // Cities, Services, Projects, Blogs
+        // Cities, Locations, Services, Projects, Blogs
         Route::apiResource('cities', AdminCityController::class);
+        Route::apiResource('locations', AdminCityController::class);
         Route::apiResource('services', AdminServiceController::class);
         Route::apiResource('projects', AdminProjectController::class);
         Route::apiResource('blogs', AdminBlogController::class);

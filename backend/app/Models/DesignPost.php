@@ -16,6 +16,8 @@ class DesignPost extends Model
         'budget_min' => 'decimal:2',
         'budget_max' => 'decimal:2',
         'published_at' => 'datetime',
+        'category_ids' => 'array',
+        'city_ids' => 'array',
     ];
 
     public function category()

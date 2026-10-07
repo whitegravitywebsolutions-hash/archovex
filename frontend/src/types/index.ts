@@ -86,6 +86,7 @@ export interface DesignPostSpecification {
 export interface DesignPost {
   id: number;
   category_id: number;
+  category_ids?: number[];
   category?: Category;
   title: string;
   slug: string;
@@ -104,6 +105,7 @@ export interface DesignPost {
   property_type?: string;
   area?: string;
   city_id?: number;
+  city_ids?: number[];
   city?: City;
   location?: string;
   featured_image?: string;

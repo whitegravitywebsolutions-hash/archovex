@@ -20,6 +20,22 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('archovex_admin_token');
+        localStorage.removeItem('archovex_admin_user');
+        if (!window.location.pathname.includes('/admin/login')) {
+          window.location.href = '/admin/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Helper fetchers for Server Components & Metadata
 export async function fetchPublicData(endpoint: string) {
   try {

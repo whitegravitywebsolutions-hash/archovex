@@ -14,6 +14,16 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminDesignPostController extends Controller
 {
+    private function getSeoPathAndUrls(DesignPost $post)
+    {
+        $post->loadMissing('category');
+        $catSlug = $post->category ? $post->category->slug : 'design-guides';
+        $path = "/blogs/{$catSlug}/{$post->slug}";
+        $fullUrl = "https://archovex.com" . $path;
+
+        return [$path, $fullUrl];
+    }
+
     public function index(Request $request)
     {
         $query = DesignPost::with(['category', 'city', 'primaryImage', 'images']);
@@ -51,7 +61,8 @@ class AdminDesignPostController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
+            'category_ids' => 'nullable|array',
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:design_posts,slug',
             'short_description' => 'nullable|string',
@@ -69,6 +80,7 @@ class AdminDesignPostController extends Controller
             'property_type' => 'nullable|string',
             'area' => 'nullable|string',
             'city_id' => 'nullable|exists:cities,id',
+            'city_ids' => 'nullable|array',
             'location' => 'nullable|string',
             'featured_image' => 'nullable|string',
             'status' => 'required|string|in:published,draft,archived',
@@ -91,6 +103,14 @@ class AdminDesignPostController extends Controller
             'features' => 'nullable|array',
             'related_ids' => 'nullable|array',
         ]);
+
+        if (!empty($validated['category_ids']) && is_array($validated['category_ids']) && count($validated['category_ids']) > 0) {
+            $validated['category_id'] = $validated['category_ids'][0];
+        }
+
+        if (!empty($validated['city_ids']) && is_array($validated['city_ids']) && count($validated['city_ids']) > 0) {
+            $validated['city_id'] = $validated['city_ids'][0];
+        }
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
@@ -148,21 +168,22 @@ class AdminDesignPostController extends Controller
 
         // Sync 15 Strapi-style SEO fields to seo_metadata table
         if (!empty($post->slug)) {
+            [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
             $seoInput = $request->input('seo_data', []);
             SeoMetadata::updateOrCreate(
-                ['path' => '/designs/' . $post->slug],
+                ['path' => $seoPath],
                 [
                     'meta_title' => $seoInput['meta_title'] ?? $validated['meta_title'] ?? $post->title,
                     'meta_description' => $seoInput['meta_description'] ?? $validated['meta_description'] ?? $post->short_description,
                     'focus_keyphrase' => $seoInput['focus_keyphrase'] ?? null,
-                    'canonical_url' => $seoInput['canonical_url'] ?? null,
+                    'canonical_url' => $seoInput['canonical_url'] ?? $fullUrl,
                     'robots_index' => isset($seoInput['robots_index']) ? (bool)$seoInput['robots_index'] : true,
                     'robots_follow' => isset($seoInput['robots_follow']) ? (bool)$seoInput['robots_follow'] : true,
                     'og_title' => $seoInput['og_title'] ?? null,
                     'og_description' => $seoInput['og_description'] ?? null,
-                    'og_url' => $seoInput['og_url'] ?? null,
+                    'og_url' => $seoInput['og_url'] ?? $fullUrl,
                     'og_type' => $seoInput['og_type'] ?? 'article',
-                    'og_site_name' => $seoInput['og_site_name'] ?? null,
+                    'og_site_name' => $seoInput['og_site_name'] ?? 'ARCHOVEX INFRA PRIVATE LIMITED',
                     'og_image' => $seoInput['og_image'] ?? $post->featured_image,
                     'twitter_card' => $seoInput['twitter_card'] ?? 'summary_large_image',
                     'twitter_site' => $seoInput['twitter_site'] ?? null,
@@ -171,11 +192,13 @@ class AdminDesignPostController extends Controller
             );
         }
 
+        [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
+
         return response()->json([
             'success' => true,
             'message' => 'Design post created successfully',
             'data' => array_merge($post->load(['category', 'city', 'images', 'specifications', 'features', 'relatedPosts'])->toArray(), [
-                'seo_data' => SeoMetadata::where('path', '/designs/' . $post->slug)->first()
+                'seo_data' => SeoMetadata::where('path', $seoPath)->first()
             ])
         ], 201);
     }
@@ -183,7 +206,10 @@ class AdminDesignPostController extends Controller
     public function show($id)
     {
         $post = DesignPost::with(['category', 'city', 'images', 'specifications', 'features', 'relatedPosts'])->findOrFail($id);
-        $seo = SeoMetadata::where('path', '/designs/' . $post->slug)->first();
+        [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
+        $legacyPath = '/designs/' . $post->slug;
+
+        $seo = SeoMetadata::where('path', $seoPath)->orWhere('path', $legacyPath)->first();
         $postData = $post->toArray();
         $postData['seo_data'] = $seo;
 
@@ -195,7 +221,8 @@ class AdminDesignPostController extends Controller
         $post = DesignPost::findOrFail($id);
 
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
+            'category_ids' => 'nullable|array',
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:design_posts,slug,' . $id,
             'short_description' => 'nullable|string',
@@ -213,6 +240,7 @@ class AdminDesignPostController extends Controller
             'property_type' => 'nullable|string',
             'area' => 'nullable|string',
             'city_id' => 'nullable|exists:cities,id',
+            'city_ids' => 'nullable|array',
             'location' => 'nullable|string',
             'featured_image' => 'nullable|string',
             'status' => 'required|string|in:published,draft,archived',
@@ -236,6 +264,14 @@ class AdminDesignPostController extends Controller
             'related_ids' => 'nullable|array',
             'seo_data' => 'nullable|array',
         ]);
+
+        if (!empty($validated['category_ids']) && is_array($validated['category_ids']) && count($validated['category_ids']) > 0) {
+            $validated['category_id'] = $validated['category_ids'][0];
+        }
+
+        if (!empty($validated['city_ids']) && is_array($validated['city_ids']) && count($validated['city_ids']) > 0) {
+            $validated['city_id'] = $validated['city_ids'][0];
+        }
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
@@ -279,21 +315,22 @@ class AdminDesignPostController extends Controller
 
         // Sync 15 Strapi-style SEO fields to seo_metadata table
         if (!empty($post->slug)) {
+            [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
             $seoInput = $request->input('seo_data', []);
             SeoMetadata::updateOrCreate(
-                ['path' => '/designs/' . $post->slug],
+                ['path' => $seoPath],
                 [
                     'meta_title' => $seoInput['meta_title'] ?? $validated['meta_title'] ?? $post->title,
                     'meta_description' => $seoInput['meta_description'] ?? $validated['meta_description'] ?? $post->short_description,
                     'focus_keyphrase' => $seoInput['focus_keyphrase'] ?? null,
-                    'canonical_url' => $seoInput['canonical_url'] ?? null,
+                    'canonical_url' => $seoInput['canonical_url'] ?? $fullUrl,
                     'robots_index' => isset($seoInput['robots_index']) ? (bool)$seoInput['robots_index'] : true,
                     'robots_follow' => isset($seoInput['robots_follow']) ? (bool)$seoInput['robots_follow'] : true,
                     'og_title' => $seoInput['og_title'] ?? null,
                     'og_description' => $seoInput['og_description'] ?? null,
-                    'og_url' => $seoInput['og_url'] ?? null,
+                    'og_url' => $seoInput['og_url'] ?? $fullUrl,
                     'og_type' => $seoInput['og_type'] ?? 'article',
-                    'og_site_name' => $seoInput['og_site_name'] ?? null,
+                    'og_site_name' => $seoInput['og_site_name'] ?? 'ARCHOVEX INFRA PRIVATE LIMITED',
                     'og_image' => $seoInput['og_image'] ?? $post->featured_image,
                     'twitter_card' => $seoInput['twitter_card'] ?? 'summary_large_image',
                     'twitter_site' => $seoInput['twitter_site'] ?? null,
@@ -302,11 +339,13 @@ class AdminDesignPostController extends Controller
             );
         }
 
+        [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
+
         return response()->json([
             'success' => true,
             'message' => 'Design post updated successfully',
             'data' => array_merge($post->load(['category', 'city', 'images', 'specifications', 'features', 'relatedPosts'])->toArray(), [
-                'seo_data' => SeoMetadata::where('path', '/designs/' . $post->slug)->first()
+                'seo_data' => SeoMetadata::where('path', $seoPath)->first()
             ])
         ]);
     }

@@ -4,14 +4,24 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Logo from '@/components/public/Logo';
 import { apiClient } from '@/lib/api';
-import { Lock, Mail, Loader2, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@archovex.com');
-  const [password, setPassword] = useState('ChangeMe@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('archovex_admin_token');
+      if (token) {
+        router.replace('/admin/dashboard');
+      }
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,12 +83,20 @@ export default function AdminLoginPage() {
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-[#E4DCD0] rounded-xl text-xs font-bold text-[#0C4A6E] focus:ring-2 focus:ring-[#0891B2] focus:outline-none"
+                className="w-full pl-10 pr-10 py-3 bg-white border border-[#E4DCD0] rounded-xl text-xs font-bold text-[#0C4A6E] focus:ring-2 focus:ring-[#0891B2] focus:outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0C4A6E] transition-colors"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -90,15 +108,6 @@ export default function AdminLoginPage() {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'SIGN IN TO DASHBOARD'}
           </button>
         </form>
-
-        <div className="pt-4 border-t border-[#E4DCD0] text-center space-y-1">
-          <span className="text-[10px] text-[#F97316] font-black uppercase tracking-wider bg-[#F97316]/10 px-3.5 py-1 rounded-full inline-block border border-[#F97316]/30">
-            DEVELOPMENT CREDENTIALS
-          </span>
-          <p className="text-[11px] text-slate-600 font-mono pt-1">
-            admin@archovex.com / ChangeMe@123
-          </p>
-        </div>
       </div>
     </div>
   );

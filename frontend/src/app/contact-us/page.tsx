@@ -8,14 +8,14 @@ import { fetchPublicData } from '@/lib/api';
 import { Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
 
 export async function generateMetadata() {
-  const pageData = await fetchPublicData('/pages/contact');
+  const pageData = await fetchPublicData('/pages/contact-us');
   if (pageData?.seo_data?.meta_title) {
     const seo = pageData.seo_data;
     return {
       title: seo.meta_title,
       description: seo.meta_description || 'Contact ARCHOVEX INFRA PRIVATE LIMITED',
       keywords: seo.meta_keywords || '',
-      canonical: seo.canonical_url || 'https://archovex.com/contact',
+      canonical: seo.canonical_url || 'https://archovex.com/contact-us',
       openGraph: {
         title: seo.og_title || seo.meta_title,
         description: seo.og_description || seo.meta_description,
@@ -34,7 +34,7 @@ export async function generateMetadata() {
 export default async function ContactPage() {
   const [homeData, customContactPage] = await Promise.all([
     fetchPublicData('/home'),
-    fetchPublicData('/pages/contact')
+    fetchPublicData('/pages/contact-us')
   ]);
 
   const cities = homeData?.cities || [];
@@ -45,7 +45,7 @@ export default async function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] flex flex-col font-sans">
-      <Header cities={cities} />
+      <Header initialMenu={homeData?.menus || []} cities={cities} />
 
       <main className="flex-grow">
         {dynamicSections.length > 0 ? (

@@ -28,7 +28,8 @@ import {
   ShieldCheck,
   Megaphone,
   Image as ImageIcon,
-  Code
+  Code,
+  BookOpen
 } from 'lucide-react';
 import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
@@ -308,6 +309,42 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         type: 'custom_html',
         title: 'Custom HTML Block',
         html_code: '<div class="p-8 bg-slate-900 text-white rounded-2xl text-center"><h3 class="text-2xl font-bold uppercase tracking-tight">Custom HTML Section</h3><p class="mt-2 text-slate-300 text-sm">Enter any custom HTML markup, iframe, or embed script snippet here.</p></div>',
+      },
+    },
+    {
+      type: 'all_services_filter',
+      label: 'All Services with Filter',
+      icon: Layers,
+      desc: 'Display all active services/categories with live search & filters.',
+      defaultData: {
+        type: 'all_services_filter',
+        title: 'All Interior Design Services',
+        subtitle: 'Explore our comprehensive range of turnkey interior design and architectural solutions.',
+        badge: 'OUR SERVICES',
+      },
+    },
+    {
+      type: 'all_blogs_filter',
+      label: 'All Blogs with Filter',
+      icon: BookOpen,
+      desc: 'Display all active blogs & design posts with category filter pills, live search, and pagination.',
+      defaultData: {
+        type: 'all_blogs_filter',
+        title: 'All Blogs & Design Inspirations',
+        subtitle: 'Read our latest articles, design tips, trends, and home decor guides.',
+        badge: 'INSIGHTS & BLOGS',
+      },
+    },
+    {
+      type: 'design_catalog',
+      label: 'Hero Banner (Dark Theme)',
+      icon: Layout,
+      desc: 'Dark theme hero section banner with customizable badge, main headline, and paragraph subtitle.',
+      defaultData: {
+        type: 'design_catalog',
+        title: 'EXPLORE INTERIOR DESIGNS',
+        subtitle: 'Discover bespoke designs categorized by room, layout, style, and city.',
+        badge: 'COMPLETE INTERIOR CATALOG',
       },
     },
   ];
@@ -711,26 +748,57 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                             />
                           </div>
 
-                          {(sec.type === 'hero' || sec.type === 'cta') && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block font-bold text-slate-700 mb-1">CTA Button Text</label>
-                                <input
-                                  type="text"
-                                  value={sec.cta_text || ''}
-                                  onChange={(e) => updateSectionField(sec.id, 'cta_text', e.target.value)}
-                                  className="w-full p-2.5 border rounded-xl"
-                                />
+                          {(sec.type === 'hero' || sec.type === 'cta' || sec.type === 'hero_banner') && (
+                            <div className="space-y-4 pt-2 border-t border-slate-200">
+                              <span className="text-xs font-black uppercase text-[#0C4A6E] tracking-wider block">
+                                CTA Action Buttons (Primary & Secondary)
+                              </span>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-700 mb-1">Primary CTA Button Text</label>
+                                  <input
+                                    type="text"
+                                    value={sec.cta_text || ''}
+                                    onChange={(e) => updateSectionField(sec.id, 'cta_text', e.target.value)}
+                                    placeholder="e.g. Book Free Design Consultation"
+                                    className="w-full p-2.5 bg-white border rounded-xl text-xs font-semibold"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-700 mb-1">Primary CTA Button Link</label>
+                                  <input
+                                    type="text"
+                                    value={sec.cta_link || ''}
+                                    onChange={(e) => updateSectionField(sec.id, 'cta_link', e.target.value)}
+                                    placeholder="e.g. #consultation or /blogs"
+                                    className="w-full p-2.5 bg-white border rounded-xl font-mono text-[11px]"
+                                  />
+                                </div>
                               </div>
 
-                              <div>
-                                <label className="block font-bold text-slate-700 mb-1">CTA Button Link</label>
-                                <input
-                                  type="text"
-                                  value={sec.cta_link || ''}
-                                  onChange={(e) => updateSectionField(sec.id, 'cta_link', e.target.value)}
-                                  className="w-full p-2.5 border rounded-xl font-mono text-[11px]"
-                                />
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-700 mb-1">Secondary CTA Button Text (Optional)</label>
+                                  <input
+                                    type="text"
+                                    value={sec.secondary_cta_text || ''}
+                                    onChange={(e) => updateSectionField(sec.id, 'secondary_cta_text', e.target.value)}
+                                    placeholder="e.g. Explore Blogs"
+                                    className="w-full p-2.5 bg-white border rounded-xl text-xs font-semibold"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-700 mb-1">Secondary CTA Button Link (Optional)</label>
+                                  <input
+                                    type="text"
+                                    value={sec.secondary_cta_link || ''}
+                                    onChange={(e) => updateSectionField(sec.id, 'secondary_cta_link', e.target.value)}
+                                    placeholder="e.g. /blogs or #consultation"
+                                    className="w-full p-2.5 bg-white border rounded-xl font-mono text-[11px]"
+                                  />
+                                </div>
                               </div>
                             </div>
                           )}
@@ -859,25 +927,49 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                                         </div>
                                       </div>
 
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
                                         <div>
-                                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">CTA Button Text</label>
+                                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">Primary CTA Button Text</label>
                                           <input
                                             type="text"
                                             value={slide.cta_text || ''}
                                             onChange={(e) => updateSectionItemField(sec.id, slideIdx, 'cta_text', e.target.value)}
-                                            placeholder="BOOK FREE CONSULTATION"
-                                            className="w-full p-2 border rounded-lg text-xs"
+                                            placeholder="e.g. BOOK FREE CONSULTATION"
+                                            className="w-full p-2 border rounded-lg text-xs font-semibold"
                                           />
                                         </div>
 
                                         <div>
-                                          <label className="block text-[10px] font-bold text-slate-600 mb-0.5">CTA Button Link</label>
+                                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">Primary CTA Button Link</label>
                                           <input
                                             type="text"
                                             value={slide.cta_link || ''}
                                             onChange={(e) => updateSectionItemField(sec.id, slideIdx, 'cta_link', e.target.value)}
-                                            placeholder="/designs (leave blank for consultation modal)"
+                                            placeholder="e.g. #consultation or /blogs"
+                                            className="w-full p-2 border rounded-lg text-xs font-mono text-[11px]"
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
+                                        <div>
+                                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">Secondary CTA Button Text (Optional)</label>
+                                          <input
+                                            type="text"
+                                            value={slide.secondary_cta_text || ''}
+                                            onChange={(e) => updateSectionItemField(sec.id, slideIdx, 'secondary_cta_text', e.target.value)}
+                                            placeholder="e.g. VIEW BLOGS"
+                                            className="w-full p-2 border rounded-lg text-xs font-semibold"
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">Secondary CTA Button Link (Optional)</label>
+                                          <input
+                                            type="text"
+                                            value={slide.secondary_cta_link || ''}
+                                            onChange={(e) => updateSectionItemField(sec.id, slideIdx, 'secondary_cta_link', e.target.value)}
+                                            placeholder="e.g. /blogs or #consultation"
                                             className="w-full p-2 border rounded-lg text-xs font-mono text-[11px]"
                                           />
                                         </div>

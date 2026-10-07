@@ -42,10 +42,10 @@ export default async function NotFound() {
               <Home className="w-4 h-4" /> Return To Homepage
             </Link>
             <Link
-              href="/designs"
+              href="/blogs"
               className="w-full sm:w-auto px-6 py-3 bg-[#0C4A6E] hover:bg-[#075985] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
             >
-              <Compass className="w-4 h-4" /> Explore Designs
+              <Compass className="w-4 h-4" /> Explore Blogs
             </Link>
           </div>
         </div>

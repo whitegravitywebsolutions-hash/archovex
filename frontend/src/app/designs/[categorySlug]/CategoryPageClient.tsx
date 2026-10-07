@@ -16,9 +16,18 @@ interface ClientProps {
   initialPosts: DesignPost[];
   faqs: Faq[];
   cities: City[];
+  parentLabel?: string;
+  parentUrl?: string;
 }
 
-export default function CategoryPageClient({ category, initialPosts, faqs, cities }: ClientProps) {
+export default function CategoryPageClient({
+  category,
+  initialPosts,
+  faqs,
+  cities,
+  parentLabel = 'Blogs',
+  parentUrl = '/blogs',
+}: ClientProps) {
   const [posts, setPosts] = useState<DesignPost[]>(initialPosts);
   const [loading, setLoading] = useState(false);
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
@@ -47,7 +56,7 @@ export default function CategoryPageClient({ category, initialPosts, faqs, citie
             <Home className="w-3.5 h-3.5" /> Home
           </Link>
           <ChevronRight className="w-3 h-3 text-slate-400" />
-          <Link href="/designs" className="hover:text-[#0C4A6E]">Designs</Link>
+          <Link href={parentUrl} className="hover:text-[#0C4A6E]">{parentLabel}</Link>
           <ChevronRight className="w-3 h-3 text-slate-400" />
           <span className="font-bold text-[#0C4A6E]">{category.name}</span>
         </div>

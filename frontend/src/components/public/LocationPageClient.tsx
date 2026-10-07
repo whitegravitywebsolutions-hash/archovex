@@ -19,7 +19,7 @@ interface Props {
   cities: City[];
 }
 
-export default function CityPageClient({
+export default function LocationPageClient({
   city,
   designs,
   services,
@@ -32,7 +32,7 @@ export default function CityPageClient({
 
   return (
     <>
-      {/* CITY HERO */}
+      {/* LOCATION HERO */}
       <section className="relative bg-gradient-to-br from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white py-20 overflow-hidden border-b border-sky-900">
         {city.hero_image && (
           <div className="absolute inset-0 z-0">
@@ -80,34 +80,7 @@ export default function CityPageClient({
         </div>
       </section>
 
-      {/* CITY CONTACT & STUDIO INFO */}
-      <section className="bg-[#0C4A6E] text-white py-10 border-b border-sky-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-          <div className="flex items-start gap-3 p-4 bg-[#075985]/80 rounded-2xl border border-sky-700/80">
-            <MapPin className="w-5 h-5 text-[#F97316] mt-0.5 flex-shrink-0" />
-            <div>
-              <span className="font-bold uppercase block text-white">Experience Center</span>
-              <span className="text-sky-100">{city.address || `ARCHOVEX Studio, ${city.name}`}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 bg-[#075985]/80 rounded-2xl border border-sky-700/80">
-            <Phone className="w-5 h-5 text-[#F97316] flex-shrink-0" />
-            <div>
-              <span className="font-bold uppercase block text-white">Direct Helpline</span>
-              <a href={`tel:${city.phone}`} className="text-sky-100 hover:text-white">{city.phone || '+91 98765 43210'}</a>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 bg-[#075985]/80 rounded-2xl border border-sky-700/80">
-            <Mail className="w-5 h-5 text-[#F97316] flex-shrink-0" />
-            <div>
-              <span className="font-bold uppercase block text-white">Email Studio</span>
-              <a href={`mailto:${city.email}`} className="text-sky-100 hover:text-white">{city.email || 'info@archovex.com'}</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* DESIGNS POPULAR IN CITY */}
+      {/* DESIGNS POPULAR IN LOCATION */}
       {designs.length > 0 && (
         <section className="py-16 bg-[#FAF8F3]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -121,7 +94,7 @@ export default function CityPageClient({
         </section>
       )}
 
-      {/* CITY TESTIMONIALS */}
+      {/* LOCATION TESTIMONIALS */}
       {testimonials.length > 0 && (
         <section className="py-16 bg-[#FAF8F3] border-t border-[#E4DCD0]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -143,7 +116,7 @@ export default function CityPageClient({
         </section>
       )}
 
-      {/* CITY FAQs */}
+      {/* LOCATION FAQs */}
       {faqs.length > 0 && (
         <section className="py-16 bg-[#FAF8F3] border-t border-[#E4DCD0]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">

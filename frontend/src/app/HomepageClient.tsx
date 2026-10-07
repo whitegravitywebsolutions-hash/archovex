@@ -59,7 +59,7 @@ export default function HomepageClient({
               </h2>
             </div>
             <Link
-              href="/designs"
+              href="/blogs"
               className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-900 hover:text-blue-700 uppercase tracking-widest transition-colors"
             >
               <span>View All Categories</span>
@@ -71,7 +71,7 @@ export default function HomepageClient({
             {categories.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/designs/${cat.slug}`}
+                href={`/blogs/${cat.slug}`}
                 className="group relative rounded-2xl overflow-hidden aspect-[4/5] shadow-md hover:shadow-2xl transition-all duration-500 bg-[#0B132B] border border-slate-800"
               >
                 <Image
@@ -109,7 +109,7 @@ export default function HomepageClient({
               </h2>
             </div>
             <Link
-              href="/designs"
+              href="/blogs"
               className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-900 hover:text-blue-700 uppercase tracking-widest transition-colors"
             >
               <span>BROWSE ALL DESIGNS</span>
@@ -159,7 +159,7 @@ export default function HomepageClient({
                     From ₹{(service.price_from ? service.price_from / 100000 : 2.5).toFixed(1)} Lakhs
                   </span>
                   <Link
-                    href="/designs"
+                    href="/blogs"
                     className="text-xs font-extrabold uppercase tracking-wider text-slate-900 group-hover:text-blue-700 flex items-center gap-1 transition-colors"
                   >
                     Learn More <ArrowRight className="w-3.5 h-3.5 text-blue-600" />

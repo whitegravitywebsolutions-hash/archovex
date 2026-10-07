@@ -5,7 +5,7 @@ import StatsSection from '@/components/public/StatsSection';
 import ProcessSection from '@/components/public/ProcessSection';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import HomepageClient from './HomepageClient';
-import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
+import DynamicPageClient from './[slug]/DynamicPageClient';
 import { fetchPublicData } from '@/lib/api';
 
 export async function generateMetadata() {
@@ -16,10 +16,14 @@ export async function generateMetadata() {
       title: seo.meta_title,
       description: seo.meta_description || 'ARCHOVEX INFRA PRIVATE LIMITED',
       keywords: seo.meta_keywords || '',
-      canonical: seo.canonical_url || 'https://archovex.com',
+      alternates: {
+        canonical: seo.canonical_url || 'https://archovex.com',
+      },
       openGraph: {
         title: seo.og_title || seo.meta_title,
         description: seo.og_description || seo.meta_description,
+        url: seo.og_url || seo.canonical_url || 'https://archovex.com',
+        siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
         images: seo.og_image ? [{ url: seo.og_image }] : ['/logo.png'],
       },
       robots: seo.robots || 'index, follow',
@@ -65,7 +69,7 @@ export default async function HomePage() {
       
       <main className="flex-grow">
         {dynamicSections.length > 0 ? (
-          <DynamicSectionRenderer sections={dynamicSections} />
+          <DynamicPageClient page={customHomePage} cities={cities} />
         ) : (
           <>
             <HomepageClient

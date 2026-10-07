@@ -31,19 +31,25 @@ class AdminSettingController extends Controller
             Setting::setValue($key, is_array($val) ? json_encode($val) : $val);
         }
 
-        if ($request->has('social_links')) {
-            foreach ($request->social_links as $idx => $soc) {
-                if (!empty($soc['platform']) && !empty($soc['url'])) {
-                    SocialLink::updateOrCreate(
-                        ['platform' => $soc['platform']],
-                        [
-                            'url' => $soc['url'],
-                            'icon' => $soc['icon'] ?? null,
-                            'sort_order' => $idx + 1,
-                            'is_active' => $soc['is_active'] ?? true,
-                        ]
-                    );
-                }
+        if (isset($data['instagram_url']) || isset($data['instagram'])) {
+            $instaUrl = $data['instagram_url'] ?? $data['instagram'];
+            if ($instaUrl) {
+                SocialLink::updateOrCreate(['platform' => 'Instagram'], ['url' => $instaUrl, 'is_active' => true]);
+            }
+        }
+
+        if (isset($data['facebook_url']) || isset($data['facebook'])) {
+            $fbUrl = $data['facebook_url'] ?? $data['facebook'];
+            if ($fbUrl) {
+                SocialLink::updateOrCreate(['platform' => 'Facebook'], ['url' => $fbUrl, 'is_active' => true]);
+            }
+        }
+
+        if (isset($data['whatsapp'])) {
+            $waVal = $data['whatsapp'];
+            if ($waVal) {
+                $waUrl = str_starts_with($waVal, 'http') ? $waVal : 'https://wa.me/' . preg_replace('/[^0-9]/', '', $waVal);
+                SocialLink::updateOrCreate(['platform' => 'WhatsApp'], ['url' => $waUrl, 'is_active' => true]);
             }
         }
 

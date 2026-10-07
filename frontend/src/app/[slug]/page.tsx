@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: DynamicPageProps) {
   const { slug } = await params;
   
   // Skip reserved routes to avoid overriding static routes if any catch-all mismatch
-  const reservedSlugs = ['api', 'admin', 'portfolio', 'designs', 'cities', 'contact', 'blog', 'media', 'login'];
+  const reservedSlugs = ['api', 'admin', 'portfolio', 'cities', 'contact-us', 'blog', 'media', 'login'];
   if (reservedSlugs.includes(slug.toLowerCase())) {
     return { title: 'ARCHOVEX INFRA PRIVATE LIMITED' };
   }
@@ -35,10 +35,14 @@ export async function generateMetadata({ params }: DynamicPageProps) {
     title: metaTitle,
     description: metaDesc,
     keywords: seo.meta_keywords || '',
-    canonical: seo.canonical_url || `https://archovex.com/${slug}`,
+    alternates: {
+      canonical: seo.canonical_url || `https://archovex.com/${slug}`,
+    },
     openGraph: {
       title: seo.og_title || metaTitle,
       description: seo.og_description || metaDesc,
+      url: seo.og_url || seo.canonical_url || `https://archovex.com/${slug}`,
+      siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: seo.og_image ? [{ url: seo.og_image }] : [],
     },
     robots: seo.robots || 'index, follow',
@@ -49,7 +53,7 @@ export default async function DynamicCustomPage({ params }: DynamicPageProps) {
   const { slug } = await params;
 
   // Reserved paths handled by explicit route folders in app router
-  const reservedSlugs = ['api', 'admin', 'portfolio', 'designs', 'cities', 'contact', 'blog', 'media', 'login'];
+  const reservedSlugs = ['api', 'admin', 'portfolio', 'cities', 'contact-us', 'blog', 'media', 'login'];
   if (reservedSlugs.includes(slug.toLowerCase())) {
     notFound();
   }
@@ -67,7 +71,7 @@ export default async function DynamicCustomPage({ params }: DynamicPageProps) {
 
   return (
     <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
-      <Header cities={cities} />
+      <Header initialMenu={homeData?.menus || []} cities={cities} />
 
       <main className="flex-grow">
         <DynamicPageClient page={pageData} cities={cities} />

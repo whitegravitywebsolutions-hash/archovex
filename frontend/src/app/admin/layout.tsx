@@ -17,7 +17,8 @@ import {
   LogOut,
   ChevronRight,
   User as UserIcon,
-  Code
+  Code,
+  MapPin
 } from 'lucide-react';
 import { User } from '@/types';
 
@@ -25,23 +26,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (pathname.includes('/admin/login')) return;
+    if (pathname.includes('/admin/login')) {
+      setIsAuthenticated(false);
+      return;
+    }
 
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('archovex_admin_token');
       const storedUser = localStorage.getItem('archovex_admin_user');
       if (!token) {
-        router.push('/admin/login');
-      } else if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        setIsAuthenticated(false);
+        router.replace('/admin/login');
+      } else {
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch {
+            // ignore
+          }
+        }
+        setIsAuthenticated(true);
       }
     }
   }, [pathname, router]);
 
   if (pathname.includes('/admin/login')) {
     return <>{children}</>;
+  }
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F3] flex items-center justify-center font-sans">
+        <div className="flex items-center gap-3 text-xs font-bold text-[#0C4A6E]">
+          <div className="w-5 h-5 border-2 border-[#F97316] border-t-transparent rounded-full animate-spin" />
+          <span>Verifying Admin Access...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   const handleLogout = () => {
@@ -53,10 +81,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const navItems = [
-    { label: 'Page Builder', href: '/admin/pages', icon: BookOpen },
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Categories', href: '/admin/categories', icon: FolderTree },
-    { label: 'Blogs', href: '/admin/designs', icon: Compass },
+    { label: 'Page Builder', href: '/admin/pages', icon: BookOpen },
+    { label: 'SEO & Social Meta', href: '/admin/seo', icon: Search },
+    { label: 'Services', href: '/admin/services', icon: FolderTree },
+    { label: 'Locations', href: '/admin/cities', icon: MapPin },
+    { label: 'Blogs', href: '/admin/blogs', icon: Compass },
     { label: 'Leads CRM', href: '/admin/leads', icon: Users },
     { label: 'Header & Menus', href: '/admin/menus', icon: Menu },
     { label: 'Media Library', href: '/admin/media', icon: ImageIcon },

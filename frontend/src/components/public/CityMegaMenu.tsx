@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { City } from '@/types';
 import { Search, MapPin, Building2, ChevronRight, X, Sparkles } from 'lucide-react';
+import { apiClient } from '@/lib/api';
 
 interface CityMegaMenuProps {
   cities?: City[];
@@ -11,75 +12,32 @@ interface CityMegaMenuProps {
   onClose: () => void;
 }
 
-const ALL_INDIAN_CITIES = [
-  'Agra', 'Ahilyanagar', 'Ahmedabad', 'Aizawl', 'Aligarh', 'Amritsar', 'Anand', 'Asansol', 'Aurangabad', 'Ayodhya',
-  'Banswara', 'Baramulla', 'Beed', 'Belgaum', 'Bengaluru', 'Bhilai', 'Bhopal', 'Bhubaneswar', 'Bikaner', 'Bilaspur',
-  'Chandigarh', 'Chandrapur', 'Chennai', 'Chikkamagaluru', 'Coimbatore', 'Cuttack',
-  'Dehradun', 'Delhi', 'Dhanbad', 'Dibrugarh', 'Durg', 'Faridabad',
-  'Gandhinagar', 'Gaya', 'Ghaziabad', 'Ghumarwin', 'Goa', 'Godhra', 'Gurugram', 'Guwahati', 'Gwalior',
-  'Hamirpur', 'Hosapete', 'Hubli', 'Hyderabad',
-  'Indore',
-  'Jabalpur', 'Jagdalpur', 'Jaipur', 'Jalandhar', 'Jammu', 'Jamshedpur', 'Jigani', 'Jodhpur',
-  'Kadapa', 'Kakinada', 'Kangra', 'Kanpur', 'Karimnagar', 'Karur', 'Khammam', 'Kochi', 'Kolhapur', 'Kolkata', 'Kozhikode',
-  'Latur', 'Lucknow', 'Ludhiana',
-  'Madurai', 'Mandi', 'Mangalore', 'Mansoorabad', 'Meerut', 'Mehsana', 'Moradabad', 'Mumbai', 'Mysore',
-  'Nagercoil', 'Nagpur', 'Nanded', 'Nashik', 'Navi Mumbai', 'Nawanshahr', 'Neemuch', 'Nizamabad', 'Noida',
-  'Ongole',
-  'Patiala', 'Patna', 'Pondicherry', 'Pune',
-  'Raebareli', 'Raipur', 'Rajahmundry', 'Rajkot', 'Ranchi', 'Rewa', 'Rewari', 'Rudrapur',
-  'Salem', 'Sangareddy', 'Sangli', 'Shivamogga', 'Siliguri', 'Singrauli', 'Sivakasi', 'Solapur', 'Srikakulam', 'Srinagar', 'Surat',
-  'Thane', 'Thiruvananthapuram', 'Thrissur', 'Tiruchirappalli', 'Tirunelveli', 'Tumakuru',
-  'Udaipur', 'Udupi', 'Ujjain',
-  'Vadodara', 'Varanasi', 'Vellore', 'Vijayapur', 'Vijayawada', 'Visakhapatnam',
-  'Warangal'
-];
-
-const FEATURED_POPULAR_CITIES = [
-  { name: 'Bengaluru', label: 'Tech Hub', slug: 'bengaluru' },
-  { name: 'Mumbai', label: 'Financial Capital', slug: 'mumbai' },
-  { name: 'Delhi NCR', label: 'Capital Region', slug: 'delhi' },
-  { name: 'Hyderabad', label: 'Cyber City', slug: 'hyderabad' },
-  { name: 'Pune', label: 'Cultural Hub', slug: 'pune' },
-  { name: 'Chennai', label: 'Metropolis', slug: 'chennai' },
-  { name: 'Kolkata', label: 'Heritage City', slug: 'kolkata' },
-  { name: 'Ahmedabad', label: 'Commercial Hub', slug: 'ahmedabad' }
-];
-
 export default function CityMegaMenu({ cities = [], isOpen, onClose }: CityMegaMenuProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [fetchedCities, setFetchedCities] = useState<City[]>([]);
 
-  // Combine DB cities with static list
-  const cityList = useMemo(() => {
-    const cityMap = new Map<string, { name: string; slug: string }>();
+  useEffect(() => {
+    if (cities.length === 0) {
+      apiClient.get('/cities')
+        .then((res) => {
+          if (res.data?.success && Array.isArray(res.data.data)) {
+            setFetchedCities(res.data.data.filter((c: any) => c.status !== 'draft'));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [cities.length]);
 
-    cities.forEach((c) => {
-      if (c.name) {
-        cityMap.set(c.name.toLowerCase(), {
-          name: c.name,
-          slug: c.slug || c.name.toLowerCase().replace(/\s+/g, '-'),
-        });
-      }
-    });
+  const activeCities = useMemo(() => {
+    const list = cities.length > 0 ? cities : fetchedCities;
+    return list.filter((c) => c.status !== 'draft');
+  }, [cities, fetchedCities]);
 
-    ALL_INDIAN_CITIES.forEach((cityName) => {
-      const key = cityName.toLowerCase();
-      if (!cityMap.has(key)) {
-        cityMap.set(key, {
-          name: cityName,
-          slug: cityName.toLowerCase().replace(/\s+/g, '-'),
-        });
-      }
-    });
-
-    return Array.from(cityMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [cities]);
-
-  // Filter cities by search query
   const filteredCities = useMemo(() => {
-    if (!searchQuery.trim()) return cityList;
+    if (!searchQuery.trim()) return activeCities;
     const q = searchQuery.toLowerCase().trim();
-    return cityList.filter((c) => c.name.toLowerCase().includes(q));
-  }, [cityList, searchQuery]);
+    return activeCities.filter((c) => c.name.toLowerCase().includes(q));
+  }, [activeCities, searchQuery]);
 
   if (!isOpen) return null;
 
@@ -101,23 +59,23 @@ export default function CityMegaMenu({ cities = [], isOpen, onClose }: CityMegaM
                 ARCHOVEX Service Locations
               </h3>
               <span className="text-[10px] font-black uppercase bg-[#F97316]/10 text-[#EA580C] px-2.5 py-0.5 rounded-full border border-[#F97316]/20 flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> {cityList.length}+ Cities Served
+                <Sparkles className="w-2.5 h-2.5" /> {activeCities.length} Locations Active
               </span>
             </div>
             <p className="text-xs text-slate-600 font-medium">
-              Find interior design services, experience centers & site execution teams near you
+              Explore turnkey interior design services and experience studios in your location
             </p>
           </div>
         </div>
 
         {/* Live Search Input */}
-        <div className="relative min-w-[280px] md:min-w-[340px]">
+        <div className="relative min-w-[280px] md:min-w-[320px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search 130+ cities across India..."
+            placeholder="Search locations..."
             className="w-full bg-white text-xs text-slate-900 placeholder-slate-400 font-medium pl-10 pr-9 py-2.5 rounded-xl border border-[#E4DCD0] focus:outline-none focus:border-[#0C4A6E] focus:ring-2 focus:ring-[#0C4A6E]/15 transition-all shadow-inner"
           />
           {searchQuery && (
@@ -131,64 +89,44 @@ export default function CityMegaMenu({ cities = [], isOpen, onClose }: CityMegaM
         </div>
       </div>
 
-      {/* Featured Tier-1 Cities Section (Only show when not searching) */}
-      {!searchQuery && (
-        <div className="pt-4 pb-4 border-b border-[#E4DCD0]">
-          <div className="text-[10px] font-black uppercase tracking-widest text-[#0C4A6E] mb-2.5 flex items-center gap-1.5">
-            <MapPin className="w-3 h-3 text-[#F97316]" /> Popular Metro Hubs
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-            {FEATURED_POPULAR_CITIES.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/cities/${c.slug}`}
-                onClick={onClose}
-                className="group flex flex-col p-2.5 rounded-xl bg-white hover:bg-[#0C4A6E] border border-[#E4DCD0] hover:border-[#0C4A6E] transition-all shadow-xs"
-              >
-                <span className="text-xs font-bold text-[#0C4A6E] group-hover:text-white transition-colors truncate">
-                  {c.name}
-                </span>
-                <span className="text-[9px] font-semibold text-slate-500 group-hover:text-amber-300 transition-colors truncate">
-                  {c.label}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Main Grid: All Cities */}
-      <div className="pt-4">
-        {!searchQuery && (
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-3 flex items-center justify-between">
-            <span>All Cities A–Z</span>
-            <span className="text-slate-600 font-semibold lowercase">({filteredCities.length} locations)</span>
-          </div>
-        )}
-
+      {/* Main Grid: CMS Published Locations */}
+      <div className="pt-5">
         {filteredCities.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-x-3 gap-y-2 max-h-[45vh] overflow-y-auto pr-3 custom-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {filteredCities.map((c) => (
               <Link
-                key={c.slug}
-                href={`/cities/${c.slug}`}
+                key={c.id || c.slug}
+                href={`/locations/${c.slug}`}
                 onClick={onClose}
-                className="group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-800 hover:text-[#0C4A6E] hover:bg-white hover:shadow-xs transition-all border border-transparent hover:border-[#E4DCD0]"
-                title={c.name}
+                className="group flex flex-col justify-between p-4 rounded-2xl bg-white hover:bg-[#0C4A6E] border border-[#E4DCD0] hover:border-[#0C4A6E] transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
               >
-                <span className="truncate">{c.name}</span>
-                <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-[#F97316] opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-[#F3EEE4] group-hover:bg-white/10 flex items-center justify-center transition-colors">
+                    <MapPin className="w-4 h-4 text-[#F97316] group-hover:text-amber-300" />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-black text-[#0C4A6E] group-hover:text-white transition-colors">
+                    {c.name}
+                  </h4>
+                </div>
+
+                <div className="mt-4 pt-2 border-t border-[#E4DCD0] group-hover:border-white/20 flex items-center justify-between text-[11px] font-extrabold text-slate-500 group-hover:text-white transition-colors">
+                  <span>VIEW LOCATION</span>
+                  <ChevronRight className="w-4 h-4 text-[#F97316] group-hover:text-amber-300 group-hover:translate-x-1 transition-transform" />
+                </div>
               </Link>
             ))}
           </div>
         ) : (
           <div className="py-8 text-center bg-white rounded-2xl border border-dashed border-[#E4DCD0]">
-            <p className="text-xs font-bold text-[#0C4A6E]">No city matched "{searchQuery}"</p>
+            <p className="text-xs font-bold text-[#0C4A6E]">No active location found matching "{searchQuery}"</p>
             <p className="text-[11px] text-slate-600 font-medium mt-1">
-              We deliver & install interior projects pan-India!
+              We deliver & install interior projects across India!
             </p>
             <Link
-              href="/contact"
+              href="/contact-us"
               onClick={onClose}
               className="inline-flex items-center gap-1 mt-3 px-4 py-2 bg-[#F97316] text-white text-xs font-bold rounded-xl hover:bg-[#EA580C] transition-all"
             >
@@ -197,21 +135,6 @@ export default function CityMegaMenu({ cities = [], isOpen, onClose }: CityMegaM
             </Link>
           </div>
         )}
-      </div>
-
-      {/* Bottom Footer Callout */}
-      <div className="mt-4 pt-3 border-t border-[#E4DCD0] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-600 gap-2">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-semibold">Pan-India Factory Delivery & 45-Day Installation Guarantee</span>
-        </div>
-        <Link
-          href="/contact"
-          onClick={onClose}
-          className="font-extrabold text-[#0C4A6E] hover:text-[#F97316] flex items-center gap-1 transition-colors"
-        >
-          <span>Request Site Visit in Your Area</span> →
-        </Link>
       </div>
     </div>
   );

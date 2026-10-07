@@ -6,41 +6,81 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://archovex.com';
 
-  const homeData = await fetchPublicData('/home');
-  const categories = homeData?.categories || [];
-  const cities = homeData?.cities || [];
+  const [homeData, blogsData, categoriesData] = await Promise.all([
+    fetchPublicData('/home').catch(() => null),
+    fetchPublicData('/blogs').catch(() => fetchPublicData('/designs')).catch(() => null),
+    fetchPublicData('/categories').catch(() => null),
+  ]);
 
-  const designsData = await fetchPublicData('/designs');
-  const designs = designsData?.data || [];
+  const categories = (Array.isArray(categoriesData) ? categoriesData : (homeData?.categories || []));
+  const cities = homeData?.cities || [];
+  const blogs = (blogsData?.data || blogsData || []);
+
+  const SERVICES_SLUGS = [
+    'full-home-interior-design',
+    'modular-kitchen-design',
+    'living-room-interior-design',
+    'bedroom-interior-design',
+    'wardrobe-design',
+    'home-renovation-remodeling',
+    'office-interior-design',
+    'corporate-office-interior-design',
+    'commercial-interior-design',
+    'turnkey-interior-design',
+  ];
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${baseUrl}/</loc><priority>1.0</priority></url>
-  <url><loc>${baseUrl}/designs</loc><priority>0.9</priority></url>
-  <url><loc>${baseUrl}/contact</loc><priority>0.7</priority></url>
+  <url><loc>${baseUrl}/</loc><priority>1.0</priority><changefreq>daily</changefreq></url>
+  <url><loc>${baseUrl}/about-us</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>${baseUrl}/services</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>${baseUrl}/locations</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>${baseUrl}/blogs</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>${baseUrl}/contact-us</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>${baseUrl}/privacy-policy</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
+  <url><loc>${baseUrl}/terms-and-conditions</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
 `;
 
-  // Categories
+  // 1. Services Pages (/services/[serviceSlug])
+  SERVICES_SLUGS.forEach((slug) => {
+    xml += `  <url><loc>${baseUrl}/services/${slug}</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>\n`;
+  });
+
+  // 2. Blog Category Pages (/blogs/[categorySlug])
+  const uniqueCatSlugs = new Set<string>();
   categories.forEach((cat: any) => {
-    xml += `  <url><loc>${baseUrl}/designs/${cat.slug}</loc><priority>0.9</priority></url>\n`;
+    if (cat.slug && !uniqueCatSlugs.has(cat.slug)) {
+      uniqueCatSlugs.add(cat.slug);
+      xml += `  <url><loc>${baseUrl}/blogs/${cat.slug}</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>\n`;
+    }
   });
 
-  // Cities
-  cities.forEach((city: any) => {
-    xml += `  <url><loc>${baseUrl}/cities/${city.slug}</loc><priority>0.8</priority></url>\n`;
+  // 3. Location Studios (/locations/[slug])
+  const locationSlugs = cities.length > 0 ? cities.map((c: any) => c.slug) : ['noida', 'greater-noida', 'delhi', 'new-delhi', 'gurgaon'];
+  const uniqueLocSlugs = new Set<string>();
+  locationSlugs.forEach((slug: string) => {
+    if (slug && !uniqueLocSlugs.has(slug)) {
+      uniqueLocSlugs.add(slug);
+      xml += `  <url><loc>${baseUrl}/locations/${slug}</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>\n`;
+    }
   });
 
-  // Designs
-  designs.forEach((post: any) => {
-    const catSlug = post.category?.slug || 'modular-kitchen-designs';
-    xml += `  <url><loc>${baseUrl}/designs/${catSlug}/${post.slug}</loc><priority>0.8</priority></url>\n`;
-  });
+  // 4. Individual Blog Posts (/blogs/[categorySlug]/[postSlug])
+  if (Array.isArray(blogs)) {
+    blogs.forEach((post: any) => {
+      if (post.slug) {
+        const catSlug = post.category?.slug || 'modular-kitchen-designs';
+        xml += `  <url><loc>${baseUrl}/blogs/${catSlug}/${post.slug}</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>\n`;
+      }
+    });
+  }
 
   xml += `</urlset>`;
 
   return new NextResponse(xml, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
     },
   });
 }

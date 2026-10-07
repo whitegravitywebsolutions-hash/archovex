@@ -218,6 +218,11 @@ class PublicController extends Controller
         $query = DesignPost::with(['category', 'city', 'primaryImage', 'images'])
             ->where('status', 'published');
 
+        if ($request->has('ids') && $request->ids) {
+            $idsList = is_array($request->ids) ? $request->ids : explode(',', $request->ids);
+            $query->whereIn('id', array_map('intval', $idsList));
+        }
+
         if ($request->has('search') && $request->search) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
@@ -251,7 +256,12 @@ class PublicController extends Controller
             }
         }
 
-        $posts = $query->orderBy('sort_order', 'asc')->paginate(12);
+        $perPage = (int) $request->input('limit', 12);
+        if ($perPage > 1000) {
+            $perPage = 1000;
+        }
+
+        $posts = $query->orderBy('sort_order', 'asc')->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -373,12 +383,53 @@ class PublicController extends Controller
 
     public function services()
     {
-        $services = Service::where('status', 'published')->get();
-        return response()->json(['success' => true, 'data' => $services]);
+        $categories = Category::where('status', 'published')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+        return response()->json(['success' => true, 'data' => $categories]);
     }
 
-    public function serviceBySlug($slug)
+    public function serviceBySlug($slug, Request $request)
     {
+        $category = Category::where('slug', $slug)->first();
+        if ($category) {
+            $catSeo = SeoMetadata::where('path', '/services/' . $category->slug)
+                ->orWhere('path', '/designs/' . $category->slug)
+                ->first();
+            $catData = $category->toArray();
+            $catData['seo_data'] = $catSeo;
+
+            $query = DesignPost::with(['category', 'city', 'primaryImage', 'images', 'specifications', 'features'])
+                ->where(function ($q) use ($category) {
+                    $q->where('category_id', $category->id)
+                      ->orWhereJsonContains('category_ids', $category->id);
+                })
+                ->where('status', 'published');
+
+            if ($request->has('style') && $request->style) {
+                $query->where('style', $request->style);
+            }
+            if ($request->has('layout') && $request->layout) {
+                $query->where('layout', $request->layout);
+            }
+            if ($request->has('city_id') && $request->city_id) {
+                $query->where('city_id', $request->city_id);
+            }
+
+            $posts = $query->orderBy('sort_order', 'asc')->paginate(12);
+            $faqs = Faq::where('category_slug', $slug)->orWhereNull('category_slug')->limit(5)->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'category' => $catData,
+                    'service' => $catData,
+                    'posts' => $posts,
+                    'faqs' => $faqs,
+                ]
+            ]);
+        }
+
         $service = Service::where('slug', $slug)->firstOrFail();
         return response()->json(['success' => true, 'data' => $service]);
     }

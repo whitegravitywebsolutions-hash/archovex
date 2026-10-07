@@ -53,11 +53,14 @@ export default function DesignCard({ post }: DesignCardProps) {
 
   const primaryImgUrl =
     post.primary_image?.image ||
+    post.primary_image?.file_path ||
     post.featured_image ||
-    (post.images && post.images.length > 0 ? post.images[0].image : '/placeholder.jpg');
+    post.image ||
+    (post.images && post.images.length > 0 ? (post.images[0].image || post.images[0].file_path) : null) ||
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
 
   const categorySlug = post.category?.slug || 'modular-kitchen-designs';
-  const detailUrl = `/designs/${categorySlug}/${post.slug}`;
+  const detailUrl = `/blogs/${categorySlug}/${post.slug}`;
 
   return (
     <div className="group relative bg-white rounded-2xl border border-[#E4DCD0] hover:border-[#0891B2]/60 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-500 flex flex-col h-full">

@@ -77,7 +77,7 @@ export default function HeroSection({ onOpenConsultation, data = {} }: HeroProps
               </button>
 
               <Link
-                href="/designs"
+                href="/blogs"
                 className="px-8 py-4 bg-white/10 hover:bg-white hover:text-[#0C4A6E] text-white border border-white/30 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center backdrop-blur-md"
               >
                 EXPLORE DESIGNS

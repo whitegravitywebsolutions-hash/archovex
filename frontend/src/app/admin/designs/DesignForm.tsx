@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { apiClient, getImageUrl } from '@/lib/api';
-import { Category, DesignPost } from '@/types';
+import { Category, City, DesignPost } from '@/types';
 import { Trash2, Star, ArrowLeft, Loader2, Image as ImageIcon, Calendar, Clock } from 'lucide-react';
 import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import RichTextEditor from '@/components/admin/RichTextEditor';
+import SearchableMultiSelect from '@/components/admin/SearchableMultiSelect';
 
 const formatDateForInput = (dateStr?: string | null) => {
   if (!dateStr) return '';
@@ -26,12 +27,32 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
   const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Form state
-  const [categoryId, setCategoryId] = useState<number | string>(initialData?.category_id || '');
+  // Form state - multi-select for categories and locations (cities)
+  const [categoryIds, setCategoryIds] = useState<number[]>(() => {
+    if (initialData?.category_ids && Array.isArray(initialData.category_ids) && initialData.category_ids.length > 0) {
+      return initialData.category_ids.map(Number);
+    }
+    if (initialData?.category_id) {
+      return [Number(initialData.category_id)];
+    }
+    return [];
+  });
+
+  const [cityIds, setCityIds] = useState<number[]>(() => {
+    if (initialData?.city_ids && Array.isArray(initialData.city_ids) && initialData.city_ids.length > 0) {
+      return initialData.city_ids.map(Number);
+    }
+    if (initialData?.city_id) {
+      return [Number(initialData.city_id)];
+    }
+    return [];
+  });
+
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [shortDescription, setShortDescription] = useState(initialData?.short_description || '');
@@ -47,6 +68,67 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  const initialCatSlug = initialData?.category?.slug || 'design-guides';
+  const initialSeoPath = initialData?.slug ? `/blogs/${initialCatSlug}/${initialData.slug}` : '';
+  const initialFullUrl = initialSeoPath ? `https://archovex.com${initialSeoPath}` : '';
+
+  // Section 7 SEO - Strapi 15-field meta block
+  const [seoData, setSeoData] = useState<SeoData>({
+    path: initialSeoPath,
+    meta_title: initialData?.meta_title || '',
+    meta_description: initialData?.meta_description || '',
+    focus_keyphrase: '',
+    canonical_url: initialFullUrl,
+    robots_index: true,
+    robots_follow: true,
+    og_title: initialData?.meta_title || initialData?.title || '',
+    og_description: initialData?.meta_description || initialData?.short_description || '',
+    og_url: initialFullUrl,
+    og_type: 'article',
+    og_site_name: 'ARCHOVEX INFRA PRIVATE LIMITED',
+    og_image: initialData?.featured_image || '',
+    twitter_card: 'summary_large_image',
+    twitter_site: '@archovex',
+    schema_code: '',
+  });
+
+  // Section 8 Publish
+  const [status, setStatus] = useState(initialData?.status || 'published');
+  const [publishedAt, setPublishedAt] = useState<string>(formatDateForInput(initialData?.published_at));
+  const [isFeatured, setIsFeatured] = useState(initialData?.is_featured || false);
+  const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 1);
+
+  useEffect(() => {
+    apiClient.get('/admin/categories').then((res) => setCategories(res.data.data || []));
+    apiClient.get('/admin/cities').then((res) => setCities(res.data.data || []));
+
+    if (initialData?.slug) {
+      const catSlug = initialData.category?.slug || 'design-guides';
+      const fetchPath = `/blogs/${catSlug}/${initialData.slug}`;
+      apiClient.get(`/admin/seo/by-path?path=${fetchPath}`).then((res) => {
+        if (res.data?.data) {
+          setSeoData((prev) => ({
+            ...prev,
+            ...res.data.data,
+            robots_index: res.data.data.robots_index ?? true,
+            robots_follow: res.data.data.robots_follow ?? true,
+          }));
+        }
+      }).catch(() => {
+        apiClient.get(`/admin/seo/by-path?path=/designs/${initialData.slug}`).then((res) => {
+          if (res.data?.data) {
+            setSeoData((prev) => ({
+              ...prev,
+              ...res.data.data,
+              robots_index: res.data.data.robots_index ?? true,
+              robots_follow: res.data.data.robots_follow ?? true,
+            }));
+          }
+        }).catch(() => {});
+      });
+    }
+  }, [initialData]);
 
   const handleSelectFromMediaLibrary = (urls: string[]) => {
     if (urls.length === 0) return;
@@ -79,49 +161,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
     }
   };
 
-  // Section 7 SEO - Strapi 15-field meta block
-  const [seoData, setSeoData] = useState<SeoData>({
-    path: initialData?.slug ? `/designs/${initialData.slug}` : '',
-    meta_title: initialData?.meta_title || '',
-    meta_description: initialData?.meta_description || '',
-    focus_keyphrase: '',
-    canonical_url: initialData?.slug ? `https://archovex.com/designs/${initialData.slug}` : '',
-    robots_index: true,
-    robots_follow: true,
-    og_title: initialData?.meta_title || initialData?.title || '',
-    og_description: initialData?.meta_description || initialData?.short_description || '',
-    og_url: initialData?.slug ? `https://archovex.com/designs/${initialData.slug}` : '',
-    og_type: 'article',
-    og_site_name: 'ARCHOVEX INFRA PRIVATE LIMITED',
-    og_image: initialData?.featured_image || '',
-    twitter_card: 'summary_large_image',
-    twitter_site: '@archovex',
-    schema_code: '',
-  });
-
-  // Section 8 Publish
-  const [status, setStatus] = useState(initialData?.status || 'published');
-  const [publishedAt, setPublishedAt] = useState<string>(formatDateForInput(initialData?.published_at));
-  const [isFeatured, setIsFeatured] = useState(initialData?.is_featured || false);
-  const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 1);
-
-  useEffect(() => {
-    apiClient.get('/admin/categories').then((res) => setCategories(res.data.data || []));
-
-    if (initialData?.slug) {
-      apiClient.get(`/admin/seo/by-path?path=/designs/${initialData.slug}`).then((res) => {
-        if (res.data?.data) {
-          setSeoData((prev) => ({
-            ...prev,
-            ...res.data.data,
-            robots_index: res.data.data.robots_index ?? true,
-            robots_follow: res.data.data.robots_follow ?? true,
-          }));
-        }
-      }).catch(() => {});
-    }
-  }, [initialData]);
-
   const addImageUrl = () => {
     if (!imageUrlInput) return;
     const isFirst = images.length === 0;
@@ -142,14 +181,22 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
     setSaving(true);
     setError('');
 
-    if (!categoryId) {
-      setError('Please select a category.');
+    if (categoryIds.length === 0) {
+      setError('Please select at least one service.');
       setSaving(false);
       return;
     }
 
+    const selectedCat = categories.find(c => c.id === categoryIds[0]);
+    const catSlug = selectedCat?.slug || initialData?.category?.slug || 'design-guides';
+    const blogPath = slug ? `/blogs/${catSlug}/${slug}` : seoData.path;
+    const fullUrl = `https://archovex.com${blogPath}`;
+
     const payload = {
-      category_id: categoryId,
+      category_id: categoryIds[0],
+      category_ids: categoryIds,
+      city_id: cityIds.length > 0 ? cityIds[0] : null,
+      city_ids: cityIds,
       title,
       slug,
       short_description: shortDescription,
@@ -165,7 +212,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
       budget_max: initialData?.budget_max || null,
       property_type: initialData?.property_type || null,
       area: initialData?.area || null,
-      city_id: initialData?.city_id || null,
       location: initialData?.location || null,
       featured_image: images.find(i => i.is_primary)?.image || images[0]?.image || '',
       status,
@@ -179,7 +225,9 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
       meta_description: seoData.meta_description || shortDescription,
       seo_data: {
         ...seoData,
-        path: slug ? `/designs/${slug}` : seoData.path,
+        path: blogPath,
+        canonical_url: seoData.canonical_url || fullUrl,
+        og_url: seoData.og_url || fullUrl,
         meta_title: seoData.meta_title || title,
         meta_description: seoData.meta_description || shortDescription,
       },
@@ -191,9 +239,9 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
       } else {
         await apiClient.post('/admin/design-posts', payload);
       }
-      router.push('/admin/designs');
+      router.push('/admin/blogs');
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to save design post.');
+      setError(err?.response?.data?.message || 'Failed to save blog post.');
     } finally {
       setSaving(false);
     }
@@ -203,7 +251,7 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
     <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto pb-20 text-xs">
       <div className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-3">
-          <button type="button" onClick={() => router.push('/admin/designs')} className="p-2 text-slate-500 hover:text-slate-900 rounded-lg border">
+          <button type="button" onClick={() => router.push('/admin/blogs')} className="p-2 text-slate-500 hover:text-slate-900 rounded-lg border">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <h1 className="text-xl font-extrabold text-slate-900">
@@ -235,33 +283,37 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
       <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Basic Information</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Category *</label>
-            <select
-              required
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full p-2.5 bg-slate-50 border rounded-xl font-medium"
-            >
-              <option value="">Select Category...</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
+        <div>
+          <label className="block font-bold text-slate-700 mb-1">Blog Title *</label>
+          <input
+            type="text"
+            required
+            placeholder="e.g. Modern L-Shaped Modular Kitchen Ideas & Guide"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold"
+          />
+        </div>
 
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Blog Title *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Modern L-Shaped Modular Kitchen Ideas & Guide"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2.5 bg-slate-50 border rounded-xl font-semibold"
-            />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SearchableMultiSelect
+            label="Services"
+            options={categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))}
+            selectedIds={categoryIds}
+            onChange={setCategoryIds}
+            placeholder="Search & select services..."
+            required={true}
+            helpText="Select one or multiple services for this post."
+          />
+
+          <SearchableMultiSelect
+            label="Locations / Cities"
+            options={cities.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))}
+            selectedIds={cityIds}
+            onChange={setCityIds}
+            placeholder="Search & select locations..."
+            helpText="Select target locations/cities (e.g. Noida, Delhi, Gurgaon)."
+          />
         </div>
 
         <div>
@@ -300,9 +352,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
           />
         </div>
       </div>
-
-
-
 
       {/* MULTI-IMAGE GALLERY MANAGER */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
@@ -491,4 +540,3 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
     </form>
   );
 }
-
