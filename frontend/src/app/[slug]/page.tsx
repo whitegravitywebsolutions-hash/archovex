@@ -36,12 +36,12 @@ export async function generateMetadata({ params }: DynamicPageProps) {
     description: metaDesc,
     keywords: seo.meta_keywords || '',
     alternates: {
-      canonical: seo.canonical_url || `https://archovex.com/${slug}`,
+      canonical: seo.canonical_url || `/${slug}`,
     },
     openGraph: {
       title: seo.og_title || metaTitle,
       description: seo.og_description || metaDesc,
-      url: seo.og_url || seo.canonical_url || `https://archovex.com/${slug}`,
+      url: seo.og_url || seo.canonical_url || `/${slug}`,
       siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: seo.og_image ? [{ url: seo.og_image }] : [],
     },

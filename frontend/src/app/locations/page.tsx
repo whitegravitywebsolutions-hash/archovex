@@ -8,10 +8,10 @@ import { MapPin, ArrowRight, Building2 } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Interior Designers By Location | ARCHOVEX INFRA PRIVATE LIMITED',
+  title: 'Interior Designers By Location | ARCHOVEX INFRA',
   description: 'Find luxury interior designers in Noida, Greater Noida, Delhi, New Delhi, Gurgaon and premier NCR regions.',
   alternates: {
-    canonical: 'https://archovex.com/locations',
+    canonical: '/locations',
   },
 };
 

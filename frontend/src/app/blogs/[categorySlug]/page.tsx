@@ -21,9 +21,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const seo = cat.seo_data || {};
-  const title = seo.meta_title || cat.meta_title || `${cat.name} | ARCHOVEX INFRA PRIVATE LIMITED`;
+  const title = seo.meta_title || cat.meta_title || `${cat.name} | ARCHOVEX INFRA`;
   const description = seo.meta_description || cat.meta_description || cat.short_description || `Browse custom ${cat.name} blogs & design guides by ARCHOVEX INFRA.`;
-  const canonical = seo.canonical_url || cat.canonical_url || `https://archovex.com/blogs/${cat.slug}`;
+  const canonical = seo.canonical_url || cat.canonical_url || `/blogs/${cat.slug}`;
   const ogTitle = seo.og_title || cat.og_title || title;
   const ogDesc = seo.og_description || cat.og_description || description;
   const ogImg = seo.og_image || cat.og_image || cat.image || '/logo.png';
@@ -76,6 +76,10 @@ export default async function BlogCategoryPage({ params }: PageProps) {
   const seo = category.seo_data || {};
   const customSchemaCode = seo.schema_code || '';
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL 
+    ? process.env.NEXT_PUBLIC_SITE_URL 
+    : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://archovex.vercel.app');
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -84,13 +88,13 @@ export default async function BlogCategoryPage({ params }: PageProps) {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://archovex.com/'
+        'item': `${siteUrl}/`
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': category.name,
-        'item': `https://archovex.com/blogs/${category.slug}`
+        'item': `${siteUrl}/blogs/${category.slug}`
       }
     ]
   };

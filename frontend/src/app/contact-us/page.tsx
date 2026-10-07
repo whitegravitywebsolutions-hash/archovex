@@ -15,7 +15,9 @@ export async function generateMetadata() {
       title: seo.meta_title,
       description: seo.meta_description || 'Contact ARCHOVEX INFRA PRIVATE LIMITED',
       keywords: seo.meta_keywords || '',
-      canonical: seo.canonical_url || 'https://archovex.com/contact-us',
+      alternates: {
+        canonical: seo.canonical_url || '/contact-us',
+      },
       openGraph: {
         title: seo.og_title || seo.meta_title,
         description: seo.og_description || seo.meta_description,
@@ -26,8 +28,11 @@ export async function generateMetadata() {
   }
 
   return {
-    title: 'Contact ARCHOVEX INFRA PRIVATE LIMITED | Book Free Design Consultation',
+    title: 'Contact ARCHOVEX INFRA | Book Free Consultation',
     description: 'Connect with our interior design architects across Delhi NCR, Mumbai, Bangalore, and Pune.',
+    alternates: {
+      canonical: '/contact-us',
+    },
   };
 }
 

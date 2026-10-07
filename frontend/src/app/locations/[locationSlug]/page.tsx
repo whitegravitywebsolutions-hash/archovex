@@ -22,7 +22,9 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: city.meta_title || `Best Interior Designers in ${city.name} | ARCHOVEX INFRA`,
     description: city.meta_description || city.description || `Turnkey interior design services in ${city.name}.`,
-    canonical: city.canonical_url || `https://archovex.com/locations/${city.slug}`,
+    alternates: {
+      canonical: city.canonical_url || `/locations/${city.slug}`,
+    },
   };
 }
 

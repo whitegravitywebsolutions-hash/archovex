@@ -19,20 +19,24 @@ export async function generateMetadata({ params }: ServicePageProps) {
     const category = catData.category;
     const seo = category.seo_data || {};
     return {
-      title: seo.meta_title || `${category.name} | ARCHOVEX INFRA PRIVATE LIMITED`,
+      title: seo.meta_title || `${category.name} | ARCHOVEX INFRA`,
       description: seo.meta_description || category.description || category.short_description,
-      canonical: `https://archovex.com/services/${category.slug}`,
+      alternates: {
+        canonical: `/services/${category.slug}`,
+      },
     };
   }
 
   const service = await fetchPublicData(`/services/${serviceSlug}`).catch(() => null);
   const title = service?.title || serviceSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  const description = service?.meta_description || service?.description || `Luxury ${title} by ARCHOVEX INFRA PRIVATE LIMITED. 10-year warranty, German hardware, 45-day installation guarantee.`;
+  const description = service?.meta_description || service?.description || `Luxury ${title} by ARCHOVEX INFRA. 10-year warranty, German hardware, 45-day installation guarantee.`;
 
   return {
-    title: `${title} | ARCHOVEX INFRA PRIVATE LIMITED`,
+    title: `${title} | ARCHOVEX INFRA`,
     description,
-    canonical: `https://archovex.com/services/${serviceSlug}`,
+    alternates: {
+      canonical: `/services/${serviceSlug}`,
+    },
   };
 }
 

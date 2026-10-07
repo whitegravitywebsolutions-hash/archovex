@@ -23,9 +23,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const seo = post.seo_data || {};
   const primaryImg = post.primary_image?.image || post.featured_image || '/logo.png';
 
-  const title = seo.meta_title || post.meta_title || `${post.title} | ARCHOVEX INFRA PRIVATE LIMITED`;
+  const title = seo.meta_title || post.meta_title || `${post.title} | ARCHOVEX INFRA`;
   const description = seo.meta_description || post.meta_description || post.short_description || `Explore ${post.title} custom interior design guide by ARCHOVEX.`;
-  const canonical = seo.canonical_url || post.canonical_url || `https://archovex.com/blogs/${categorySlug}/${post.slug}`;
+  const canonical = seo.canonical_url || post.canonical_url || `/blogs/${categorySlug}/${post.slug}`;
   const ogTitle = seo.og_title || post.og_title || title;
   const ogDesc = seo.og_description || post.og_description || description;
   const ogImg = seo.og_image || post.og_image || primaryImg;
@@ -78,31 +78,35 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
   const seo = post.seo_data || {};
   const customSchemaCode = seo.schema_code || '';
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL 
+    ? process.env.NEXT_PUBLIC_SITE_URL 
+    : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://archovex.vercel.app');
+
   // Article Schema JSON-LD
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     'headline': post.title,
     'description': post.short_description || post.meta_description,
-    'image': [post.featured_image || 'https://archovex.com/logo.png'],
+    'image': [post.featured_image || `${siteUrl}/logo.png`],
     'author': {
       '@type': 'Organization',
       'name': 'ARCHOVEX INFRA PRIVATE LIMITED',
-      'url': 'https://archovex.com'
+      'url': siteUrl
     },
     'publisher': {
       '@type': 'Organization',
       'name': 'ARCHOVEX INFRA PRIVATE LIMITED',
       'logo': {
         '@type': 'ImageObject',
-        'url': 'https://archovex.com/logo.png'
+        'url': `${siteUrl}/logo.png`
       }
     },
     'datePublished': post.published_at || post.created_at,
     'dateModified': post.updated_at || post.published_at || post.created_at,
     'mainEntityOfPage': {
       '@type': 'WebPage',
-      '@id': `https://archovex.com/blogs/${categorySlug}/${postSlug}`
+      '@id': `${siteUrl}/blogs/${categorySlug}/${postSlug}`
     }
   };
 
@@ -115,19 +119,19 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://archovex.com/'
+        'item': `${siteUrl}/`
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': category?.name || 'Blogs',
-        'item': `https://archovex.com/blogs/${categorySlug}`
+        'item': `${siteUrl}/blogs/${categorySlug}`
       },
       {
         '@type': 'ListItem',
         'position': 3,
         'name': post.title,
-        'item': `https://archovex.com/blogs/${categorySlug}/${postSlug}`
+        'item': `${siteUrl}/blogs/${categorySlug}/${postSlug}`
       }
     ]
   };
