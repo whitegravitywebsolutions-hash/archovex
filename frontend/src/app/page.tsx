@@ -9,20 +9,23 @@ import DynamicPageClient from './[slug]/DynamicPageClient';
 import { fetchPublicData } from '@/lib/api';
 
 export async function generateMetadata() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://archovex.vercel.app';
   const pageData = await fetchPublicData('/pages/home');
+
   if (pageData?.seo_data?.meta_title) {
     const seo = pageData.seo_data;
     return {
+      metadataBase: new URL(siteUrl),
       title: seo.meta_title,
       description: seo.meta_description || 'ARCHOVEX INFRA PRIVATE LIMITED',
       keywords: seo.meta_keywords || '',
       alternates: {
-        canonical: seo.canonical_url || 'https://archovex.com',
+        canonical: seo.canonical_url || siteUrl,
       },
       openGraph: {
         title: seo.og_title || seo.meta_title,
         description: seo.og_description || seo.meta_description,
-        url: seo.og_url || seo.canonical_url || 'https://archovex.com',
+        url: seo.og_url || seo.canonical_url || siteUrl,
         siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
         images: seo.og_image ? [{ url: seo.og_image }] : ['/logo.png'],
       },
@@ -34,8 +37,12 @@ export async function generateMetadata() {
   const settings = homeData?.settings || {};
 
   return {
-    title: settings.default_meta_title || 'ARCHOVEX INFRA PRIVATE LIMITED | Premium Interior Design Platform',
+    metadataBase: new URL(siteUrl),
+    title: settings.default_meta_title || 'ARCHOVEX INFRA PRIVATE LIMITED | Premium Luxury Interior Design',
     description: settings.default_meta_description || 'ARCHOVEX INFRA PRIVATE LIMITED offers luxury modular kitchens, living room designs, sliding wardrobes, and turnkey home interiors across India.',
+    alternates: {
+      canonical: siteUrl,
+    },
     openGraph: {
       title: settings.default_meta_title || 'ARCHOVEX INFRA PRIVATE LIMITED',
       description: settings.default_meta_description || 'Luxury interior designs',
