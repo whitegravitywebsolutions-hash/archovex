@@ -8,6 +8,8 @@ import HomepageClient from './HomepageClient';
 import DynamicPageClient from './[slug]/DynamicPageClient';
 import { fetchPublicData } from '@/lib/api';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL 
     ? process.env.NEXT_PUBLIC_SITE_URL 
