@@ -83,6 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Page Builder', href: '/admin/pages', icon: BookOpen },
+    { label: 'Admin Users', href: '/admin/users', icon: UserIcon },
     { label: 'SEO & Social Meta', href: '/admin/seo', icon: Search },
     { label: 'Services', href: '/admin/services', icon: FolderTree },
     { label: 'Locations', href: '/admin/cities', icon: MapPin },

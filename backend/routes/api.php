@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\AdminLeadController;
 use App\Http\Controllers\Api\V1\AdminSettingController;
 use App\Http\Controllers\Api\V1\AdminSeoController;
 use App\Http\Controllers\Api\V1\AdminPageController;
+use App\Http\Controllers\Api\V1\AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -123,5 +124,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/seo', [AdminSeoController::class, 'store']);
         Route::put('/seo/{id}', [AdminSeoController::class, 'update']);
         Route::post('/seo-test', [AdminSeoController::class, 'testSeo']);
+
+        // Admin User Management
+        Route::get('/users', [AdminUserController::class, 'index']);
+        Route::post('/users', [AdminUserController::class, 'store']);
+        Route::put('/users/{id}', [AdminUserController::class, 'update']);
+        Route::post('/users/{id}/change-password', [AdminUserController::class, 'changePassword']);
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
     });
 });
