@@ -14,7 +14,9 @@ import {
   Loader2, 
   Lock, 
   Mail, 
-  User as UserIcon 
+  User as UserIcon,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface AdminUser {
@@ -36,6 +38,12 @@ export default function AdminUsersManagementPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+
+  // Password Visibility States
+  const [showAddPassword, setShowAddPassword] = useState(false);
+  const [showAddConfirmPassword, setShowAddConfirmPassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showChangeConfirmPassword, setShowChangeConfirmPassword] = useState(false);
 
   // Add User Form State
   const [addUserForm, setAddUserForm] = useState({
@@ -323,14 +331,22 @@ export default function AdminUsersManagementPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="password"
+                    type={showAddPassword ? 'text' : 'password'}
                     required
                     minLength={6}
                     value={addUserForm.password}
                     onChange={(e) => setAddUserForm({ ...addUserForm, password: e.target.value })}
                     placeholder="Minimum 6 characters"
-                    className="w-full pl-9 pr-3 py-2.5 border rounded-xl font-medium"
+                    className="w-full pl-9 pr-10 py-2.5 border rounded-xl font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPassword(!showAddPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showAddPassword ? "Hide password" : "Show password"}
+                  >
+                    {showAddPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -339,14 +355,22 @@ export default function AdminUsersManagementPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="password"
+                    type={showAddConfirmPassword ? 'text' : 'password'}
                     required
                     minLength={6}
                     value={addUserForm.confirm_password}
                     onChange={(e) => setAddUserForm({ ...addUserForm, confirm_password: e.target.value })}
                     placeholder="Repeat password"
-                    className="w-full pl-9 pr-3 py-2.5 border rounded-xl font-medium"
+                    className="w-full pl-9 pr-10 py-2.5 border rounded-xl font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowAddConfirmPassword(!showAddConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showAddConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showAddConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -402,14 +426,22 @@ export default function AdminUsersManagementPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="password"
+                    type={showChangePassword ? 'text' : 'password'}
                     required
                     minLength={6}
                     value={passwordForm.password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
                     placeholder="Enter new password"
-                    className="w-full pl-9 pr-3 py-2.5 border rounded-xl font-medium"
+                    className="w-full pl-9 pr-10 py-2.5 border rounded-xl font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowChangePassword(!showChangePassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showChangePassword ? "Hide password" : "Show password"}
+                  >
+                    {showChangePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -418,14 +450,22 @@ export default function AdminUsersManagementPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="password"
+                    type={showChangeConfirmPassword ? 'text' : 'password'}
                     required
                     minLength={6}
                     value={passwordForm.confirm_password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
                     placeholder="Confirm new password"
-                    className="w-full pl-9 pr-3 py-2.5 border rounded-xl font-medium"
+                    className="w-full pl-9 pr-10 py-2.5 border rounded-xl font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowChangeConfirmPassword(!showChangeConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showChangeConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showChangeConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
