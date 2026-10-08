@@ -181,20 +181,16 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
     setSaving(true);
     setError('');
 
-    if (categoryIds.length === 0) {
-      setError('Please select at least one service.');
-      setSaving(false);
-      return;
-    }
-
-    const selectedCat = categories.find(c => c.id === categoryIds[0]);
+    const activeCatId = categoryIds.length > 0 ? categoryIds[0] : (categories[0]?.id || initialData?.category_id || 1);
+    const activeCatIds = categoryIds.length > 0 ? categoryIds : [activeCatId];
+    const selectedCat = categories.find(c => c.id === activeCatId);
     const catSlug = selectedCat?.slug || initialData?.category?.slug || 'design-guides';
     const blogPath = slug ? `/blogs/${catSlug}/${slug}` : seoData.path;
     const fullUrl = `https://archovex.com${blogPath}`;
 
     const payload = {
-      category_id: categoryIds[0],
-      category_ids: categoryIds,
+      category_id: activeCatId,
+      category_ids: activeCatIds,
       city_id: cityIds.length > 0 ? cityIds[0] : null,
       city_ids: cityIds,
       title,
@@ -295,26 +291,6 @@ export default function DesignForm({ initialData = null }: DesignFormProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SearchableMultiSelect
-            label="Services"
-            options={categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))}
-            selectedIds={categoryIds}
-            onChange={setCategoryIds}
-            placeholder="Search & select services..."
-            required={true}
-            helpText="Select one or multiple services for this post."
-          />
-
-          <SearchableMultiSelect
-            label="Locations / Cities"
-            options={cities.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))}
-            selectedIds={cityIds}
-            onChange={setCityIds}
-            placeholder="Search & select locations..."
-            helpText="Select target locations/cities (e.g. Noida, Delhi, Gurgaon)."
-          />
-        </div>
 
         <div>
           <label className="block font-bold text-slate-700 mb-1">Slug (URL)</label>

@@ -139,17 +139,6 @@ export default function AdminBlogsPage() {
 
         <div className="flex gap-3 w-full md:w-auto">
           <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
-          >
-            <option value="">All Services</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-
-          <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
@@ -179,8 +168,6 @@ export default function AdminBlogsPage() {
               <tr className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500 border-b border-slate-100">
                 <th className="p-4">Primary Image</th>
                 <th className="p-4">Blog Title</th>
-                <th className="p-4">Service</th>
-                <th className="p-4">City</th>
                 <th className="p-4">Publish Date & Time</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Featured</th>
@@ -189,9 +176,9 @@ export default function AdminBlogsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {loading ? (
-                <tr><td colSpan={8} className="p-8 text-center text-slate-400">Loading blogs...</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Loading blogs...</td></tr>
               ) : posts.length === 0 ? (
-                <tr><td colSpan={8} className="p-8 text-center text-slate-400">No blogs found.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">No blogs found.</td></tr>
               ) : (
                 posts.map((post) => {
                   const imgUrl = post.primary_image?.image || post.featured_image || '/placeholder.jpg';
@@ -207,8 +194,6 @@ export default function AdminBlogsPage() {
                         </div>
                       </td>
                       <td className="p-4 font-bold text-slate-900 max-w-xs truncate">{post.title}</td>
-                      <td className="p-4 font-semibold text-blue-600">{post.category?.name || 'Unassigned'}</td>
-                      <td className="p-4">{post.city?.name || 'All Cities'}</td>
                       <td className="p-4 whitespace-nowrap">
                         {pubDate ? (
                           <div className="flex flex-col">
