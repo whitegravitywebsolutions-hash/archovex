@@ -63,7 +63,7 @@ export default function MobileMenu({ isOpen, onClose, items, cities = [], onOpen
                     <Link
                       href={item.url || '#'}
                       onClick={onClose}
-                      className="text-sm font-bold text-slate-800 hover:text-[#0C4A6E] transition-colors uppercase tracking-wider py-1 flex-grow"
+                      className="text-sm font-bold text-slate-800 hover:text-[#0C4A6E] transition-colors tracking-wider py-1 flex-grow"
                     >
                       {item.label}
                     </Link>
@@ -81,57 +81,17 @@ export default function MobileMenu({ isOpen, onClose, items, cities = [], onOpen
 
                   {/* Custom DB Mega Menu Accordion */}
                   {hasMegaCols && isSubOpen && (
-                    <div className="pl-4 pt-2 space-y-4 bg-slate-50 rounded-xl p-3 mt-2">
-                      {item.mega_columns!.map((col) => (
-                        <div key={col.id} className="space-y-1">
-                          {col.title && (
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
-                              {col.title}
-                            </span>
-                          )}
-                          <ul className="space-y-1.5 pl-2">
-                            {col.items.map((mItem) => (
-                              <li key={mItem.id}>
-                                <Link
-                                  href={mItem.url || '#'}
-                                  onClick={onClose}
-                                  className="text-xs font-semibold text-slate-600 hover:text-[#0C4A6E] block py-1"
-                                >
-                                  {mItem.label}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Services Accordion */}
-                  {isServiceItem && !hasMegaCols && isSubOpen && (
-                    <div className="pl-3 pt-2 space-y-2 bg-[#FAF8F3] border border-[#E4DCD0] rounded-xl p-3 mt-2 animate-fade-in">
-                      <div className="flex items-center justify-between pb-1 border-b border-[#E4DCD0]">
-                        <span className="text-[10px] font-black text-[#0C4A6E] uppercase tracking-widest block">
-                          OUR SERVICES HUB
-                        </span>
-                        <Link
-                          href="/services"
-                          onClick={onClose}
-                          className="text-[10px] font-bold text-[#F97316] hover:underline"
-                        >
-                          View All
-                        </Link>
-                      </div>
-                      <ul className="space-y-1.5 pt-1">
-                        {DEFAULT_SERVICES_LIST.map((srv) => (
-                          <li key={srv.slug}>
+                    <div className="pl-3 pt-2 space-y-1.5 bg-slate-50 rounded-xl p-3 mt-2">
+                      <ul className="space-y-1.5">
+                        {item.mega_columns!.flatMap(col => col.items).map((mItem, idx) => (
+                          <li key={mItem.id || idx}>
                             <Link
-                              href={`/services/${srv.slug}`}
+                              href={mItem.url || '#'}
                               onClick={onClose}
-                              className="text-xs font-bold text-slate-700 hover:text-[#0C4A6E] py-1 flex items-center gap-2"
+                              className="text-xs font-semibold text-slate-700 hover:text-[#0C4A6E] flex items-center gap-2 py-1"
                             >
-                              <Sparkles className="w-3 h-3 text-[#F97316] flex-shrink-0" />
-                              <span>{srv.title}</span>
+                              <span className="w-1 h-1 rounded-full bg-[#F97316]" />
+                              <span>{mItem.label}</span>
                             </Link>
                           </li>
                         ))}
@@ -139,40 +99,19 @@ export default function MobileMenu({ isOpen, onClose, items, cities = [], onOpen
                     </div>
                   )}
 
-                  {/* Locations Accordion */}
-                  {isCityItem && !hasMegaCols && isSubOpen && (
-                    <div className="pl-3 pt-2 space-y-2 bg-[#FAF8F3] border border-[#E4DCD0] rounded-xl p-3 mt-2 animate-fade-in">
-                      <div className="flex items-center justify-between pb-1 border-b border-[#E4DCD0]">
-                        <span className="text-[10px] font-black text-[#0C4A6E] uppercase tracking-widest block">
-                          LOCATION STUDIOS
-                        </span>
-                        <Link
-                          href="/locations"
-                          onClick={onClose}
-                          className="text-[10px] font-bold text-[#F97316] hover:underline"
-                        >
-                          View All
-                        </Link>
-                      </div>
-                      <ul className="space-y-1.5 pt-1">
-                        {(cities.length > 0 ? cities : [
-                          { id: 1, name: 'Delhi NCR', slug: 'delhi-ncr', state: 'North India' },
-                          { id: 2, name: 'Gurugram', slug: 'gurugram', state: 'Haryana' },
-                          { id: 3, name: 'Noida', slug: 'noida', state: 'Uttar Pradesh' },
-                          { id: 4, name: 'Bengaluru', slug: 'bengaluru', state: 'Karnataka' },
-                          { id: 5, name: 'Mumbai', slug: 'mumbai', state: 'Maharashtra' },
-                        ]).map((c) => (
-                          <li key={c.id}>
+                  {/* Services Accordion */}
+                  {isServiceItem && !hasMegaCols && isSubOpen && (
+                    <div className="pl-3 pt-2 space-y-1.5 bg-slate-50 rounded-xl p-3 mt-2 animate-fade-in">
+                      <ul className="space-y-1.5">
+                        {DEFAULT_SERVICES_LIST.map((srv) => (
+                          <li key={srv.slug}>
                             <Link
-                              href={`/locations/${c.slug}`}
+                              href={`/services/${srv.slug}`}
                               onClick={onClose}
-                              className="text-xs font-bold text-slate-700 hover:text-[#0C4A6E] py-1 flex items-center justify-between"
+                              className="text-xs font-semibold text-slate-700 hover:text-[#0C4A6E] flex items-center gap-2 py-1"
                             >
-                              <span className="flex items-center gap-1.5">
-                                <MapPin className="w-3 h-3 text-[#F97316]" />
-                                {c.name}
-                              </span>
-                              {c.state && <span className="text-[10px] text-slate-400 font-medium">{c.state}</span>}
+                              <span className="w-1 h-1 rounded-full bg-[#F97316]" />
+                              <span>{srv.title}</span>
                             </Link>
                           </li>
                         ))}

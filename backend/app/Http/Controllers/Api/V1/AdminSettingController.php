@@ -53,6 +53,10 @@ class AdminSettingController extends Controller
             }
         }
 
+        if (isset($data['footer_copyright'])) {
+            Setting::setValue('copyright', $data['footer_copyright']);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Settings updated successfully',

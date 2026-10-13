@@ -20,15 +20,7 @@ class DesignPost extends Model
         'city_ids' => 'array',
     ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
 
-    public function city()
-    {
-        return $this->belongsTo(City::class);
-    }
 
     public function images()
     {

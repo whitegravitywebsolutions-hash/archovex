@@ -1,11 +1,8 @@
 import React from 'react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
-import StatsSection from '@/components/public/StatsSection';
-import ProcessSection from '@/components/public/ProcessSection';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import HomepageClient from './HomepageClient';
-import DynamicPageClient from './[slug]/DynamicPageClient';
 import { fetchPublicData } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -38,28 +35,27 @@ export async function generateMetadata() {
     };
   }
 
-  const homeData = await fetchPublicData('/home');
-  const settings = homeData?.settings || {};
-
   return {
     metadataBase: new URL(siteUrl),
-    title: settings.default_meta_title || 'ARCHOVEX INFRA PRIVATE LIMITED | Premium Luxury Interior Design',
-    description: settings.default_meta_description || 'ARCHOVEX INFRA PRIVATE LIMITED offers luxury modular kitchens, living room designs, sliding wardrobes, and turnkey home interiors across India.',
+    title: 'Interior Designers in Delhi NCR | Archovex Infra',
+    description: 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
     alternates: {
       canonical: '/',
     },
     openGraph: {
-      title: settings.default_meta_title || 'ARCHOVEX INFRA PRIVATE LIMITED',
-      description: settings.default_meta_description || 'Luxury interior designs',
+      title: 'Interior Designers in Delhi NCR | Archovex Infra',
+      description: 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
+      url: '/',
+      siteName: 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: ['/logo.png'],
     },
   };
 }
 
 export default async function HomePage() {
-  const [homeData, customHomePage] = await Promise.all([
-    fetchPublicData('/home'),
-    fetchPublicData('/pages/home')
+  const [homeData, customPage] = await Promise.all([
+    fetchPublicData('/home').catch(() => null),
+    fetchPublicData('/pages/home').catch(() => null),
   ]);
 
   const categories = homeData?.categories || [];
@@ -73,32 +69,30 @@ export default async function HomePage() {
   const settings = homeData?.settings || {};
   const socialLinks = homeData?.social_links || [];
 
-  const dynamicSections = Array.isArray(customHomePage?.sections) ? customHomePage.sections : [];
+  // Admin page builder sections for the home page.
+  // HomepageClient uses: hero_home section → HeroHomeSection (split layout with form)
+  // The rest of the sections (Services, Locations, Process, etc.) are hardcoded React components.
+  const customSections = Array.isArray(customPage?.sections) && customPage.sections.length > 0
+    ? customPage.sections
+    : [];
 
   return (
     <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       
       <main className="flex-grow">
-        {dynamicSections.length > 0 ? (
-          <DynamicPageClient page={customHomePage} cities={cities} />
-        ) : (
-          <>
-            <HomepageClient
-              categories={categories}
-              featuredDesigns={featuredDesigns}
-              services={services}
-              projects={projects}
-              cities={cities}
-              testimonials={testimonials}
-              faqs={faqs}
-              blogs={blogs}
-              settings={settings}
-            />
-            <StatsSection />
-            <ProcessSection />
-          </>
-        )}
+        <HomepageClient
+          categories={categories}
+          featuredDesigns={featuredDesigns}
+          services={services}
+          projects={projects}
+          cities={cities}
+          testimonials={testimonials}
+          faqs={faqs}
+          blogs={blogs}
+          settings={settings}
+          customSections={customSections}
+        />
       </main>
 
       <Footer settings={settings} socialLinks={socialLinks} />

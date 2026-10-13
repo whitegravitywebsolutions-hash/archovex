@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { apiClient } from '@/lib/api';
 import { City } from '@/types';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2, Send } from 'lucide-react';
 
 interface ConsultationFormProps {
   cities?: City[];
@@ -16,11 +16,8 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
     name: '',
     phone: '',
     email: '',
-    city_id: '',
-    property_type: '3 BHK',
-    requirement: 'Modular Kitchen',
-    budget: '₹5L – ₹10L',
-    message: '',
+    address: '',
+    requirement: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -34,14 +31,14 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
 
     try {
       const res = await apiClient.post('/consultation', formData);
-      if (res.data.success) {
+      if (res.data?.success) {
         setSubmitted(true);
         if (onSuccess) onSuccess();
       } else {
-        setError(res.data.message || 'Failed to submit form.');
+        setError(res.data?.message || 'Failed to submit form.');
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to submit consultation request. Please try again.');
+      setError(err?.response?.data?.message || 'Failed to submit request. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -53,11 +50,12 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
         <h3 className="text-xl font-bold">Consultation Requested!</h3>
         <p className="text-sm text-emerald-800">
-          Thank you for choosing ARCHOVEX INFRA. Our senior interior designer will call you within 2 business hours.
+          Thank you for choosing ARCHOVEX INFRA. Our senior interior designer will contact you within 2 business hours.
         </p>
         <button
+          type="button"
           onClick={() => setSubmitted(false)}
-          className="inline-block text-xs font-bold uppercase tracking-wider text-emerald-700 underline pt-2"
+          className="inline-block text-xs font-bold uppercase tracking-wider text-emerald-700 underline pt-2 cursor-pointer"
         >
           Submit another request
         </button>
@@ -66,127 +64,91 @@ export default function ConsultationForm({ cities = [], onSuccess, compact = fal
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
       {error && (
-        <div className="p-3 text-xs bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
+        <div className="p-3 text-xs bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-medium">
           {error}
         </div>
       )}
 
+      {/* Row 1: Name & Phone */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Your Name *</label>
+          <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">YOUR NAME *</label>
           <input
             type="text"
             required
             placeholder="e.g. Rahul Sharma"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-medium focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#EA580C] focus:border-[#EA580C] focus:outline-none transition-all shadow-2xs"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Mobile Number *</label>
+          <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">MOBILE NUMBER *</label>
           <input
             type="tel"
             required
             placeholder="+91 98765 43210"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-medium focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#EA580C] focus:border-[#EA580C] focus:outline-none transition-all shadow-2xs"
           />
         </div>
       </div>
 
+      {/* Row 2: Email & Address */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Email Address</label>
+          <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">EMAIL ADDRESS</label>
           <input
             type="email"
             placeholder="rahul@example.com"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-medium focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#EA580C] focus:border-[#EA580C] focus:outline-none transition-all shadow-2xs"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Select City</label>
-          <select
-            value={formData.city_id}
-            onChange={(e) => setFormData({ ...formData, city_id: e.target.value })}
-            className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
-          >
-            <option value="">Select your city...</option>
-            {cities.map((city) => (
-              <option key={city.id} value={city.id}>
-                {city.name}
-              </option>
-            ))}
-          </select>
+          <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">YOUR ADDRESS</label>
+          <input
+            type="text"
+            placeholder="e.g. Flat 302, Sector 62, Noida"
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#EA580C] focus:border-[#EA580C] focus:outline-none transition-all shadow-2xs"
+          />
         </div>
       </div>
 
-      {!compact && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Property Type</label>
-            <select
-              value={formData.property_type}
-              onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
-            >
-              <option value="1 BHK">1 BHK Apartment</option>
-              <option value="2 BHK">2 BHK Apartment</option>
-              <option value="3 BHK">3 BHK Apartment</option>
-              <option value="4 BHK+">4 BHK / Penthouse</option>
-              <option value="Villa">Independent Villa / Kothi</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Requirement</label>
-            <select
-              value={formData.requirement}
-              onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
-            >
-              <option value="Full Home Interiors">Full Home Interiors</option>
-              <option value="Modular Kitchen">Modular Kitchen</option>
-              <option value="Wardrobes & Storage">Wardrobes & Storage</option>
-              <option value="Living Room Makeover">Living Room Makeover</option>
-              <option value="Complete Renovation">Complete Renovation</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase text-[#0B132B] mb-1">Budget Range</label>
-            <select
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-              className="w-full px-4 py-2.5 bg-white border border-[#E4DCD0] rounded-xl text-xs text-[#0B132B] font-semibold focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
-            >
-              <option value="Under ₹5L">Under ₹5 Lakhs</option>
-              <option value="₹5L – ₹10L">₹5L – ₹10 Lakhs</option>
-              <option value="₹10L – ₹20L">₹10L – ₹20 Lakhs</option>
-              <option value="₹20L+">₹20 Lakhs+</option>
-            </select>
-          </div>
-        </div>
-      )}
+      {/* Requirement Textarea Field */}
+      <div>
+        <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">REQUIREMENT DETAILS</label>
+        <textarea
+          rows={3}
+          placeholder="Describe your interior design requirements (e.g. 3BHK full home interior, modular kitchen with German hardware, wardrobes...)"
+          value={formData.requirement}
+          onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
+          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#EA580C] focus:border-[#EA580C] focus:outline-none transition-all shadow-2xs"
+        />
+      </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl shadow-[#F97316]/25 transition-all flex items-center justify-center gap-2 border border-amber-300/40 disabled:opacity-50"
+        className="w-full py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md transition-all flex items-center justify-center gap-2 border border-amber-500/20 disabled:opacity-50 cursor-pointer"
       >
-        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'GET FREE CONSULTATION'}
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin text-white" />
+        ) : (
+          <>
+            <span>GET FREE CONSULTATION</span>
+            <Send className="w-3.5 h-3.5 text-white" />
+          </>
+        )}
       </button>
-
-      <p className="text-[10px] text-slate-500 text-center">
-        🔒 100% Privacy Guaranteed. No spam. 10-Year Warranty Coverage.
-      </p>
     </form>
   );
 }

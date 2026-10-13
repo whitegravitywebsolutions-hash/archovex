@@ -75,15 +75,15 @@ function CatalogContent({ categories, cities }: Props) {
 
   return (
     <>
-      <section className="bg-slate-950 text-white py-14">
+      <section className="bg-gradient-to-b from-[#FAFAFA] via-[#F6F4EF] to-[#FAFAFA] text-slate-900 py-14 border-b border-slate-200/80 font-sans">
         <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-400/20 px-3.5 py-1.5 rounded-full inline-block">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#EA580C] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full inline-block shadow-2xs">
             {wishlistMode ? 'YOUR SAVED FAVORITES' : 'COMPLETE INTERIOR CATALOG'}
           </span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold uppercase">
+          <h1 className="text-3xl sm:text-5xl font-serif font-bold uppercase tracking-tight text-slate-900">
             {wishlistMode ? 'My Saved Wishlist' : 'Explore Interior Designs'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
             {wishlistMode
               ? 'View and manage all your saved interior design concepts in one place.'
               : 'Discover bespoke designs categorized by room, layout, style, and city.'}
@@ -91,7 +91,7 @@ function CatalogContent({ categories, cities }: Props) {
         </div>
       </section>
 
-      <section className="py-10 bg-[#faf8f3] min-h-[70vh]">
+      <section className="py-10 bg-[#FAFAFA] min-h-[70vh]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
           {/* Mode Switcher Bar */}

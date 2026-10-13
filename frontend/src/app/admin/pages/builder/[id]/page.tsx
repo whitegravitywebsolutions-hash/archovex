@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api';
+import { apiClient, getSiteBaseUrl } from '@/lib/api';
 import {
   ArrowLeft,
   Save,
@@ -29,10 +29,14 @@ import {
   Megaphone,
   Image as ImageIcon,
   Code,
-  BookOpen
+  BookOpen,
+  Edit3,
+  Phone
 } from 'lucide-react';
 import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import SearchableSingleSelect from '@/components/admin/SearchableSingleSelect';
 
 interface SectionItem {
   id: string;
@@ -65,10 +69,27 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
   // Page Core Info
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
+  const [parentId, setParentId] = useState<number | null>(null);
+  const [allPages, setAllPages] = useState<any[]>([]);
   const [status, setStatus] = useState('published');
   const [sections, setSections] = useState<SectionItem[]>([]);
   const [activeTab, setActiveTab] = useState<'builder' | 'seo'>('builder');
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+  const [isAddBlockModalOpen, setIsAddBlockModalOpen] = useState(false);
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+  const [isSeoAccordionOpen, setIsSeoAccordionOpen] = useState(true);
+
+  const generateAutoSlug = (titleText: string, pId: number | null, pagesList: any[]) => {
+    const cleanTitleSlug = titleText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    if (!cleanTitleSlug) return '';
+
+    const parentPage = pagesList.find((p) => String(p.id) === String(pId));
+    if (parentPage && parentPage.slug) {
+      const parentSlugClean = parentPage.slug.replace(/(^\/|\/$)/g, '');
+      return `${parentSlugClean}/${cleanTitleSlug.replace(new RegExp(`^${parentSlugClean}/`), '')}`;
+    }
+    return cleanTitleSlug;
+  };
 
   // Media Picker State
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
@@ -97,19 +118,44 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
   const fetchPage = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get(`/admin/pages/${pageId}`);
-      if (res.data.success) {
-        const page = res.data.data;
+      const [pageRes, pagesRes] = await Promise.all([
+        apiClient.get(`/admin/pages/${pageId}`),
+        apiClient.get('/admin/pages?per_page=all').catch(() => ({ data: { success: false, data: [] } })),
+      ]);
+
+      if (pagesRes.data?.success && Array.isArray(pagesRes.data.data)) {
+        const filtered = pagesRes.data.data.filter((p: any) => String(p.id) !== String(pageId));
+        filtered.sort((a: any, b: any) => {
+          const aTop = !a.parent_id;
+          const bTop = !b.parent_id;
+          if (aTop && !bTop) return -1;
+          if (!aTop && bTop) return 1;
+          return (a.title || '').localeCompare(b.title || '');
+        });
+        setAllPages(filtered);
+      }
+
+      if (pageRes.data.success) {
+        const page = pageRes.data.data;
         setTitle(page.title);
         setSlug(page.slug);
+        setParentId(page.parent_id || null);
         setStatus(page.status);
         setSections(Array.isArray(page.sections) ? page.sections : []);
 
         const path = page.slug === 'home' ? '/' : `/${page.slug}`;
+        const siteBase = getSiteBaseUrl();
         if (page.seo_data) {
+          let canonical = page.seo_data.canonical_url || '';
+          if (canonical.includes('archovex.com')) {
+            canonical = canonical.replace('https://archovex.com', siteBase).replace('http://archovex.com', siteBase);
+          } else if (!canonical) {
+            canonical = `${siteBase}${path}`;
+          }
           setSeoData({
             ...page.seo_data,
             path,
+            canonical_url: canonical,
             robots_index: page.seo_data.robots_index ?? true,
             robots_follow: page.seo_data.robots_follow ?? true,
           });
@@ -117,6 +163,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
           setSeoData((prev) => ({
             ...prev,
             path,
+            canonical_url: `${siteBase}${path}`,
             meta_title: page.meta_title || page.title,
             meta_description: page.meta_description || '',
           }));
@@ -135,6 +182,37 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
 
   // Section Library Catalogs
   const sectionCatalog = [
+    {
+      type: 'hero_home',
+      label: '🏠 Home Hero — Split Layout (H1 + Form Card)',
+      icon: Layout,
+      desc: 'Batch A blueprint hero: background photo left, consultation form card right. Controls H1, eyebrow badge, copy paragraph, and CTAs from admin.',
+      defaultData: {
+        type: 'hero_home',
+        title: 'Interior Designers in Delhi NCR for Homes and Offices',
+        subtitle: 'Archovex Infra is a team of interior designers in Delhi NCR who plan, design and build interiors for homes and workplaces. We work across Noida, Greater Noida, Delhi, New Delhi and Gurgaon. One team takes your project from the first measurement to the final handover, so you are not left managing carpenters, electricians and painters on your own.',
+        badge: 'Archovex Infra · Interior design and execution',
+        cta_text: 'Get Free Consultation',
+        cta_link: '#consultation',
+        bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
+      },
+    },
+    {
+      type: 'trust_strip',
+      label: '✦ Trust Strip — After Hero Bar',
+      icon: ShieldCheck,
+      desc: '4 key value highlights (Direct Factory Pricing, 10-Year Warranty, 45-Day Move-In, 140K+ Happy Clients).',
+      defaultData: {
+        type: 'trust_strip',
+        title: 'Trust Highlights',
+        items: [
+          { title: 'Flat 10-Year Warranty', subtitle: 'German hardware & anti-termite ply' },
+          { title: '45-Day Handover', subtitle: 'On-time delivery guarantee' },
+          { title: 'Direct Factory Pricing', subtitle: 'No middlemen margins' },
+          { title: '140,000+ Homes', subtitle: 'Crafted across India' }
+        ]
+      },
+    },
     {
       type: 'hero',
       label: 'Hero Banner',
@@ -204,18 +282,6 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
       },
     },
     {
-      type: 'categories',
-      label: 'Category Showcase Grid',
-      icon: Layers,
-      desc: 'Grid showcasing Modular Kitchens, Living Rooms, Wardrobes, and Offerings.',
-      defaultData: {
-        type: 'categories',
-        title: 'Explore Interior Categories',
-        subtitle: 'Handcrafted interior designs tailored to your floor plan and aesthetic preferences.',
-        badge: 'DESIGN CATALOG',
-      },
-    },
-    {
       type: 'posts',
       label: 'Featured Design Posts Grid',
       icon: Sparkles,
@@ -276,6 +342,18 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
       },
     },
     {
+      type: 'custom_editor',
+      label: 'Custom Editor',
+      icon: Edit3,
+      desc: 'Visual blog-style editor to format rich text, headings, lists, tables, images, or raw HTML source.',
+      defaultData: {
+        type: 'custom_editor',
+        title: '',
+        subtitle: '',
+        content: '<p>Write or paste your custom rich content here using the visual editor or HTML source mode.</p>',
+      },
+    },
+    {
       type: 'richtext',
       label: 'Rich Text / Freeform Content',
       icon: FileText,
@@ -311,18 +389,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         html_code: '<div class="p-8 bg-slate-900 text-white rounded-2xl text-center"><h3 class="text-2xl font-bold uppercase tracking-tight">Custom HTML Section</h3><p class="mt-2 text-slate-300 text-sm">Enter any custom HTML markup, iframe, or embed script snippet here.</p></div>',
       },
     },
-    {
-      type: 'all_services_filter',
-      label: 'All Services with Filter',
-      icon: Layers,
-      desc: 'Display all active services/categories with live search & filters.',
-      defaultData: {
-        type: 'all_services_filter',
-        title: 'All Interior Design Services',
-        subtitle: 'Explore our comprehensive range of turnkey interior design and architectural solutions.',
-        badge: 'OUR SERVICES',
-      },
-    },
+
     {
       type: 'all_blogs_filter',
       label: 'All Blogs with Filter',
@@ -333,6 +400,38 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         title: 'All Blogs & Design Inspirations',
         subtitle: 'Read our latest articles, design tips, trends, and home decor guides.',
         badge: 'INSIGHTS & BLOGS',
+      },
+    },
+    {
+      type: 'latest_blog_slider',
+      label: 'Latest Blog Slider',
+      icon: BookOpen,
+      desc: 'Showcase latest blogs in an interactive slider carousel with selectable count (1-10+) and View All button.',
+      defaultData: {
+        type: 'latest_blog_slider',
+        title: 'Latest Interior Design Insights',
+        subtitle: 'Explore our newest blogs, design trends, and decor advice from expert interior architects.',
+        badge: 'LATEST BLOGS',
+        limit: 6,
+        show_button: true,
+        button_text: 'VIEW ALL BLOGS',
+        button_link: '/blogs',
+      },
+    },
+    {
+      type: 'contact_with_form',
+      label: 'Contact Info & Consultation Form',
+      icon: Phone,
+      desc: 'Embed corporate headquarters details (Address, Phone, Email, WhatsApp) alongside interactive Consultation Form.',
+      defaultData: {
+        type: 'contact_with_form',
+        title: 'Corporate Headquarters',
+        subtitle: 'Book Free Consultation',
+        badge: 'Fill in your project requirements below to speak with an interior design architect.',
+        address: '',
+        phone: '',
+        email: '',
+        whatsapp: '',
       },
     },
     {
@@ -357,6 +456,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
     };
     setSections([...sections, newSec]);
     setExpandedSectionId(newSec.id);
+    setIsAddBlockModalOpen(false);
   };
 
   const removeSection = (id: string) => {
@@ -433,6 +533,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
     const payload = {
       title,
       slug,
+      parent_id: parentId,
       status,
       sections,
       meta_title: seoData.meta_title || title,
@@ -488,34 +589,13 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Tab Switcher & Save Button */}
+        {/* Save Button */}
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-            <button
-              type="button"
-              onClick={() => setActiveTab('builder')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'builder' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Visual Builder ({sections.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('seo')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                activeTab === 'seo' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Page SEO Settings
-            </button>
-          </div>
-
           <button
             type="button"
             onClick={handleSavePage}
             disabled={saving}
-            className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 disabled:opacity-50"
+            className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>Save Page</span>
@@ -530,99 +610,25 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Page Meta Header Controls */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block font-bold text-slate-700 mb-1">Page Title *</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2.5 border rounded-xl bg-slate-50 text-xs focus:bg-white"
-          />
-        </div>
-
-        <div>
-          <label className="block font-bold text-slate-700 mb-1">URL Path / Slug *</label>
-          <input
-            type="text"
-            disabled={slug === 'home'}
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            className="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-mono disabled:opacity-60"
-          />
-        </div>
-
-        <div>
-          <label className="block font-bold text-slate-700 mb-1">Status</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full p-2.5 border rounded-xl bg-slate-50 text-xs"
-          >
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-          </select>
-        </div>
-      </div>
-
-      {/* TAB 1: VISUAL BUILDER */}
-      {activeTab === 'builder' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT: SECTION CATALOG LIBRARY */}
-          <div className="space-y-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 sticky top-40">
-              <h3 className="font-extrabold text-slate-900 text-sm flex items-center justify-between border-b pb-2">
-                <span>Add Section Block</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Library</span>
-              </h3>
-              <p className="text-[11px] text-slate-500">Click any block to add it to your page layout.</p>
-
-              <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                {sectionCatalog.map((cat) => {
-                  const Icon = cat.icon;
-                  return (
-                    <button
-                      key={cat.type}
-                      type="button"
-                      onClick={() => addSection(cat)}
-                      className="w-full p-3 rounded-xl border border-slate-200 hover:border-slate-900 bg-slate-50/70 hover:bg-slate-900 hover:text-white text-left transition-all group flex items-start gap-3"
-                    >
-                      <div className="p-2 bg-white group-hover:bg-slate-800 text-slate-900 group-hover:text-white rounded-lg shadow-sm border border-slate-200/80 group-hover:border-slate-700">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="font-bold text-xs block text-slate-900 group-hover:text-white mb-0.5">
-                          + {cat.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500 group-hover:text-slate-300 leading-tight block">
-                          {cat.desc}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+      {/* WORDPRESS STYLE 2-COLUMN LAYOUT: CANVAS (LEFT) + DOCUMENT ATTRIBUTES SIDEBAR (RIGHT) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* LEFT CANVAS: SECTION STACK */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+              <Layers className="w-4 h-4 text-slate-900" />
+              <span>Page Layout Sections ({sections.length})</span>
+            </h3>
+            <span className="text-[11px] text-slate-500 font-medium">Use Up/Down arrows to reorder layout blocks</span>
           </div>
 
-          {/* RIGHT: DRAG & DROP REORDERING SECTION STACK */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                <Layers className="w-4 h-4 text-slate-900" />
-                <span>Page Section Stack ({sections.length})</span>
-              </h3>
-              <span className="text-[11px] text-slate-500 font-medium">Use Up/Down arrows to reorder sections</span>
+          {sections.length === 0 ? (
+            <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center text-slate-400 space-y-3">
+              <Layout className="w-10 h-10 mx-auto text-slate-300" />
+              <p className="font-bold text-slate-700 text-xs">No sections added yet.</p>
+              <p className="text-[11px]">Click the "+ Add Section Block" button below to start adding flexible layout blocks.</p>
             </div>
-
-            {sections.length === 0 ? (
-              <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center text-slate-400 space-y-3">
-                <Layout className="w-10 h-10 mx-auto text-slate-300" />
-                <p className="font-bold text-slate-700 text-xs">No sections added yet.</p>
-                <p className="text-[11px]">Click any section block on the left panel to build your custom layout.</p>
-              </div>
-            ) : (
+          ) : (
               <div className="space-y-4">
                 {sections.map((sec, index) => {
                   const isExpanded = expandedSectionId === sec.id;
@@ -657,7 +663,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                               )}
                             </div>
                             <span className="text-[10px] text-slate-500 truncate max-w-xs block font-mono">
-                              {sec.title || 'Untitled Section'}
+                              {sec.title || (sec.type === 'custom_editor' ? 'Custom Editor Block' : 'Untitled Section')}
                             </span>
                           </div>
                         </div>
@@ -715,38 +721,42 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                       {/* Section Editor Form Body */}
                       {isExpanded && (
                         <div className="p-6 space-y-5 text-xs bg-white rounded-b-2xl animate-fade-in border-t border-slate-100">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Section Heading / Title</label>
-                              <input
-                                type="text"
-                                value={sec.title || ''}
-                                onChange={(e) => updateSectionField(sec.id, 'title', e.target.value)}
-                                className="w-full p-2.5 border rounded-xl"
-                              />
-                            </div>
+                          {sec.type !== 'custom_editor' && (
+                            <>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Section Heading / Title</label>
+                                  <input
+                                    type="text"
+                                    value={sec.title || ''}
+                                    onChange={(e) => updateSectionField(sec.id, 'title', e.target.value)}
+                                    className="w-full p-2.5 border rounded-xl"
+                                  />
+                                </div>
 
-                            <div>
-                              <label className="block font-bold text-slate-700 mb-1">Badge Tagline (Optional)</label>
-                              <input
-                                type="text"
-                                value={sec.badge || ''}
-                                onChange={(e) => updateSectionField(sec.id, 'badge', e.target.value)}
-                                placeholder="e.g. NATIONWIDE PRESENCE"
-                                className="w-full p-2.5 border rounded-xl"
-                              />
-                            </div>
-                          </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">Badge Tagline (Optional)</label>
+                                  <input
+                                    type="text"
+                                    value={sec.badge || ''}
+                                    onChange={(e) => updateSectionField(sec.id, 'badge', e.target.value)}
+                                    placeholder="e.g. NATIONWIDE PRESENCE"
+                                    className="w-full p-2.5 border rounded-xl"
+                                  />
+                                </div>
+                              </div>
 
-                          <div>
-                            <label className="block font-bold text-slate-700 mb-1">Subtitle / Paragraph Description</label>
-                            <textarea
-                              rows={2}
-                              value={sec.subtitle || ''}
-                              onChange={(e) => updateSectionField(sec.id, 'subtitle', e.target.value)}
-                              className="w-full p-2.5 border rounded-xl"
-                            />
-                          </div>
+                              <div>
+                                <label className="block font-bold text-slate-700 mb-1">Subtitle / Paragraph Description</label>
+                                <textarea
+                                  rows={2}
+                                  value={sec.subtitle || ''}
+                                  onChange={(e) => updateSectionField(sec.id, 'subtitle', e.target.value)}
+                                  className="w-full p-2.5 border rounded-xl"
+                                />
+                              </div>
+                            </>
+                          )}
 
                           {(sec.type === 'hero' || sec.type === 'cta' || sec.type === 'hero_banner') && (
                             <div className="space-y-4 pt-2 border-t border-slate-200">
@@ -823,6 +833,23 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                                   <span>Media Library</span>
                                 </button>
                               </div>
+                            </div>
+                          )}
+
+                          {/* HERO HOME — WHATSAPP NUMBER FIELD */}
+                          {(sec.type === 'hero_home' || sec.type === 'hero_split_form') && (
+                            <div>
+                              <label className="block font-bold text-slate-700 mb-1">
+                                WhatsApp Number (for "Chat on WhatsApp" CTA)
+                              </label>
+                              <input
+                                type="text"
+                                value={(sec as any).whatsapp_number || ''}
+                                onChange={(e) => updateSectionField(sec.id, 'whatsapp_number', e.target.value)}
+                                className="w-full p-2.5 border rounded-xl font-mono text-[11px]"
+                                placeholder="e.g. 919876543210 (country code + number, no +)"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1">Leave blank to hide the WhatsApp button.</p>
                             </div>
                           )}
 
@@ -1244,6 +1271,25 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                             </div>
                           )}
 
+                          {/* 5B. CUSTOM EDITOR (VISUAL BLOG-STYLE EDITOR) */}
+                          {sec.type === 'custom_editor' && (
+                            <div className="space-y-2 pt-3 border-t border-slate-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="block font-extrabold text-slate-800 text-xs uppercase tracking-wider">
+                                  Visual Editor Content
+                                </label>
+                                <span className="text-[11px] font-semibold text-slate-500">
+                                  Supports Visual Formatting & Raw HTML Source Mode
+                                </span>
+                              </div>
+                              <RichTextEditor
+                                value={sec.content || ''}
+                                onChange={(val) => updateSectionField(sec.id, 'content', val)}
+                                placeholder="Write or paste custom content, formatted text, tables, images, or raw HTML source..."
+                              />
+                            </div>
+                          )}
+
                           {/* 6. CUSTOM HTML / EMBED CODE */}
                           {(sec.type === 'custom_html' || sec.type === 'html') && (
                             <div className="space-y-2 pt-3 border-t border-slate-200">
@@ -1262,6 +1308,166 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                               />
                             </div>
                           )}
+
+                          {/* 7. LATEST BLOG SLIDER CONTROLS */}
+                          {(sec.type === 'latest_blog_slider' || sec.type === 'blog_slider') && (
+                            <div className="space-y-4 pt-3 border-t border-slate-200">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">
+                                    Select Number of Latest Blogs to Display (1, 2, 3, 4...)
+                                  </label>
+                                  <select
+                                    value={(sec as any).limit || 6}
+                                    onChange={(e) => updateSectionField(sec.id, 'limit' as any, Number(e.target.value))}
+                                    className="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-sky-500 bg-white"
+                                  >
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20].map((num) => (
+                                      <option key={num} value={num}>
+                                        {num} {num === 1 ? 'Blog' : 'Blogs'}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">
+                                    Show "View All Blogs" Button
+                                  </label>
+                                  <div className="flex items-center gap-3 pt-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`show_btn_${sec.id}`}
+                                      checked={(sec as any).show_button !== false}
+                                      onChange={(e) => updateSectionField(sec.id, 'show_button' as any, e.target.checked)}
+                                      className="w-4 h-4 text-sky-600 rounded focus:ring-sky-500 cursor-pointer"
+                                    />
+                                    <label htmlFor={`show_btn_${sec.id}`} className="text-xs font-medium text-slate-700 cursor-pointer">
+                                      Display View All Blogs button below slider
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {(sec as any).show_button !== false && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                  <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Button Label Text</label>
+                                    <input
+                                      type="text"
+                                      value={(sec as any).button_text || 'VIEW ALL BLOGS'}
+                                      onChange={(e) => updateSectionField(sec.id, 'button_text' as any, e.target.value)}
+                                      placeholder="e.g. VIEW ALL BLOGS"
+                                      className="w-full p-2.5 border rounded-xl"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Button Link URL</label>
+                                    <input
+                                      type="text"
+                                      value={(sec as any).button_link || '/blogs'}
+                                      onChange={(e) => updateSectionField(sec.id, 'button_link' as any, e.target.value)}
+                                      placeholder="e.g. /blogs"
+                                      className="w-full p-2.5 border rounded-xl"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* 8. CONTACT WITH FORM CONTROLS */}
+                          {(sec.type === 'contact_with_form' || sec.type === 'contact_form') && (
+                            <div className="space-y-4 pt-3 border-t border-slate-200">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">
+                                    Left Card Title (Corporate Headquarters)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={sec.title || 'Corporate Headquarters'}
+                                    onChange={(e) => updateSectionField(sec.id, 'title', e.target.value)}
+                                    placeholder="e.g. Corporate Headquarters"
+                                    className="w-full p-2.5 border rounded-xl"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block font-bold text-slate-700 mb-1">
+                                    Right Form Card Title (Book Free Consultation)
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={sec.subtitle || 'Book Free Consultation'}
+                                    onChange={(e) => updateSectionField(sec.id, 'subtitle', e.target.value)}
+                                    placeholder="e.g. Book Free Consultation"
+                                    className="w-full p-2.5 border rounded-xl"
+                                  />
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block font-bold text-slate-700 mb-1">
+                                  Form Subtitle / Paragraph Description
+                                </label>
+                                <input
+                                  type="text"
+                                  value={(sec as any).badge || 'Fill in your project requirements below to speak with an interior design architect.'}
+                                  onChange={(e) => updateSectionField(sec.id, 'badge', e.target.value)}
+                                  placeholder="e.g. Fill in your project requirements..."
+                                  className="w-full p-2.5 border rounded-xl"
+                                />
+                              </div>
+
+                              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                                <label className="block font-extrabold text-slate-800 text-xs uppercase tracking-wider">
+                                  Optional Contact Overrides (Leave blank to use Site Settings)
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Custom Address</label>
+                                    <input
+                                      type="text"
+                                      value={(sec as any).address || ''}
+                                      onChange={(e) => updateSectionField(sec.id, 'address' as any, e.target.value)}
+                                      placeholder="Default: Settings address"
+                                      className="w-full p-2.5 border rounded-xl bg-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Custom Direct Call Phone</label>
+                                    <input
+                                      type="text"
+                                      value={(sec as any).phone || ''}
+                                      onChange={(e) => updateSectionField(sec.id, 'phone' as any, e.target.value)}
+                                      placeholder="Default: Settings phone"
+                                      className="w-full p-2.5 border rounded-xl bg-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Custom Email Address</label>
+                                    <input
+                                      type="email"
+                                      value={(sec as any).email || ''}
+                                      onChange={(e) => updateSectionField(sec.id, 'email' as any, e.target.value)}
+                                      placeholder="Default: Settings email"
+                                      className="w-full p-2.5 border rounded-xl bg-white"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Custom WhatsApp Helpline</label>
+                                    <input
+                                      type="text"
+                                      value={(sec as any).whatsapp || ''}
+                                      onChange={(e) => updateSectionField(sec.id, 'whatsapp' as any, e.target.value)}
+                                      placeholder="Default: Settings whatsapp"
+                                      className="w-full p-2.5 border rounded-xl bg-white"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1269,13 +1475,198 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                 })}
               </div>
             )}
+
+            {/* WORDPRESS-STYLE + ADD SECTION BLOCK BUTTON AT BOTTOM */}
+            <div className="pt-4 flex flex-col items-center justify-center space-y-3">
+              <button
+                type="button"
+                onClick={() => setIsAddBlockModalOpen(true)}
+                className="w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-extrabold text-xs uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2.5 border border-slate-800 group"
+              >
+                <div className="w-6 h-6 rounded-xl bg-white/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Plus className="w-4 h-4 text-white" />
+                </div>
+                <span>+ Add Section Block</span>
+              </button>
+              <p className="text-[11px] text-slate-400 font-medium">
+                Choose from 10 flexible layout blocks (Hero Banner, Services, Blogs, Design Catalog, Lead Form, FAQs, etc.)
+              </p>
+            </div>
+
+            {/* PAGE SEO & SOCIAL METADATA BLOCK DIRECTLY BELOW SECTIONS STACK */}
+            <div className="mt-6">
+              <SeoFormBlock data={seoData} onChange={setSeoData} />
+            </div>
+          </div>
+
+          {/* RIGHT SIDEBAR: WORDPRESS-STYLE PAGE ATTRIBUTES */}
+          <div className="lg:col-span-4 space-y-6 sticky top-24">
+            {/* Page Core Attributes Box */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b pb-3">
+                <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-indigo-600" />
+                  <span>Page Attributes</span>
+                </h3>
+                <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md uppercase border border-indigo-200">
+                  WP Style Sidebar
+                </span>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Page Title *</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setTitle(newTitle);
+
+                    if (slug !== 'home') {
+                      const autoSlug = generateAutoSlug(newTitle, parentId, allPages);
+                      setSlug(autoSlug);
+
+                      const pagePath = autoSlug ? `/${autoSlug}` : '/';
+                      setSeoData((prev) => ({
+                        ...prev,
+                        meta_title: prev.meta_title === title || !prev.meta_title ? newTitle : prev.meta_title,
+                        og_title: prev.og_title === title || !prev.og_title ? newTitle : prev.og_title,
+                        meta_description: prev.meta_description || `Luxury ${newTitle} interior design services by ARCHOVEX INFRA.`,
+                        og_description: prev.og_description || `Luxury ${newTitle} interior design services by ARCHOVEX INFRA.`,
+                        path: pagePath,
+                        canonical_url: `${getSiteBaseUrl()}${pagePath}`,
+                      }));
+                    }
+                  }}
+                  placeholder="Page Title"
+                  className="w-full p-2.5 border rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
+              </div>
+
+              <div>
+                <SearchableSingleSelect
+                  label="Parent Page (Optional)"
+                  placeholder="Search parent pages by title or slug..."
+                  noneLabel="-- None (Top Level) --"
+                  options={allPages.map((p) => ({
+                    id: p.id,
+                    name: p.title,
+                    slug: p.slug,
+                    isTopLevel: !p.parent_id,
+                    parentId: p.parent_id,
+                  }))}
+                  value={parentId}
+                  onChange={(val) => {
+                    const newParentId = val ? Number(val) : null;
+                    setParentId(newParentId);
+
+                    if (slug !== 'home') {
+                      const autoSlug = generateAutoSlug(title, newParentId, allPages);
+                      setSlug(autoSlug);
+
+                      const pagePath = autoSlug ? `/${autoSlug}` : '/';
+                      setSeoData((prev) => ({
+                        ...prev,
+                        path: pagePath,
+                        canonical_url: `https://archovex.com${pagePath}`,
+                      }));
+                    }
+                  }}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-slate-700">URL Path / Slug *</label>
+                  <span className="text-[10px] text-slate-400 font-semibold">Editable Manually</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="p-2.5 bg-slate-100 border border-r-0 rounded-l-xl text-slate-500 font-mono text-[11px]">/</span>
+                  <input
+                    type="text"
+                    disabled={slug === 'home'}
+                    value={slug}
+                    onChange={(e) => {
+                      const customSlug = e.target.value.toLowerCase().replace(/[^a-z0-9\/-]/g, '');
+                      setSlug(customSlug);
+                      setIsSlugManuallyEdited(true);
+
+                      const pagePath = customSlug ? `/${customSlug}` : '/';
+                      setSeoData((prev) => ({
+                        ...prev,
+                        path: pagePath,
+                        canonical_url: `https://archovex.com${pagePath}`,
+                      }));
+                    }}
+                    placeholder="page-slug"
+                    className="w-full p-2.5 border rounded-r-xl font-mono text-xs bg-slate-50 disabled:opacity-60 focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Publish Status</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full p-2.5 border rounded-xl bg-slate-50 text-xs font-bold focus:bg-white focus:outline-none"
+                >
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* TAB 2: PAGE SEO SETTINGS */}
-      {activeTab === 'seo' && (
-        <SeoFormBlock data={seoData} onChange={setSeoData} />
+      {/* ADD SECTION BLOCK MODAL */}
+      {isAddBlockModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-2xl shadow-2xl relative max-h-[85vh] overflow-y-auto space-y-6">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-indigo-600" />
+                  <span>Add Section Block</span>
+                </h2>
+                <p className="text-xs text-slate-500">Choose a layout section block to add to your page canvas.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddBlockModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {sectionCatalog.map((cat) => {
+                const Icon = cat.icon;
+                return (
+                  <button
+                    key={cat.type}
+                    type="button"
+                    onClick={() => addSection(cat)}
+                    className="p-4 rounded-2xl border border-slate-200 hover:border-slate-900 bg-slate-50/70 hover:bg-slate-900 hover:text-white text-left transition-all group flex items-start gap-3 shadow-xs"
+                  >
+                    <div className="p-2.5 bg-white group-hover:bg-slate-800 text-slate-900 group-hover:text-white rounded-xl shadow-sm border border-slate-200 group-hover:border-slate-700">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="font-extrabold text-xs block text-slate-900 group-hover:text-white mb-1">
+                        + {cat.label}
+                      </span>
+                      <span className="text-[11px] text-slate-500 group-hover:text-slate-300 leading-snug block">
+                        {cat.desc}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MEDIA PICKER MODAL */}

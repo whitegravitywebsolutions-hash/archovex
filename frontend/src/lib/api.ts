@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -58,4 +58,11 @@ export function getImageUrl(url?: string | null): string {
   }
   const backendOrigin = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
   return `${backendOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
+export function getSiteBaseUrl(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 }

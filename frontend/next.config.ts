@@ -36,13 +36,28 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/blogs',
+        destination: '/blog',
+        permanent: true,
+      },
+      {
+        source: '/blogs/:slug*',
+        destination: '/blog/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/services/home-renovation-remodeling',
+        destination: '/services/home-renovation',
+        permanent: true,
+      },
+      {
         source: '/designs',
-        destination: '/blogs',
+        destination: '/blog',
         permanent: true,
       },
       {
         source: '/designs/:slug*',
-        destination: '/blogs/:slug*',
+        destination: '/blog/:slug*',
         permanent: true,
       },
       {

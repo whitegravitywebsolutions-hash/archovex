@@ -20,11 +20,18 @@ import {
   Search,
   BookOpen,
   Heart,
-  LayoutGrid
+  LayoutGrid,
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Loader2,
+  MessageSquare
 } from 'lucide-react';
 import { getImageUrl, apiClient } from '@/lib/api';
 import DesignCard from '@/components/public/DesignCard';
 import DesignFilters from '@/components/public/DesignFilters';
+import ConsultationForm from '@/components/public/ConsultationForm';
 
 export interface PageSectionData {
   id: string;
@@ -32,6 +39,7 @@ export interface PageSectionData {
   active?: boolean;
   title?: string;
   subtitle?: string;
+  badge?: string;
   data?: any;
   settings?: any;
 }
@@ -52,7 +60,11 @@ export default function DynamicSectionRenderer({
         const href = target.getAttribute('href');
         if (href && href.includes('#consultation')) {
           e.preventDefault();
-          onOpenConsultation?.();
+          if (onOpenConsultation) {
+            onOpenConsultation();
+          } else if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+          }
         }
       }
     };
@@ -69,7 +81,7 @@ export default function DynamicSectionRenderer({
   }
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 font-sans">
       {activeSections.map((section) => (
         <SectionBlock 
           key={section.id || Math.random().toString()} 
@@ -89,6 +101,9 @@ function SectionBlock({
   onOpenConsultation?: () => void; 
 }) {
   switch (section.type) {
+    case 'hero_home':
+    case 'hero_split_form':
+      return <HeroHomeSection section={section} onOpenConsultation={onOpenConsultation} />;
     case 'hero_banner':
     case 'hero':
       return <HeroBannerSection section={section} onOpenConsultation={onOpenConsultation} />;
@@ -98,9 +113,6 @@ function SectionBlock({
     case 'trust_counters':
     case 'stats':
       return <TrustCountersSection section={section} />;
-    case 'category_showcase':
-    case 'categories':
-      return <CategoryShowcaseSection section={section} />;
     case 'design_posts':
     case 'posts':
       return <DesignPostsSection section={section} />;
@@ -115,18 +127,28 @@ function SectionBlock({
     case 'rich_text':
     case 'richtext':
       return <RichTextSection section={section} />;
+    case 'custom_editor':
+      return <CustomEditorSection section={section} />;
+    case 'trust_strip':
+      return <TrustStripBuilderSection section={section} />;
     case 'cta_banner':
     case 'cta':
       return <CtaBannerSection section={section} onOpenConsultation={onOpenConsultation} />;
     case 'custom_html':
     case 'html':
       return <CustomHtmlSection section={section} />;
-    case 'all_services_filter':
-    case 'all_services':
-      return <AllServicesFilterSection section={section} />;
+
     case 'all_blogs_filter':
     case 'all_blogs':
       return <AllBlogsFilterSection section={section} />;
+    case 'latest_blog_slider':
+    case 'latest_blogs_slider':
+    case 'blog_slider':
+      return <LatestBlogSliderSection section={section} />;
+    case 'contact_with_form':
+    case 'contact_form':
+    case 'contact_info_form':
+      return <ContactWithFormSection section={section} />;
     case 'design_catalog':
     case 'catalog_grid':
     case 'explore_designs':
@@ -137,7 +159,276 @@ function SectionBlock({
 }
 
 /* -------------------------------------------------------------------------- */
-/* 1. HERO BANNER                                                             */
+/* 0. HERO HOME — SPLIT LAYOUT WITH BACKGROUND IMAGE + CONSULTATION FORM     */
+/*    Driven fully by Admin Page Builder (hero_home / hero_split_form type)  */
+/* -------------------------------------------------------------------------- */
+function HeroHomeSection({
+  section,
+  onOpenConsultation,
+}: {
+  section: PageSectionData;
+  onOpenConsultation?: () => void;
+}) {
+  const d = section.data || {};
+  const eyebrow = (section as any).badge || d.badge || 'Archovex Infra · Interior design and execution';
+  const h1 = section.title || d.title || 'Interior Designers in Delhi NCR for Homes and Offices';
+  const copy = section.subtitle || d.subtitle || 'Archovex Infra is a team of interior designers in Delhi NCR who plan, design and build interiors for homes and workplaces. We work across Noida, Greater Noida, Delhi, New Delhi and Gurgaon. One team takes your project from the first measurement to the final handover, so you are not left managing carpenters, electricians and painters on your own.';
+  const primaryCtaText = (section as any).cta_text || d.cta_text || 'Get Free Consultation';
+  const primaryCtaIsConsultation = !((section as any).cta_link || d.cta_link) || ((section as any).cta_link || d.cta_link || '').includes('#consultation');
+  const primaryCtaLink = (section as any).cta_link || d.cta_link || '#consultation';
+  const whatsappNumber = (section as any).whatsapp_number || d.whatsapp_number || '';
+
+  // Background image from admin. Fallback to a premium NCR living room shot.
+  const rawBg = (section as any).bg_image || d.bg_image || d.background_image;
+  const bgImage = rawBg
+    ? getImageUrl(rawBg)
+    : 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80';
+
+  // Inline consultation form state
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '', requirement: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await apiClient.post('/consultation', {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        requirement: formData.requirement,
+      });
+      if (res.data?.success) {
+        setSubmitted(true);
+      } else {
+        setError(res.data?.message || 'Failed to submit enquiry.');
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to submit. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const triggerModal = () => {
+    if (onOpenConsultation) onOpenConsultation();
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+  };
+
+  return (
+    <section id="hero" className="relative w-full min-h-[580px] lg:min-h-[640px] flex items-center overflow-hidden py-10 lg:py-16 text-white">
+      {/* FULL-BLEED BACKGROUND PHOTO */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={bgImage}
+          alt={h1}
+          fill
+          priority
+          className="object-cover object-center"
+        />
+        {/* Dark overlay for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-slate-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-black/20" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full font-sans">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+          {/* LEFT: H1, EYEBROW, COPY, CTAs */}
+          <div className="lg:col-span-7 space-y-5 pt-1 lg:pt-3">
+            {/* Eyebrow — from admin badge field */}
+            {eyebrow && (
+              <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/20 text-amber-300 px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>{eyebrow}</span>
+              </div>
+            )}
+
+            {/* H1 — Batch A: "Interior Designers in Delhi NCR for Homes and Offices" */}
+            <h1 className="text-3xl sm:text-5xl lg:text-5xl xl:text-[54px] font-serif font-black tracking-tight text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+              {h1.includes('Delhi NCR') ? (
+                <>
+                  {h1.split('Delhi NCR')[0]}
+                  <span className="text-amber-400">Delhi NCR</span>
+                  {h1.split('Delhi NCR')[1]}
+                </>
+              ) : h1}
+            </h1>
+
+            {/* Copy paragraph — from admin subtitle field */}
+            {copy && (
+              <p className="text-sm sm:text-base lg:text-lg font-sans font-normal text-slate-100 tracking-normal leading-relaxed max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                {copy}
+              </p>
+            )}
+
+            {/* Trust highlights strip */}
+            <div className="grid grid-cols-3 gap-3 pt-2 max-w-md">
+              <div className="bg-black/35 backdrop-blur-sm border border-white/15 rounded-xl p-2.5 text-center shadow-md">
+                <span className="block text-amber-400 font-extrabold text-sm sm:text-base font-serif">10-Year</span>
+                <span className="text-[11px] text-slate-200 font-medium">Warranty</span>
+              </div>
+              <div className="bg-black/35 backdrop-blur-sm border border-white/15 rounded-xl p-2.5 text-center shadow-md">
+                <span className="block text-amber-400 font-extrabold text-sm sm:text-base font-serif">45-Day</span>
+                <span className="text-[11px] text-slate-200 font-medium">Handover</span>
+              </div>
+              <div className="bg-black/35 backdrop-blur-sm border border-white/15 rounded-xl p-2.5 text-center shadow-md">
+                <span className="block text-amber-400 font-extrabold text-sm sm:text-base font-serif">5 Cities</span>
+                <span className="text-[11px] text-slate-200 font-medium">Delhi NCR</span>
+              </div>
+            </div>
+
+            {/* CTAs: Get Free Consultation + Chat on WhatsApp */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+              {primaryCtaIsConsultation ? (
+                <button
+                  type="button"
+                  onClick={triggerModal}
+                  className="px-6 py-3 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 border border-amber-500/20 cursor-pointer"
+                >
+                  <span>{primaryCtaText}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <Link
+                  href={primaryCtaLink}
+                  className="px-6 py-3 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 border border-amber-500/20"
+                >
+                  <span>{primaryCtaText}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+
+              {whatsappNumber && (
+                <a
+                  href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Chat on WhatsApp</span>
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT: CONSULTATION FORM CARD */}
+          <div className="lg:col-span-5">
+            <div className="bg-white text-slate-900 rounded-3xl p-6 sm:p-7 shadow-2xl border-2 border-slate-100 relative">
+              <div className="space-y-1 mb-5 text-center sm:text-left">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#EA580C] bg-orange-50 border border-orange-200 px-3 py-0.5 rounded-full inline-block">
+                  TALK TO A DESIGNER
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-serif font-extrabold text-[#082F49]">
+                  Book Free Consultation
+                </h2>
+                <p className="text-xs text-slate-600 font-medium">Get free 3D design renders &amp; custom budget estimate.</p>
+              </div>
+
+              {submitted ? (
+                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-6 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-md">
+                    <Check className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-extrabold text-emerald-950">Consultation Requested!</h3>
+                  <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+                    Thank you! Our design expert will contact you shortly to share 3D renders and cost estimates.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setSubmitted(false); setFormData({ name: '', phone: '', email: '', address: '', requirement: '' }); }}
+                    className="text-xs font-bold text-emerald-900 underline pt-2 cursor-pointer uppercase tracking-wider"
+                  >
+                    Submit Another Inquiry
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-3 font-sans">
+                  {error && (
+                    <div className="p-2.5 text-xs bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-medium">
+                      {error}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">YOUR NAME *</label>
+                      <input
+                        type="text" required placeholder="Rahul Sharma"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#0284C7] focus:border-[#0284C7] focus:outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">MOBILE NUMBER *</label>
+                      <input
+                        type="tel" required placeholder="+91 98765 43210"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#0284C7] focus:border-[#0284C7] focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">EMAIL ADDRESS</label>
+                      <input
+                        type="email" placeholder="rahul@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#0284C7] focus:border-[#0284C7] focus:outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">YOUR CITY</label>
+                      <input
+                        type="text" placeholder="e.g. Noida, Sec 62"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#0284C7] focus:border-[#0284C7] focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-700 mb-1">REQUIREMENT DETAILS</label>
+                    <textarea
+                      rows={2} placeholder="e.g. 3BHK full interior, modular kitchen, sliding wardrobes..."
+                      value={formData.requirement}
+                      onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-medium focus:ring-2 focus:ring-[#0284C7] focus:border-[#0284C7] focus:outline-none transition-all"
+                    />
+                  </div>
+                  <button
+                    type="submit" disabled={loading}
+                    className="w-full py-3.5 bg-gradient-to-r from-[#EA580C] to-[#F97316] hover:from-[#C2410C] hover:to-[#EA580C] text-white font-extrabold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-600/30 transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 cursor-pointer border border-orange-500/20 disabled:opacity-50 mt-1"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (
+                      <><span>BOOK FREE CONSULTATION</span><ArrowRight className="w-4 h-4 text-white" /></>
+                    )}
+                  </button>
+                  <div className="text-[11px] font-bold text-slate-500 text-center flex items-center justify-center gap-1 pt-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                    <span>No Spam Guarantee • 100% Free Consultation</span>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 1. HERO BANNER (LIGHT THEME)                                               */
 /* -------------------------------------------------------------------------- */
 function HeroBannerSection({ 
   section, 
@@ -147,16 +438,17 @@ function HeroBannerSection({
   onOpenConsultation?: () => void; 
 }) {
   const d = section.data || {};
-  const title = section.title || d.title || 'DESIGN YOUR DREAM HOME';
-  const subtitle = section.subtitle || d.subtitle || 'Thoughtfully designed luxury interiors built around the way you live.';
+  const title = section.title !== undefined ? section.title : (d.title || '');
+  const subtitle = section.subtitle !== undefined ? section.subtitle : (d.subtitle || '');
+  const badge = (section as any).badge !== undefined ? (section as any).badge : (d.badge || '');
   
   const rawCtaText = (section as any).cta_text !== undefined ? (section as any).cta_text : d.cta_text;
-  const ctaText = rawCtaText !== undefined ? rawCtaText : 'BOOK FREE CONSULTATION';
+  const ctaText = rawCtaText !== undefined ? rawCtaText : '';
   const ctaLink = (section as any).cta_link || d.cta_link || '#consultation';
 
   const rawSecondaryText = (section as any).secondary_cta_text !== undefined ? (section as any).secondary_cta_text : d.secondary_cta_text;
   const secondaryCtaText = rawSecondaryText !== undefined ? rawSecondaryText : '';
-  const secondaryCtaLink = (section as any).secondary_cta_link || d.secondary_cta_link || '/blogs';
+  const secondaryCtaLink = (section as any).secondary_cta_link || d.secondary_cta_link || '';
 
   const rawBg = (section as any).bg_image || d.bg_image || d.background_image;
   const bgImage = rawBg ? getImageUrl(rawBg) : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80';
@@ -167,36 +459,44 @@ function HeroBannerSection({
   const showPrimaryButton = Boolean(ctaText && ctaText.trim());
   const showSecondaryButton = Boolean(secondaryCtaText && secondaryCtaText.trim());
 
+  const triggerConsultationModal = () => {
+    if (onOpenConsultation) onOpenConsultation();
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+  };
+
   return (
-    <section className="relative bg-gradient-to-br from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white py-14 lg:py-24 border-b border-sky-900 overflow-hidden">
+    <section className="relative bg-gradient-to-b from-[#FAFAFA] via-amber-50/20 to-[#FAFAFA] text-slate-900 py-14 lg:py-20 border-b border-slate-200/80 overflow-hidden font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 bg-[#F97316]/15 border border-[#F97316]/40 text-[#FFEDD5] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm">
-              <ShieldCheck className="w-4 h-4 text-[#F97316]" />
-              <span>ARCHOVEX INFRA • LUXURY INTERIORS</span>
-            </div>
+            {badge && badge.trim() ? (
+              <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-[#EA580C] px-4 py-1.5 rounded-full text-xs font-bold tracking-wider shadow-2xs">
+                <ShieldCheck className="w-4 h-4 text-[#EA580C]" />
+                <span>{badge}</span>
+              </div>
+            ) : null}
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] uppercase">
-              {title}
-            </h1>
+            {title && title.trim() ? (
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                {title}
+              </h1>
+            ) : null}
 
-            {subtitle && (
-              <p className="text-base text-sky-100 font-normal leading-relaxed">
+            {subtitle && subtitle.trim() ? (
+              <p className="text-base text-slate-600 font-normal leading-relaxed">
                 {subtitle}
               </p>
-            )}
+            ) : null}
 
             {(showPrimaryButton || showSecondaryButton) && (
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
-                {/* Primary CTA Button */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
                 {showPrimaryButton && (
                   isPrimaryConsultation ? (
                     <button
                       type="button"
-                      onClick={() => onOpenConsultation?.()}
-                      className="px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl shadow-[#F97316]/30 transition-all flex items-center justify-center gap-2 border border-amber-300/40 cursor-pointer"
+                      onClick={triggerConsultationModal}
+                      className="px-8 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 border border-amber-500/20 cursor-pointer"
                     >
                       <span>{ctaText}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -204,7 +504,7 @@ function HeroBannerSection({
                   ) : (
                     <Link
                       href={ctaLink}
-                      className="px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl shadow-[#F97316]/30 transition-all flex items-center justify-center gap-2 border border-amber-300/40"
+                      className="px-8 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 border border-amber-500/20"
                     >
                       <span>{ctaText}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -212,20 +512,19 @@ function HeroBannerSection({
                   )
                 )}
 
-                {/* Secondary CTA Button */}
                 {showSecondaryButton && (
                   isSecondaryConsultation ? (
                     <button
                       type="button"
-                      onClick={() => onOpenConsultation?.()}
-                      className="px-8 py-4 bg-white/10 hover:bg-white hover:text-[#0C4A6E] text-white border border-white/30 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center backdrop-blur-md cursor-pointer"
+                      onClick={triggerConsultationModal}
+                      className="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider rounded-xl transition-all flex items-center justify-center cursor-pointer shadow-md"
                     >
                       {secondaryCtaText}
                     </button>
                   ) : (
                     <Link
                       href={secondaryCtaLink || '/blogs'}
-                      className="px-8 py-4 bg-white/10 hover:bg-white hover:text-[#0C4A6E] text-white border border-white/30 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center backdrop-blur-md"
+                      className="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider rounded-xl transition-all flex items-center justify-center shadow-md"
                     >
                       {secondaryCtaText}
                     </Link>
@@ -236,10 +535,10 @@ function HeroBannerSection({
           </div>
 
           <div className="lg:col-span-6 relative">
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-sky-800/80 bg-[#0369A1]">
+            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
               <Image
                 src={bgImage}
-                alt={title}
+                alt={title || 'Hero Banner'}
                 fill
                 priority
                 className="object-cover"
@@ -254,7 +553,7 @@ function HeroBannerSection({
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. TRUST COUNTERS                                                          */
+/* 2. TRUST COUNTERS (LIGHT THEME)                                            */
 /* -------------------------------------------------------------------------- */
 function TrustCountersSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
@@ -266,27 +565,27 @@ function TrustCountersSection({ section }: { section: PageSectionData }) {
         label: item.label || item.text || '',
       }))
     : [
-        { label: 'HOMES DELIVERED', value: '1,200+' },
-        { label: 'DESIGN WARRANTY', value: '10 YEARS' },
-        { label: 'HANDOVER GUARANTEE', value: '45 DAYS' },
-        { label: 'CUSTOMER RATING', value: '4.9 ★' },
+        { label: 'Homes Delivered', value: '1,200+' },
+        { label: 'Design Warranty', value: '10 Years' },
+        { label: 'Handover Guarantee', value: '45 Days' },
+        { label: 'Customer Rating', value: '4.9 ★' },
       ];
 
   return (
-    <section className="py-16 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {title && (
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0C4A6E] uppercase tracking-tight mb-10">
+          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight mb-10">
             {title}
           </h2>
         )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {items.map((item: any, idx: number) => (
-            <div key={idx} className="bg-[#F3EEE4] rounded-2xl p-6 border border-[#E4DCD0] shadow-xs hover:border-[#F97316]/50 transition-all">
-              <p className="text-3xl sm:text-4xl font-black text-[#F97316] tracking-tight">
+            <div key={idx} className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs hover:border-[#EA580C]/40 transition-all">
+              <p className="text-3xl sm:text-4xl font-serif font-bold text-[#EA580C] tracking-tight">
                 {item.value}
               </p>
-              <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider mt-2">
+              <p className="text-xs font-bold text-slate-700 tracking-wider mt-2">
                 {item.label}
               </p>
             </div>
@@ -298,86 +597,12 @@ function TrustCountersSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 3. CATEGORY SHOWCASE                                                       */
-/* -------------------------------------------------------------------------- */
-function CategoryShowcaseSection({ section }: { section: PageSectionData }) {
-  const [categories, setCategories] = useState<any[]>([]);
-  const d = section.data || {};
-  const title = section.title || d.title || 'EXPLORE OUR DESIGN CATEGORIES';
-  const subtitle = section.subtitle || d.subtitle || 'Discover interior solutions customized for every space in your home';
-
-  useEffect(() => {
-    if (Array.isArray(d.categories) && d.categories.length > 0) {
-      setCategories(d.categories);
-    } else {
-      apiClient.get('/categories')
-        .then(res => {
-          if (res.data?.success) setCategories(res.data.data || []);
-        })
-        .catch(() => {});
-    }
-  }, [d.categories]);
-
-  return (
-    <section className="py-16 lg:py-24 bg-[#FAF8F3] border-b border-[#E4DCD0]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl sm:text-4xl font-black text-[#0C4A6E] uppercase tracking-tight">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="text-sm text-slate-600 mt-2 font-normal">
-              {subtitle}
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((cat: any, idx: number) => {
-            const image = cat.banner_image ? getImageUrl(cat.banner_image) : (cat.image ? getImageUrl(cat.image) : 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80');
-            return (
-              <Link 
-                key={cat.id || idx} 
-                href={`/designs/${cat.slug || '#'}`}
-                className="group bg-white rounded-2xl border border-[#E4DCD0] hover:border-[#0891B2]/60 overflow-hidden shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 flex flex-col"
-              >
-                <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
-                  <Image
-                    src={image}
-                    alt={cat.name || 'Category'}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E]/85 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <span className="inline-block px-2.5 py-1 bg-[#F97316] text-white text-[10px] font-black uppercase rounded-md mb-1 tracking-wider shadow-xs">
-                      INTERIOR DESIGNS
-                    </span>
-                    <h3 className="text-xl font-black text-white uppercase tracking-tight">
-                      {cat.name}
-                    </h3>
-                  </div>
-                </div>
-                <div className="p-4 flex items-center justify-between bg-white text-xs font-extrabold text-[#0C4A6E] group-hover:text-[#F97316] transition-colors">
-                  <span>VIEW ALL DESIGNS</span>
-                  <ArrowRight className="w-4 h-4 text-[#F97316] group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* 4. DESIGN POSTS                                                           */
+/* 4. DESIGN POSTS (LIGHT THEME)                                              */
 /* -------------------------------------------------------------------------- */
 function DesignPostsSection({ section }: { section: PageSectionData }) {
   const [designs, setDesigns] = useState<any[]>([]);
   const d = section.data || {};
-  const title = section.title || d.title || 'FEATURED INTERIOR DESIGNS';
+  const title = section.title || d.title || 'Featured Interior Designs';
   const limit = d.limit || 6;
 
   useEffect(() => {
@@ -394,18 +619,18 @@ function DesignPostsSection({ section }: { section: PageSectionData }) {
   if (designs.length === 0) return null;
 
   return (
-    <section className="py-16 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <div>
-            <h2 className="text-3xl font-black text-[#0C4A6E] uppercase tracking-tight">
+            <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">
               {title}
             </h2>
             <p className="text-sm text-slate-600 mt-1 font-normal">Handcrafted luxury interior designs for modern homes</p>
           </div>
-          <Link href="/designs" className="text-xs font-black text-[#F97316] hover:text-[#EA580C] uppercase tracking-wider flex items-center gap-1">
-            <span>SEE ALL DESIGNS</span>
-            <ArrowRight className="w-4 h-4 text-[#F97316]" />
+          <Link href="/designs" className="text-xs font-bold text-[#EA580C] hover:text-[#C2410C] tracking-wider flex items-center gap-1">
+            <span>See All Designs</span>
+            <ArrowRight className="w-4 h-4 text-[#EA580C]" />
           </Link>
         </div>
 
@@ -421,10 +646,10 @@ function DesignPostsSection({ section }: { section: PageSectionData }) {
             return (
               <Link 
                 key={design.id} 
-                href={`/designs/${catSlug}/${design.slug}`}
-                className="group bg-white rounded-2xl border border-[#E4DCD0] hover:border-[#0891B2]/60 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col"
+                href={`/blogs/${catSlug}/${design.slug}`}
+                className="group bg-white rounded-2xl border border-slate-200/90 hover:border-[#EA580C]/40 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col"
               >
-                <div className="relative aspect-[4/3] bg-slate-200 overflow-hidden">
+                <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
                   <Image
                     src={getImageUrl(primaryImg)}
                     alt={design.title}
@@ -432,23 +657,23 @@ function DesignPostsSection({ section }: { section: PageSectionData }) {
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   {design.category && (
-                    <span className="absolute top-3 left-3 bg-[#0C4A6E] backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider border border-sky-900 shadow-2xs">
+                    <span className="absolute top-3 left-3 bg-slate-900/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider shadow-2xs">
                       {design.category.name}
                     </span>
                   )}
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-base font-black text-[#0C4A6E] group-hover:text-[#F97316] transition-colors line-clamp-2">
+                    <h3 className="text-base font-serif font-bold text-slate-900 group-hover:text-[#EA580C] transition-colors line-clamp-2">
                       {design.title}
                     </h3>
                     {design.price_range && (
                       <p className="text-xs font-semibold text-slate-500 mt-1">Est. {design.price_range}</p>
                     )}
                   </div>
-                  <div className="mt-4 pt-3 border-t border-[#E4DCD0] flex items-center justify-between text-xs font-extrabold text-[#0C4A6E] group-hover:text-[#F97316] transition-colors">
-                    <span>EXPLORE PROJECT</span>
-                    <ArrowRight className="w-4 h-4 text-[#F97316] group-hover:translate-x-1 transition-transform" />
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-900 group-hover:text-[#EA580C] transition-colors">
+                    <span>Explore Project</span>
+                    <ArrowRight className="w-4 h-4 text-[#EA580C] group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>
@@ -461,11 +686,11 @@ function DesignPostsSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 5. PROCESS WORKFLOW                                                        */
+/* 5. PROCESS WORKFLOW (LIGHT THEME)                                          */
 /* -------------------------------------------------------------------------- */
 function ProcessWorkflowSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
-  const title = section.title || d.title || 'OUR 4-STEP STREAMLINED PROCESS';
+  const title = section.title || d.title || 'Our 4-Step Streamlined Process';
   const rawSteps = (section as any).items || d.steps || d.items;
   const steps = Array.isArray(rawSteps) && rawSteps.length > 0 
     ? rawSteps.map((step: any) => ({
@@ -480,27 +705,27 @@ function ProcessWorkflowSection({ section }: { section: PageSectionData }) {
       ];
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-br from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white border-b border-sky-900">
+    <section className="py-16 lg:py-20 bg-[#FAFAFA] text-slate-900 border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight uppercase">
+        <div className="text-center max-w-3xl mx-auto mb-14 space-y-2">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight">
             {title}
           </h2>
-          <p className="text-sm text-sky-100 mt-2 font-normal">From concept to reality with zero delays and complete transparency</p>
+          <p className="text-sm text-slate-600 font-normal">From concept to reality with zero delays and complete transparency</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((step: any, idx: number) => (
-            <div key={idx} className="bg-[#0369A1]/60 rounded-2xl p-6 border border-sky-600/60 flex flex-col justify-between hover:border-[#F97316]/80 transition-all shadow-lg">
+            <div key={idx} className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs hover:border-[#EA580C]/40 transition-all flex flex-col justify-between">
               <div>
-                <span className="text-xs font-black text-white uppercase tracking-widest bg-[#F97316] px-3 py-1 rounded-full inline-block mb-4 shadow-xs">
-                  STEP 0{idx + 1}
+                <span className="text-[10px] font-bold text-white tracking-wider bg-[#EA580C] px-3 py-1 rounded-full inline-block mb-4 shadow-2xs">
+                  Step 0{idx + 1}
                 </span>
-                <h3 className="text-lg font-bold text-white mb-2">
+                <h3 className="text-base font-serif font-bold text-slate-900 mb-2">
                   {step.title}
                 </h3>
-                <p className="text-xs text-sky-100 leading-relaxed">
-                  {step.description}
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {step.desc || step.description}
                 </p>
               </div>
             </div>
@@ -512,11 +737,11 @@ function ProcessWorkflowSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 6. TESTIMONIALS                                                           */
+/* 6. TESTIMONIALS (LIGHT THEME)                                              */
 /* -------------------------------------------------------------------------- */
 function TestimonialsSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
-  const title = section.title || d.title || 'WHAT OUR CLIENTS SAY';
+  const title = section.title || d.title || 'What Our Clients Say';
   const rawItems = (section as any).items || d.items;
   const items = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems : [
     { name: 'Rajesh & Priya Verma', role: '3BHK Homeowner, Bangalore', quote: 'ARCHOVEX rendered precise 3D designs and delivered our home right on schedule. The German hinges and finish are superb!', avatar: '' },
@@ -524,10 +749,10 @@ function TestimonialsSection({ section }: { section: PageSectionData }) {
   ];
 
   return (
-    <section className="py-16 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="text-3xl font-black text-[#0C4A6E] uppercase tracking-tight">
+          <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">
             {title}
           </h2>
           <p className="text-sm text-slate-600 mt-1 font-normal">Real stories from real homeowners</p>
@@ -535,11 +760,11 @@ function TestimonialsSection({ section }: { section: PageSectionData }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((t: any, idx: number) => (
-            <div key={idx} className="bg-white rounded-2xl p-6 border border-[#E4DCD0] shadow-xs flex flex-col justify-between">
+            <div key={idx} className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-1 text-[#F97316] mb-4">
+                <div className="flex items-center gap-1 text-[#EA580C] mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-[#F97316]" />
+                    <Star key={i} className="w-4 h-4 fill-[#EA580C]" />
                   ))}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-6">
@@ -547,12 +772,12 @@ function TestimonialsSection({ section }: { section: PageSectionData }) {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-[#E4DCD0]">
-                <div className="w-10 h-10 rounded-full bg-[#0C4A6E] text-white font-black text-sm flex items-center justify-center uppercase border border-[#F97316]">
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                <div className="w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm flex items-center justify-center border-2 border-[#EA580C]">
                   {t.name ? t.name.charAt(0) : 'C'}
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#0C4A6E]">{t.name}</h4>
+                  <h4 className="text-xs font-bold text-slate-900">{t.name}</h4>
                   <p className="text-[11px] text-slate-500">{t.role}</p>
                 </div>
               </div>
@@ -565,11 +790,11 @@ function TestimonialsSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 7. FAQ ACCORDION                                                           */
+/* 7. FAQ ACCORDION (LIGHT THEME)                                             */
 /* -------------------------------------------------------------------------- */
 function FaqAccordionSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
-  const title = section.title || d.title || 'FREQUENTLY ASKED QUESTIONS';
+  const title = section.title || d.title || 'Frequently Asked Questions';
   const rawFaqs = (section as any).items || d.faqs || d.items;
   const faqs = Array.isArray(rawFaqs) && rawFaqs.length > 0 ? rawFaqs : [
     { question: 'What is included in the 10-year warranty?', answer: 'Our 10-year warranty covers modular cabinets, German hardware fittings, structural defects, and material degradation under normal usage.' },
@@ -580,10 +805,10 @@ function FaqAccordionSection({ section }: { section: PageSectionData }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="py-16 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-[#0C4A6E] uppercase tracking-tight">
+          <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">
             {title}
           </h2>
         </div>
@@ -594,17 +819,17 @@ function FaqAccordionSection({ section }: { section: PageSectionData }) {
             return (
               <div 
                 key={idx} 
-                className="border border-[#E4DCD0] rounded-xl overflow-hidden bg-white transition-colors"
+                className="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-colors"
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full text-left p-5 font-bold text-[#0C4A6E] text-sm flex items-center justify-between gap-4 hover:bg-[#F3EEE4] transition-colors"
+                  className="w-full text-left p-5 font-bold text-slate-900 text-sm flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors"
                 >
                   <span>{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${isOpen ? 'rotate-180 text-[#F97316]' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-[#EA580C]' : ''}`} />
                 </button>
                 {isOpen && (
-                  <div className="p-5 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-[#E4DCD0] bg-white">
+                  <div className="p-5 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
                     {faq.answer}
                   </div>
                 )}
@@ -618,7 +843,7 @@ function FaqAccordionSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 8. RICH TEXT SECTION                                                      */
+/* 8. RICH TEXT SECTION (LIGHT THEME)                                        */
 /* -------------------------------------------------------------------------- */
 function RichTextSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
@@ -626,15 +851,15 @@ function RichTextSection({ section }: { section: PageSectionData }) {
   const content = (section as any).content || d.content || '';
 
   return (
-    <section className="py-16 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-16 bg-white border-b border-slate-200/90 font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {heading && (
-          <h2 className="text-3xl font-black text-[#0C4A6E] uppercase tracking-tight mb-6">
+          <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight mb-6">
             {heading}
           </h2>
         )}
         <div 
-          className="prose max-w-none text-slate-800 text-sm sm:text-base leading-relaxed space-y-4"
+          className="prose max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-4"
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </div>
@@ -643,7 +868,265 @@ function RichTextSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 9. CTA BANNER                                                             */
+/* -------------------------------------------------------------------------- */
+/* 8A-2. TRUST STRIP SECTION (PAGE BUILDER DRIVEN)                            */
+/* -------------------------------------------------------------------------- */
+const TRUST_STRIP_ICONS: Record<string, React.ReactNode> = {
+  clock: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15.5 14" />
+    </svg>
+  ),
+  blueprint: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="9" y1="9" x2="9" y2="21" />
+    </svg>
+  ),
+  shield: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2l8 3.5v5C20 15.5 16.5 20 12 22c-4.5-2-8-6.5-8-11.5v-5L12 2z" />
+      <polyline points="9 12 11 14 15 10" />
+    </svg>
+  ),
+  pin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2C8.69 2 6 4.69 6 8c0 5.25 6 13 6 13s6-7.75 6-13c0-3.31-2.69-6-6-6z" />
+      <circle cx="12" cy="8" r="2" />
+    </svg>
+  ),
+  star: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  ),
+  check: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="9 12 11 14.5 15 10" />
+    </svg>
+  ),
+};
+
+function TrustStripBuilderSection({ section }: { section: PageSectionData }) {
+  const items: any[] = Array.isArray((section as any).items) ? (section as any).items : [];
+  if (items.length === 0) return null;
+
+  return (
+    <section
+      aria-label="Trust indicators"
+      className="w-full bg-[#1E293B] border-t border-b border-[#0F172A]"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ul className="flex flex-wrap items-center justify-center gap-0 divide-x divide-white/10">
+          {items.map((item: any, i: number) => {
+            const iconKey = item.icon || 'check';
+            const iconEl = TRUST_STRIP_ICONS[iconKey] || TRUST_STRIP_ICONS['check'];
+            return (
+              <li
+                key={i}
+                className="flex items-center gap-2.5 px-5 py-4 sm:px-8 sm:py-5 group"
+              >
+                <span className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 text-[#F97316] transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
+                  {iconEl}
+                </span>
+                <span className="text-white/85 text-sm sm:text-[0.9rem] font-medium tracking-wide whitespace-nowrap group-hover:text-white transition-colors duration-200">
+                  {item.text}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 8B. CUSTOM EDITOR SECTION (LIGHT THEME)                                   */
+/* -------------------------------------------------------------------------- */
+function CustomEditorSection({ section }: { section: PageSectionData }) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const d = section.data || {};
+  const content = (section as any).content || d.content || (section as any).html_code || '';
+
+  const rawTitle = section.title || d.title || '';
+  const isDefaultTitle =
+    rawTitle === 'Custom Editor Section' || rawTitle === 'Custom Content Section';
+  const title = !isDefaultTitle ? rawTitle : '';
+
+  const rawSubtitle = section.subtitle || d.subtitle || '';
+  const isDefaultSubtitle =
+    rawSubtitle === 'Bespoke rich content formatted with visual editor';
+  const subtitle = !isDefaultSubtitle ? rawSubtitle : '';
+
+  const badge = (section as any).badge || d.badge || '';
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+
+    // 1. Re-execute script tags from dangerouslySetInnerHTML
+    const scripts = containerRef.current.querySelectorAll('script');
+    scripts.forEach((oldScript) => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach((attr) =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+      oldScript.parentNode?.replaceChild(newScript, oldScript);
+    });
+
+    // 2. Native interactive tab delegation for city tabs
+    const handleTabClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('[data-ncr-tab]');
+      if (!target || !containerRef.current) return;
+      const cityKey = target.getAttribute('data-ncr-tab');
+      if (!cityKey) return;
+
+      const cities = ['noida', 'greater-noida', 'delhi', 'new-delhi', 'gurgaon'];
+      cities.forEach((c) => {
+        const isSel = c === cityKey;
+
+        const tabEl = containerRef.current?.querySelector(`[data-ncr-tab="${c}"]`) as HTMLElement;
+        const descEl = containerRef.current?.querySelector(`#tab-desc-${c}`) as HTMLElement;
+        const linkEl = containerRef.current?.querySelector(`#tab-link-${c}`) as HTMLElement;
+        const pinEl = containerRef.current?.querySelector(`#pin-city-${c}`) as HTMLElement;
+        const spotEl = containerRef.current?.querySelector(`#spot-city-${c}`) as HTMLElement;
+
+        const mapIframe = containerRef.current?.querySelector('#google-map-iframe') as HTMLIFrameElement;
+        const mapUrls: Record<string, string> = {
+          'noida': 'https://maps.google.com/maps?q=Noida,+Uttar+Pradesh&t=&z=12&ie=UTF8&iwloc=&output=embed',
+          'greater-noida': 'https://maps.google.com/maps?q=Greater+Noida,+Uttar+Pradesh&t=&z=12&ie=UTF8&iwloc=&output=embed',
+          'delhi': 'https://maps.google.com/maps?q=Delhi,+India&t=&z=11&ie=UTF8&iwloc=&output=embed',
+          'new-delhi': 'https://maps.google.com/maps?q=New+Delhi,+Delhi&t=&z=12&ie=UTF8&iwloc=&output=embed',
+          'gurgaon': 'https://maps.google.com/maps?q=Gurugram,+Haryana&t=&z=12&ie=UTF8&iwloc=&output=embed',
+        };
+
+        if (mapIframe && mapUrls[cityKey]) {
+          mapIframe.src = mapUrls[cityKey];
+        }
+
+        if (tabEl) {
+          if (isSel) {
+            tabEl.classList.add('border-[#EA580C]', 'bg-orange-50/70', 'shadow-sm');
+            tabEl.classList.remove('border-slate-200/90', 'bg-white');
+            const dot = tabEl.querySelector('.tab-city-dot') as HTMLElement;
+            if (dot) {
+              dot.className = 'tab-city-dot w-3 h-3 rounded-full bg-[#EA580C] ring-4 ring-orange-200';
+            }
+          } else {
+            tabEl.classList.remove('border-[#EA580C]', 'bg-orange-50/70', 'shadow-sm');
+            tabEl.classList.add('border-slate-200/90', 'bg-white');
+            const dot = tabEl.querySelector('.tab-city-dot') as HTMLElement;
+            if (dot) {
+              dot.className =
+                'tab-city-dot w-2.5 h-2.5 rounded-full bg-slate-400 group-hover:bg-[#EA580C] transition-colors';
+            }
+          }
+        }
+        // Keep all descriptions and links visible!
+        if (descEl) descEl.style.display = 'block';
+        if (linkEl) linkEl.style.display = 'inline-flex';
+        if (spotEl) spotEl.style.display = isSel ? 'block' : 'none';
+
+        if (pinEl) {
+          const pulse = pinEl.querySelector('.pin-pulse-dot') as HTMLElement;
+          const svgPin = pinEl.querySelector('.pin-svg') as SVGElement;
+          const badge = pinEl.querySelector('.pin-label-badge') as HTMLElement;
+          if (isSel) {
+            pinEl.style.zIndex = '50';
+            pinEl.style.transform = 'translate(-50%, -100%) scale(1.22)';
+            if (pulse) pulse.style.display = 'block';
+            if (svgPin) {
+              svgPin.style.color = '#EA580C';
+              svgPin.style.fill = '#EA580C';
+              svgPin.style.filter = 'drop-shadow(0 6px 12px rgba(234, 88, 12, 0.6))';
+            }
+            if (badge) {
+              badge.style.backgroundColor = '#EA580C';
+              badge.style.color = '#FFFFFF';
+              badge.style.borderColor = '#FFFFFF';
+              badge.style.boxShadow = '0 4px 16px rgba(234, 88, 12, 0.7)';
+            }
+          } else {
+            pinEl.style.zIndex = '20';
+            pinEl.style.transform = 'translate(-50%, -100%) scale(1)';
+            if (pulse) pulse.style.display = 'none';
+            if (svgPin) {
+              svgPin.style.color = '#1E293B';
+              svgPin.style.fill = '#1E293B';
+              svgPin.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.35))';
+            }
+            if (badge) {
+              badge.style.backgroundColor = '#1E293B';
+              badge.style.color = '#FFFFFF';
+              badge.style.borderColor = '#475569';
+              badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+            }
+          }
+        }
+      });
+    };
+
+    const el = containerRef.current;
+    el.addEventListener('click', handleTabClick);
+    return () => {
+      el.removeEventListener('click', handleTabClick);
+    };
+  }, [content]);
+
+  if (!content && !title) return null;
+
+  // If the editor HTML already includes its own <section> wrapper, render it directly without extra container padding
+  const isSelfContained = /<section[\s>]/i.test(content);
+
+  if (isSelfContained) {
+    return (
+      <div
+        ref={containerRef}
+        className="w-full font-sans"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  }
+
+  return (
+    <section className="py-16 sm:py-20 bg-white border-b border-slate-100 last:border-b-0 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {(badge || title || subtitle) && (
+          <div className="max-w-3xl mb-10 text-left">
+            {badge && (
+              <span className="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 text-[#EA580C] border border-orange-200/60 mb-3">
+                {badge}
+              </span>
+            )}
+            {title && (
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-slate-900 tracking-tight leading-tight mb-4">
+                {title}
+              </h2>
+            )}
+            {subtitle && (
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        )}
+        {content && (
+          <div 
+            className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed font-sans prose-headings:font-serif prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-[#EA580C] hover:prose-a:underline prose-img:rounded-2xl prose-img:shadow-md"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* 9. CTA BANNER (LIGHT THEME)                                               */
 /* -------------------------------------------------------------------------- */
 function CtaBannerSection({ 
   section, 
@@ -653,39 +1136,46 @@ function CtaBannerSection({
   onOpenConsultation?: () => void; 
 }) {
   const d = section.data || {};
-  const title = section.title || d.title || 'READY TO TRANSFORM YOUR LIVING SPACE?';
+  const title = section.title || d.title || 'Ready to Transform Your Living Space?';
   const description = section.subtitle || d.description || d.subtitle || 'Book a free consultation with our senior interior architects today.';
-  const btnText = (section as any).cta_text || d.button_text || d.cta_text || 'BOOK FREE CONSULTATION';
+  const btnText = (section as any).cta_text || d.button_text || d.cta_text || 'Book Free Consultation';
   const btnLink = (section as any).cta_link || d.button_link || d.cta_link || '';
+  const isConsultation = !btnLink || btnLink.includes('#consultation');
+
+  const triggerConsultation = () => {
+    if (onOpenConsultation) onOpenConsultation();
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+  };
 
   return (
-    <section className="py-16 bg-gradient-to-r from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white border-b border-sky-900">
+    <section className="py-16 bg-gradient-to-r from-amber-50 via-orange-50/40 to-amber-50 text-slate-900 border-y border-amber-200/80 font-sans">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-        <h2 className="text-3xl sm:text-4xl font-black tracking-tight uppercase">
+        <h2 className="text-3xl sm:text-4xl font-serif font-bold tracking-tight text-slate-900">
           {title}
         </h2>
         {description && (
-          <p className="text-sm sm:text-base text-sky-100 max-w-2xl mx-auto font-normal">
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal">
             {description}
           </p>
         )}
         <div className="pt-2">
-          {btnLink ? (
-            <Link
-              href={btnLink}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-xl border border-amber-300/40"
-            >
-              <span>{btnText}</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          ) : (
+          {isConsultation ? (
             <button
-              onClick={onOpenConsultation}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-xl border border-amber-300/40"
+              type="button"
+              onClick={triggerConsultation}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl transition-all shadow-md border border-amber-500/20 cursor-pointer"
             >
               <span>{btnText}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+          ) : (
+            <Link
+              href={btnLink}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl transition-all shadow-md border border-amber-500/20"
+            >
+              <span>{btnText}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           )}
         </div>
       </div>
@@ -704,10 +1194,10 @@ function CustomHtmlSection({ section }: { section: PageSectionData }) {
   if (!htmlCode) return null;
 
   return (
-    <section className="py-12 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-12 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {title && (
-          <h2 className="text-3xl font-black text-[#0B132B] uppercase tracking-tight mb-8 text-center">
+          <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight mb-8 text-center">
             {title}
           </h2>
         )}
@@ -737,28 +1227,28 @@ function HeroSliderSection({
     ? rawSlides
     : [
         {
-          title: section.title || 'LUXURY TURNKEY INTERIORS & ARCHITECTURE',
+          title: section.title || 'Luxury Turnkey Interiors & Architecture',
           subtitle: section.subtitle || 'Bespoke modular kitchens, living room spaces, and custom wardrobes with German hardware & 10-year warranty.',
           bg_image: (section as any).bg_image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80',
-          cta_text: (section as any).cta_text || 'BOOK FREE CONSULTATION',
+          cta_text: (section as any).cta_text || 'Book Free Consultation',
           cta_link: (section as any).cta_link || '',
-          badge: (section as any).badge || 'ARCHOVEX LUXURY HOMES',
+          badge: (section as any).badge || 'Archovex Luxury Homes',
         },
         {
-          title: 'CRAFTED IN AUTOMATED GERMAN FACTORIES',
+          title: 'Crafted in Automated German Factories',
           subtitle: 'Sub-millimeter precision woodworking with Boiling Water Resistant (BWR) plywood and 45-day guaranteed handover.',
           bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
-          cta_text: 'EXPLORE DESIGNS',
+          cta_text: 'Explore Designs',
           cta_link: '/designs',
-          badge: '45-DAY HANDOVER GUARANTEE',
+          badge: '45-Day Handover Guarantee',
         },
         {
-          title: 'PHOTOREALISTIC 3D DESIGN RENDERS',
+          title: 'Photorealistic 3D Design Renders',
           subtitle: 'Visualize your entire home in 3D before execution begins with complete line-item price transparency.',
           bg_image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2000&q=80',
-          cta_text: 'SEE RECENT PROJECTS',
+          cta_text: 'See Recent Projects',
           cta_link: '/designs',
-          badge: '10-YEAR WARRANTY',
+          badge: '10-Year Warranty',
         },
       ];
 
@@ -781,7 +1271,7 @@ function HeroSliderSection({
   };
 
   return (
-    <section className="relative w-full min-h-[580px] lg:min-h-[700px] flex items-center bg-slate-950 overflow-hidden group">
+    <section className="relative w-full min-h-[580px] lg:min-h-[700px] flex items-center bg-slate-950 overflow-hidden group font-sans">
       {slides.map((slide: any, idx: number) => {
         const rawBg = slide.bg_image || slide.background_image || slide.image;
         const bgImg = rawBg ? getImageUrl(rawBg) : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80';
@@ -801,33 +1291,32 @@ function HeroSliderSection({
               priority={idx === 0}
               className="object-cover object-center transform scale-105 transition-transform duration-10000"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0C4A6E]/95 via-[#0C4A6E]/75 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E]/90 via-transparent to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30" />
 
             <div className="relative z-20 max-w-7xl mx-auto h-full flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-20">
               <div className="max-w-2xl space-y-6 text-white animate-fade-in">
                 {(slide.badge || slide.tagline) && (
-                  <div className="inline-flex items-center gap-2 bg-[#F97316] text-white px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg border border-amber-400/40">
+                  <div className="inline-flex items-center gap-2 bg-[#EA580C] text-white px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider shadow-md">
                     <ShieldCheck className="w-3.5 h-3.5 text-white" />
                     <span>{slide.badge || slide.tagline}</span>
                   </div>
                 )}
 
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] uppercase text-white drop-shadow-md">
-                  {slide.title || 'DESIGN YOUR DREAM HOME'}
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md">
+                  {slide.title || 'Design Your Dream Home'}
                 </h1>
 
                 {slide.subtitle && (
-                  <p className="text-sm sm:text-base lg:text-lg text-sky-100 font-normal leading-relaxed max-w-xl text-shadow">
+                  <p className="text-sm sm:text-base lg:text-lg text-slate-200 font-normal leading-relaxed max-w-xl text-shadow">
                     {slide.subtitle}
                   </p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-4 pt-4">
-                  {/* Primary CTA Button */}
                   {(() => {
                     const rawPrimary = slide.cta_text !== undefined ? slide.cta_text : (section as any).cta_text;
-                    const primaryText = rawPrimary !== undefined ? rawPrimary : 'BOOK FREE CONSULTATION';
+                    const primaryText = rawPrimary !== undefined ? rawPrimary : 'Book Free Consultation';
                     const primaryLink = slide.cta_link || (section as any).cta_link || '#consultation';
                     const showPrimary = Boolean(primaryText && primaryText.trim());
                     const isPrimaryConsultation = !primaryLink || primaryLink.includes('#consultation');
@@ -837,8 +1326,11 @@ function HeroSliderSection({
                     return isPrimaryConsultation ? (
                       <button
                         type="button"
-                        onClick={onOpenConsultation}
-                        className="px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 border border-amber-300/40 cursor-pointer"
+                        onClick={() => {
+                          if (onOpenConsultation) onOpenConsultation();
+                          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+                        }}
+                        className="px-8 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl shadow-md transition-all flex items-center gap-2 border border-amber-500/20 cursor-pointer"
                       >
                         <span>{primaryText}</span>
                         <ArrowRight className="w-4 h-4" />
@@ -846,7 +1338,7 @@ function HeroSliderSection({
                     ) : (
                       <Link
                         href={primaryLink}
-                        className="px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 border border-amber-300/40"
+                        className="px-8 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs tracking-wider rounded-xl shadow-md transition-all flex items-center gap-2 border border-amber-500/20"
                       >
                         <span>{primaryText}</span>
                         <ArrowRight className="w-4 h-4" />
@@ -854,7 +1346,6 @@ function HeroSliderSection({
                     );
                   })()}
 
-                  {/* Secondary CTA Button */}
                   {(() => {
                     const rawSecondary = slide.secondary_cta_text !== undefined ? slide.secondary_cta_text : (section as any).secondary_cta_text;
                     const secondaryText = rawSecondary !== undefined ? rawSecondary : '';
@@ -867,15 +1358,18 @@ function HeroSliderSection({
                     return isSecondaryConsultation ? (
                       <button
                         type="button"
-                        onClick={onOpenConsultation}
-                        className="px-8 py-4 bg-white/10 hover:bg-white text-white hover:text-[#0C4A6E] border border-white/30 backdrop-blur-md font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+                        onClick={() => {
+                          if (onOpenConsultation) onOpenConsultation();
+                          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+                        }}
+                        className="px-8 py-3.5 bg-white/10 hover:bg-white text-white hover:text-slate-900 border border-white/30 backdrop-blur-md font-bold text-xs tracking-wider rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-md"
                       >
                         <span>{secondaryText}</span>
                       </button>
                     ) : (
                       <Link
                         href={secondaryLink}
-                        className="px-8 py-4 bg-white/10 hover:bg-white text-white hover:text-[#0C4A6E] border border-white/30 backdrop-blur-md font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center gap-2"
+                        className="px-8 py-3.5 bg-white/10 hover:bg-white text-white hover:text-slate-900 border border-white/30 backdrop-blur-md font-bold text-xs tracking-wider rounded-xl transition-all flex items-center gap-2 shadow-md"
                       >
                         <span>{secondaryText}</span>
                       </Link>
@@ -893,26 +1387,26 @@ function HeroSliderSection({
           <button
             onClick={prevSlide}
             aria-label="Previous Slide"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3.5 bg-[#0C4A6E]/80 hover:bg-[#F97316] text-white rounded-full border border-white/20 backdrop-blur-md transition-all shadow-xl opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3.5 bg-slate-900/80 hover:bg-[#EA580C] text-white rounded-full border border-white/20 backdrop-blur-md transition-all shadow-xl opacity-80 hover:opacity-100 hover:scale-110"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={nextSlide}
             aria-label="Next Slide"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3.5 bg-[#0C4A6E]/80 hover:bg-[#F97316] text-white rounded-full border border-white/20 backdrop-blur-md transition-all shadow-xl opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3.5 bg-slate-900/80 hover:bg-[#EA580C] text-white rounded-full border border-white/20 backdrop-blur-md transition-all shadow-xl opacity-80 hover:opacity-100 hover:scale-110"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 bg-[#0C4A6E]/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
             {slides.map((_: any, idx: number) => (
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
                 className={`h-2.5 rounded-full transition-all duration-300 ${
-                  idx === currentIndex ? 'w-8 bg-[#F97316] shadow-glow' : 'w-2.5 bg-white/50 hover:bg-white/90'
+                  idx === currentIndex ? 'w-8 bg-[#EA580C] shadow-xs' : 'w-2.5 bg-white/50 hover:bg-white/90'
                 }`}
               />
             ))}
@@ -924,156 +1418,12 @@ function HeroSliderSection({
 }
 
 /* -------------------------------------------------------------------------- */
-/* 12. ALL SERVICES WITH FILTER                                               */
-/* -------------------------------------------------------------------------- */
-function AllServicesFilterSection({ section }: { section: PageSectionData }) {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'featured'>('all');
-
-  const d = section.data || {};
-  const title = section.title || d.title || 'ALL SERVICES & INTERIOR CATEGORIES';
-  const subtitle = section.subtitle || d.subtitle || 'Explore our complete turnkey interior design solutions tailored for every space';
-  const badge = section.badge || d.badge || 'OUR SERVICES';
-
-  useEffect(() => {
-    setLoading(true);
-    apiClient.get('/categories')
-      .then(res => {
-        if (res.data?.success) {
-          const list = res.data.data || [];
-          setCategories(list.filter((cat: any) => cat.status !== 'draft'));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const filteredCategories = categories.filter((cat) => {
-    const matchesSearch = !search.trim() || 
-      cat.name?.toLowerCase().includes(search.toLowerCase()) ||
-      cat.short_description?.toLowerCase().includes(search.toLowerCase()) ||
-      cat.description?.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesFilter = selectedFilter === 'all' || (selectedFilter === 'featured' && Boolean(cat.is_featured));
-    
-    return matchesSearch && matchesFilter;
-  });
-
-  return (
-    <section className="py-16 lg:py-24 bg-[#FAF8F3] border-b border-[#E4DCD0]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Search & Filter Controls Box */}
-        <div className="bg-[#F3EEE4] rounded-2xl border border-[#E4DCD0] p-4 sm:p-6 shadow-sm mb-10">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:w-96">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search services..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E4DCD0] focus:ring-2 focus:ring-[#0891B2] rounded-xl text-xs text-[#0C4A6E] font-bold outline-none transition-all shadow-xs"
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5 bg-white border border-[#E4DCD0] p-1.5 rounded-xl shadow-xs">
-              <button
-                onClick={() => setSelectedFilter('all')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  selectedFilter === 'all'
-                    ? 'bg-[#0C4A6E] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-[#0C4A6E]'
-                }`}
-              >
-                All Services ({categories.length})
-              </button>
-              <button
-                onClick={() => setSelectedFilter('featured')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  selectedFilter === 'featured'
-                    ? 'bg-[#0C4A6E] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-[#0C4A6E]'
-                }`}
-              >
-                Featured
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Services Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-72 bg-slate-200 animate-pulse rounded-2xl" />
-            ))}
-          </div>
-        ) : filteredCategories.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-dashed border-[#E4DCD0] rounded-2xl max-w-xl mx-auto p-8">
-            <Building2 className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-[#0C4A6E]">No services found</h3>
-            <p className="text-xs text-slate-500 mt-1">Try adjusting your search criteria or filters.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCategories.map((cat: any) => {
-              const image = cat.banner_image ? getImageUrl(cat.banner_image) : (cat.image ? getImageUrl(cat.image) : 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80');
-              return (
-                <Link
-                  key={cat.id}
-                  href={`/services/${cat.slug}`}
-                  className="group bg-white rounded-2xl border border-[#E4DCD0] hover:border-[#0C4A6E] overflow-hidden shadow-xs hover:shadow-xl transition-all transform hover:-translate-y-1 flex flex-col"
-                >
-                  <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
-                    <Image
-                      src={image}
-                      alt={cat.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E]/85 via-[#0C4A6E]/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      {cat.is_featured && (
-                        <span className="inline-block px-2.5 py-0.5 bg-[#F97316] text-white text-[9px] font-black uppercase rounded mb-1.5 tracking-wider shadow-xs">
-                          FEATURED SERVICE
-                        </span>
-                      )}
-                      <h3 className="text-xl font-black text-white uppercase tracking-tight">
-                        {cat.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                      {cat.short_description || cat.description || 'Turnkey interior design services by ARCHOVEX INFRA.'}
-                    </p>
-
-                    <div className="mt-5 pt-3 border-t border-[#E4DCD0] flex items-center justify-between text-xs font-extrabold text-[#0C4A6E] group-hover:text-[#F97316] transition-colors">
-                      <span>VIEW SERVICE DETAILS</span>
-                      <ArrowRight className="w-4 h-4 text-[#F97316] group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* 13. ALL BLOGS WITH FILTER (WITH PAGINATION & ALL WISHLIST ITEMS)           */
+/* 13. ALL BLOGS WITH FILTER (LIGHT THEME)                                   */
 /* -------------------------------------------------------------------------- */
 function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [allWishlistBlogs, setAllWishlistBlogs] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [wishlistMode, setWishlistMode] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<number[]>([]);
@@ -1081,7 +1431,6 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
   const [pagination, setPagination] = useState<any>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
 
-  // Sync Wishlist IDs from localStorage & check URL params
   useEffect(() => {
     const syncWishlist = () => {
       try {
@@ -1108,26 +1457,18 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
     };
   }, []);
 
-  // Fetch Categories & Cities
   useEffect(() => {
     apiClient.get('/categories')
       .then((res) => {
         if (res.data?.success) setCategories(res.data.data || []);
       })
       .catch(() => {});
-
-    apiClient.get('/cities')
-      .then((res) => {
-        if (res.data?.success) setCities(res.data.data || []);
-      })
-      .catch(() => {});
   }, []);
 
-  // Fetch all posts for Wishlist when wishlistIds change or when wishlist mode is active
   useEffect(() => {
     if (wishlistIds.length > 0 || wishlistMode) {
       const idsParam = wishlistIds.join(',');
-      const url = idsParam ? `/designs?ids=${idsParam}&limit=1000` : '/designs?limit=1000';
+      const url = idsParam ? `/blogs?ids=${idsParam}&limit=1000` : '/blogs?limit=1000';
       apiClient.get(url)
         .then((res) => {
           if (res.data?.success) {
@@ -1139,7 +1480,6 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
     }
   }, [wishlistIds.join(','), wishlistMode]);
 
-  // Fetch Blogs / Designs with Pagination & Filters
   const fetchBlogs = async (filters: Record<string, string> = {}, pageNum = page) => {
     setLoading(true);
     try {
@@ -1149,7 +1489,7 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
         limit: '8',
       }).toString();
 
-      const res = await apiClient.get(`/designs?${queryParams}`);
+      const res = await apiClient.get(`/blogs?${queryParams}`);
       if (res.data?.success) {
         const rawData = res.data.data;
         if (rawData && Array.isArray(rawData.data)) {
@@ -1196,18 +1536,18 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
     : blogs;
 
   return (
-    <section className="py-12 bg-[#FAF8F3] border-b border-[#E4DCD0]">
+    <section className="py-12 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
         {/* Mode Switcher Bar */}
-        <div className="flex items-center justify-between border-b border-[#E4DCD0] pb-4">
-          <div className="flex items-center gap-2 bg-[#F3EEE4] p-1 rounded-xl border border-[#E4DCD0]">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+          <div className="flex items-center gap-2 bg-slate-200/80 p-1 rounded-xl">
             <button
               type="button"
               onClick={() => handleWishlistToggle(false)}
-              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wider flex items-center gap-2 transition-all ${
                 !wishlistMode
-                  ? 'bg-slate-900 text-white shadow-sm'
+                  ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-700 hover:text-slate-900'
               }`}
             >
@@ -1218,9 +1558,9 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
             <button
               type="button"
               onClick={() => handleWishlistToggle(true)}
-              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wider flex items-center gap-2 transition-all ${
                 wishlistMode
-                  ? 'bg-rose-600 text-white shadow-sm'
+                  ? 'bg-rose-600 text-white shadow-xs'
                   : 'text-slate-700 hover:text-rose-600'
               }`}
             >
@@ -1230,21 +1570,9 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
           </div>
         </div>
 
-        {/* Filter Toolbar (Search Box + Services Filter + Location Filter) */}
-        {!wishlistMode && (
-          <DesignFilters
-            categories={categories}
-            cities={cities}
-            onFilterChange={handleFilterChange}
-            showServicesFilter={true}
-            hideStylesAndLayouts={true}
-            serviceLabel="All Services"
-            cityLabel="All Locations"
-            placeholder="Search blogs by title, topic..."
-          />
-        )}
 
-        {/* 4-Column Grid matching uploaded image */}
+
+        {/* 4-Column Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
             {[...Array(8)].map((_, i) => (
@@ -1258,37 +1586,37 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
             ))}
           </div>
         ) : wishlistMode ? (
-          <div className="bg-white p-12 rounded-3xl border border-[#E4DCD0] text-center space-y-4 shadow-sm max-w-lg mx-auto my-8">
+          <div className="bg-white p-12 rounded-3xl border border-slate-200/90 text-center space-y-4 shadow-sm max-w-lg mx-auto my-8">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
               <Heart className="w-8 h-8 fill-current" />
             </div>
-            <h3 className="text-xl font-black text-[#0C4A6E] uppercase">Your Wishlist is Empty</h3>
+            <h3 className="text-xl font-serif font-bold text-slate-900">Your Wishlist is Empty</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Click the heart icon on any design or blog post card to save your favorite concepts here.
             </p>
             <button
               type="button"
               onClick={() => handleWishlistToggle(false)}
-              className="px-6 py-2.5 bg-slate-900 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-slate-800 transition-all inline-block shadow-md"
+              className="px-6 py-2.5 bg-slate-900 text-white font-bold text-xs tracking-wider rounded-xl hover:bg-slate-800 transition-all inline-block shadow-md"
             >
               Explore All Blogs
             </button>
           </div>
         ) : (
-          <div className="bg-[#FAF8F3] p-12 rounded-2xl border border-[#E4DCD0] text-center space-y-3">
+          <div className="bg-white p-12 rounded-2xl border border-slate-200/90 text-center space-y-3">
             <Sparkles className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-lg font-bold text-[#0C4A6E] uppercase">No posts found</h3>
-            <p className="text-xs text-slate-500">Try broadening your search or filter options.</p>
+            <h3 className="text-lg font-serif font-bold text-slate-900">No posts found</h3>
+            <p className="text-xs text-slate-500">Try broadening your filter options.</p>
           </div>
         )}
 
         {/* Pagination Controls */}
         {!wishlistMode && pagination && pagination.last_page > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-6 border-t border-[#E4DCD0]">
+          <div className="flex items-center justify-center gap-2 pt-6 border-t border-slate-200">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-2 rounded-xl border border-[#E4DCD0] bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center gap-1 font-bold text-xs"
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center gap-1 font-bold text-xs"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Previous</span>
@@ -1304,8 +1632,8 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
                     onClick={() => setPage(pageNum)}
                     className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
                       isCurrent
-                        ? 'bg-[#0C4A6E] text-white shadow-md'
-                        : 'bg-white text-slate-700 hover:bg-slate-100 border border-[#E4DCD0]'
+                        ? 'bg-slate-900 text-white shadow-md'
+                        : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >
                     {pageNum}
@@ -1317,7 +1645,7 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
             <button
               onClick={() => setPage((p) => Math.min(pagination.last_page, p + 1))}
               disabled={page === pagination.last_page}
-              className="px-3 py-2 rounded-xl border border-[#E4DCD0] bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center gap-1 font-bold text-xs"
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-all flex items-center gap-1 font-bold text-xs"
             >
               <span>Next</span>
               <ChevronRight className="w-4 h-4" />
@@ -1330,27 +1658,27 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 14. EXPLORE DESIGNS HERO BANNER SECTION                                    */
+/* 14. EXPLORE DESIGNS HERO BANNER SECTION (LIGHT THEME)                     */
 /* -------------------------------------------------------------------------- */
 function DesignCatalogSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
-  const title = section.title || d.title || 'EXPLORE INTERIOR DESIGNS';
+  const title = section.title || d.title || 'Explore Interior Designs';
   const subtitle = section.subtitle || d.subtitle || 'Discover bespoke designs categorized by room, layout, style, and city.';
-  const badge = section.badge || d.badge || 'COMPLETE INTERIOR CATALOG';
+  const badge = section.badge || d.badge || 'Complete Interior Catalog';
 
   return (
-    <section className="bg-slate-950 text-white py-14 sm:py-18 border-b border-slate-800">
+    <section className="bg-gradient-to-b from-[#FAFAFA] via-[#F6F4EF] to-[#FAFAFA] text-slate-900 py-14 sm:py-18 border-b border-slate-200/80 font-sans">
       <div className="max-w-7xl mx-auto px-4 text-center space-y-4">
         {badge && (
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/30 px-4 py-1.5 rounded-full inline-block shadow-sm">
+          <span className="text-[11px] font-bold tracking-wider text-[#EA580C] bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-full inline-block shadow-2xs">
             {badge}
           </span>
         )}
-        <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white drop-shadow-sm">
+        <h1 className="text-3xl sm:text-5xl font-serif font-bold tracking-tight text-slate-900">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto font-normal leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto font-normal leading-relaxed">
             {subtitle}
           </p>
         )}
@@ -1359,4 +1687,253 @@ function DesignCatalogSection({ section }: { section: PageSectionData }) {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* LATEST BLOG SLIDER SECTION (LIGHT THEME)                                  */
+/* -------------------------------------------------------------------------- */
+function LatestBlogSliderSection({ section }: { section: PageSectionData }) {
+  const d = section.data || {};
+  const title = section.title !== undefined ? section.title : (d.title || 'Latest Interior Design Insights');
+  const subtitle = section.subtitle !== undefined ? section.subtitle : (d.subtitle || 'Explore our newest blogs, design trends, and decor advice from expert interior architects.');
+  const badge = (section as any).badge !== undefined ? (section as any).badge : (d.badge || 'Latest Blogs');
 
+  const rawLimit = (section as any).limit !== undefined ? (section as any).limit : d.limit;
+  const limit = Math.max(1, Math.min(20, Number(rawLimit) || 6));
+
+  const showButton = (section as any).show_button !== false && d.show_button !== false;
+  const buttonText = (section as any).button_text || d.button_text || 'View All Blogs';
+  const buttonLink = (section as any).button_link || d.button_link || '/blogs';
+
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [cardsPerView, setCardsPerView] = useState(3);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setCardsPerView(1);
+      } else if (window.innerWidth < 1024) {
+        setCardsPerView(2);
+      } else {
+        setCardsPerView(3);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    apiClient
+      .get(`/blogs?limit=${limit}`)
+      .then((res) => {
+        if (res.data?.success) {
+          const rawData = res.data.data;
+          const items = Array.isArray(rawData?.data)
+            ? rawData.data
+            : Array.isArray(rawData)
+            ? rawData
+            : [];
+          setBlogs(items.slice(0, limit));
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [limit]);
+
+  const maxIndex = Math.max(0, blogs.length - cardsPerView);
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
+  };
+
+  return (
+    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 overflow-hidden font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-3">
+            {badge && (
+              <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-[#EA580C] px-4 py-1.5 rounded-full text-xs font-bold tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{badge}</span>
+              </div>
+            )}
+            {title && (
+              <h2 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight">
+                {title}
+              </h2>
+            )}
+            {subtitle && (
+              <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed font-normal">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {blogs.length > cardsPerView && (
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={prevSlide}
+                disabled={currentIndex === 0}
+                className="p-3 bg-white border border-slate-200 rounded-xl text-slate-800 hover:bg-[#EA580C] hover:text-white disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-slate-800 transition-all cursor-pointer shadow-2xs"
+                aria-label="Previous Slide"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={nextSlide}
+                disabled={currentIndex >= maxIndex}
+                className="p-3 bg-white border border-slate-200 rounded-xl text-slate-800 hover:bg-[#EA580C] hover:text-white disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-slate-800 transition-all cursor-pointer shadow-2xs"
+                aria-label="Next Slide"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+            {[...Array(cardsPerView)].map((_, i) => (
+              <div key={i} className="bg-slate-200 aspect-[4/3] rounded-2xl h-80" />
+            ))}
+          </div>
+        ) : blogs.length > 0 ? (
+          <div className="relative overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-out gap-6"
+              style={{
+                transform: `translateX(-${currentIndex * (100 / cardsPerView + (cardsPerView > 1 ? 1.5 : 0))}%)`,
+              }}
+            >
+              {blogs.map((blog) => (
+                <div
+                  key={blog.id}
+                  className="flex-shrink-0"
+                  style={{
+                    width:
+                      cardsPerView === 1
+                        ? '100%'
+                        : cardsPerView === 2
+                        ? 'calc(50% - 0.75rem)'
+                        : 'calc(33.333% - 1rem)',
+                  }}
+                >
+                  <DesignCard post={blog} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-xs text-slate-500 font-medium">
+            No latest blogs found.
+          </div>
+        )}
+
+        {showButton && (
+          <div className="pt-4 flex justify-center">
+            <Link
+              href={buttonLink}
+              className="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              <span>{buttonText}</span>
+              <ArrowRight className="w-4 h-4 text-[#EA580C]" />
+            </Link>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* CONTACT INFO & CONSULTATION FORM SECTION (LIGHT THEME)                    */
+/* -------------------------------------------------------------------------- */
+function ContactWithFormSection({ section }: { section: PageSectionData }) {
+  const d = section.data || {};
+  const leftTitle = section.title || d.title || 'Corporate Headquarters';
+  const rightTitle = section.subtitle || d.subtitle || 'Book Free Consultation';
+  const formDesc = (section as any).badge || d.badge || 'Fill in your project requirements below to speak with an interior design architect.';
+
+  const [settings, setSettings] = useState<any>({});
+
+  useEffect(() => {
+    apiClient.get('/home').then((res) => {
+      if (res.data?.success && res.data.settings) {
+        setSettings(res.data.settings);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const address = (section as any).address || d.address || settings.address || 'ARCHOVEX INFRA HQ, Connaught Place, New Delhi 110001';
+  const phone = (section as any).phone || d.phone || settings.phone || '+91 98765 43210';
+  const email = (section as any).email || d.email || settings.email || 'contact@archovex.com';
+  const whatsapp = (section as any).whatsapp || d.whatsapp || settings.whatsapp || '+91 98765 43210';
+
+  return (
+    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {/* Left Column: Contact Info Card */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-white p-8 rounded-3xl border border-slate-200/90 shadow-2xs space-y-6">
+            <h2 className="text-xl font-serif font-bold text-slate-900 tracking-tight border-b border-slate-200 pb-3">
+              {leftTitle}
+            </h2>
+            <div className="space-y-4 text-xs text-slate-700">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-[#EA580C] mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-900 block">Address</span>
+                  <span>{address}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-[#EA580C] flex-shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-900 block">Direct Call</span>
+                  <span>{phone}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-[#EA580C] flex-shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-900 block">Email Address</span>
+                  <span>{email}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <MessageCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-900 block">WhatsApp Helpline</span>
+                  <span>{whatsapp}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Consultation Form Card */}
+        <div className="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-md space-y-6">
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">
+              {rightTitle}
+            </h2>
+            {formDesc && (
+              <p className="text-xs text-slate-600 mt-1">
+                {formDesc}
+              </p>
+            )}
+          </div>
+          <ConsultationForm />
+        </div>
+      </div>
+    </section>
+  );
+}

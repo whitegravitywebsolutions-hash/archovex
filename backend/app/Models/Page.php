@@ -15,4 +15,14 @@ class Page extends Model
         'sections' => 'array',
         'published_at' => 'datetime',
     ];
+
+    public function parent()
+    {
+        return $this->belongsTo(Page::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Page::class, 'parent_id');
+    }
 }

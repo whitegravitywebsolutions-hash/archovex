@@ -25,14 +25,14 @@ export default function FAQAccordion({ faqs }: FAQProps) {
           >
             <button
               onClick={() => setOpenIdx(isOpen ? null : idx)}
-              className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-sm hover:text-blue-600 transition-colors"
+              className="w-full p-5 text-left flex items-center justify-between gap-4 font-serif font-bold text-slate-900 text-base sm:text-lg hover:text-[#EA580C] transition-colors cursor-pointer"
             >
               <span>{faq.question}</span>
-              <ChevronDown className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180 text-[#EA580C]' : ''}`} />
             </button>
 
             {isOpen && (
-              <div className="px-5 pb-5 text-xs text-slate-600 leading-relaxed border-t border-slate-50 pt-3 animate-fade-in">
+              <div className="px-5 pb-5 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3 animate-fade-in font-sans">
                 {faq.answer}
               </div>
             )}

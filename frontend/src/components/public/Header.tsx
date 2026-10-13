@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import ServicesMegaMenu from './ServicesMegaMenu';
 import MegaMenu from './MegaMenu';
-import CityMegaMenu from './CityMegaMenu';
 import MobileMenu from './MobileMenu';
 import ConsultationFormModal from './ConsultationFormModal';
 import { MenuItem, City } from '@/types';
@@ -20,17 +19,23 @@ interface HeaderProps {
 
 const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { id: 1, menu_id: 1, label: 'Home', url: '/', type: 'link', sort_order: 1, is_active: true, open_new_tab: false },
-  { id: 2, menu_id: 1, label: 'Services', url: '/services', type: 'servicesmenu', sort_order: 2, is_active: true, open_new_tab: false },
-  { id: 3, menu_id: 1, label: 'Blogs', url: '/blogs', type: 'link', sort_order: 3, is_active: true, open_new_tab: false },
-  { id: 4, menu_id: 1, label: 'Locations', url: '/locations', type: 'city', sort_order: 4, is_active: true, open_new_tab: false },
-  { id: 5, menu_id: 1, label: 'Contact', url: '/contact-us', type: 'link', sort_order: 5, is_active: true, open_new_tab: false },
+  { id: 19, menu_id: 1, label: 'About Us', url: '/about-us', type: 'link', sort_order: 2, is_active: true, open_new_tab: false },
+  { id: 2, menu_id: 1, label: 'Services', url: '/services', type: 'link', sort_order: 3, is_active: true, open_new_tab: false },
+  { id: 18, menu_id: 1, label: 'Blog', url: '/blog', type: 'link', sort_order: 4, is_active: true, open_new_tab: false },
+  { id: 17, menu_id: 1, label: 'Locations', url: '/locations', type: 'link', sort_order: 5, is_active: true, open_new_tab: false },
+  { id: 8, menu_id: 1, label: 'Contact Us', url: '/contact-us', type: 'link', sort_order: 6, is_active: true, open_new_tab: false },
 ];
+
+let globalCachedMenuItems: MenuItem[] | null = null;
 
 export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   const pathname = usePathname() || '';
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(
-    initialMenu.length > 0 ? initialMenu : DEFAULT_MENU_ITEMS
-  );
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    if (initialMenu && initialMenu.length > 0) return initialMenu;
+    if (globalCachedMenuItems && globalCachedMenuItems.length > 0) return globalCachedMenuItems;
+    return DEFAULT_MENU_ITEMS;
+  });
+
   const [cityList, setCityList] = useState<City[]>(cities);
   const [activeMegaIdx, setActiveMegaIdx] = useState<number | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -56,14 +61,22 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
     }, 220);
   };
 
+  // Close open mega menus cleanly when route changes
+  useEffect(() => {
+    setActiveMegaIdx(null);
+    setIsMobileOpen(false);
+  }, [pathname]);
+
   useEffect(() => {
     if (initialMenu && initialMenu.length > 0) {
       setMenuItems(initialMenu);
+      globalCachedMenuItems = initialMenu;
     } else {
       apiClient.get('/menus').then((res) => {
         if (res.data && res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
           const unique = Array.from(new Map<number, MenuItem>(res.data.data.map((item: MenuItem) => [item.id, item])).values());
           setMenuItems(unique);
+          globalCachedMenuItems = unique;
         }
       }).catch((err) => console.error('Failed to fetch dynamic menus:', err));
     }
@@ -72,12 +85,6 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   useEffect(() => {
     if (cities.length > 0) {
       setCityList(cities);
-    } else {
-      apiClient.get('/cities').then((res) => {
-        if (res.data.success && Array.isArray(res.data.data)) {
-          setCityList(res.data.data);
-        }
-      }).catch((err) => console.error(err));
     }
   }, [cities]);
 
@@ -94,22 +101,40 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
       updateWishlist();
       window.addEventListener('storage', updateWishlist);
       window.addEventListener('wishlistUpdated', updateWishlist);
+
+      const handleOpenModal = () => setIsModalOpen(true);
+      window.addEventListener('open-consultation-modal', handleOpenModal);
+
+      const handleAnchorClick = (e: MouseEvent) => {
+        const target = (e.target as HTMLElement)?.closest('a, button');
+        if (target) {
+          const href = target.getAttribute('href');
+          if (href && href.includes('#consultation')) {
+            e.preventDefault();
+            setIsModalOpen(true);
+          }
+        }
+      };
+      window.addEventListener('click', handleAnchorClick);
+
       return () => {
         window.removeEventListener('storage', updateWishlist);
         window.removeEventListener('wishlistUpdated', updateWishlist);
+        window.removeEventListener('open-consultation-modal', handleOpenModal);
+        window.removeEventListener('click', handleAnchorClick);
       };
     }
   }, []);
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full header-glass border-b border-[#e4dcd0] transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[88px] py-2 flex items-center justify-between relative">
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/80 transition-all shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between relative">
           {/* Brand Logo */}
           <Logo />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 h-full flex-nowrap">
+          <nav className="hidden lg:flex items-center gap-7 xl:gap-9 h-full flex-nowrap">
             {menuItems.map((item, idx) => {
               const megaCols = item.mega_columns || item.megaColumns || [];
               const labelLower = (item.label || '').toLowerCase();
@@ -136,8 +161,8 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
                 >
                   <Link
                     href={item.url || '#'}
-                    className={`inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider h-full px-1 transition-colors ${
-                      isActiveParent || isHovered ? 'text-[#0C4A6E] font-black' : 'text-slate-800 hover:text-[#0C4A6E]'
+                    className={`inline-flex items-center gap-1.5 text-sm font-bold tracking-wider h-full px-0.5 transition-colors ${
+                      isActiveParent || isHovered ? 'text-slate-950 font-black' : 'text-slate-800 hover:text-[#EA580C]'
                     }`}
                   >
                     <span>{item.label}</span>
@@ -145,18 +170,18 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
                       <ChevronDown
                         className={`w-3.5 h-3.5 transition-transform duration-200 ${
                           isHovered
-                            ? 'text-[#F97316] rotate-180'
+                            ? 'text-[#EA580C] rotate-180'
                             : isActiveParent
-                            ? 'text-[#F97316]'
-                            : 'text-slate-500 group-hover:text-[#0C4A6E]'
+                            ? 'text-[#EA580C]'
+                            : 'text-slate-400 group-hover:text-slate-900'
                         }`}
                       />
                     )}
                   </Link>
 
-                  {/* Bottom Touch Active Line */}
+                  {/* Bottom Active Indicator Line */}
                   {(isHovered || isActiveParent) && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F97316] rounded-t-full transition-all animate-fade-in" />
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#EA580C] rounded-t-full transition-all animate-fade-in" />
                   )}
                 </div>
               );
@@ -168,21 +193,21 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
             {/* Phone Quick Link */}
             <a
               href="tel:+919876543210"
-              className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-[#0C4A6E] hover:text-[#F97316] px-2.5 py-2 rounded-lg transition-colors"
+              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-[#EA580C] px-2.5 py-2 rounded-lg transition-colors"
             >
-              <Phone className="w-4 h-4 text-[#F97316]" />
+              <Phone className="w-4 h-4 text-[#EA580C]" />
               <span>+91 98765 43210</span>
             </a>
 
             {/* Wishlist Link */}
             <Link
               href="/blogs?wishlist=true"
-              className="relative p-2 text-slate-700 hover:text-[#F97316] rounded-full hover:bg-[#F3EEE4] transition-all"
+              className="relative p-2 text-slate-700 hover:text-[#EA580C] rounded-full hover:bg-slate-100 transition-all"
               title="View Wishlist"
             >
-              <Heart className="w-5 h-5 text-[#0C4A6E]" />
+              <Heart className="w-5 h-5 text-slate-800" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-[#F97316] text-white font-black text-[9px] rounded-full flex items-center justify-center shadow-xs">
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-[#EA580C] text-white font-bold text-[9px] rounded-full flex items-center justify-center shadow-2xs">
                   {wishlistCount}
                 </span>
               )}
@@ -191,16 +216,16 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
             {/* Book Consultation Button (Kept visible on mobile) */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex px-3 sm:px-5 py-2 sm:py-2.5 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 border border-amber-400/30 whitespace-nowrap"
+              className="inline-flex px-3 sm:px-5 py-2 sm:py-2.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-[10px] sm:text-xs tracking-wider rounded-xl shadow-xs hover:shadow-md transition-all transform hover:-translate-y-0.5 border border-amber-500/20 whitespace-nowrap cursor-pointer"
             >
-              <span className="hidden sm:inline">GET FREE CONSULTATION</span>
-              <span className="sm:hidden">FREE CONSULTATION</span>
+              <span className="hidden sm:inline">Get Free Consultation</span>
+              <span className="sm:hidden">Free Consultation</span>
             </button>
 
             {/* Mobile Drawer Trigger (Hamburger) */}
             <button
               onClick={() => setIsMobileOpen(true)}
-              className="lg:hidden p-2 text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
+              className="lg:hidden p-2 text-slate-800 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
               aria-label="Toggle Mobile Menu"
             >
               <MenuIcon className="w-6 h-6" />
@@ -221,38 +246,7 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
             >
               {(() => {
                 const item = menuItems[activeMegaIdx];
-                const labelLower = item.label.toLowerCase();
                 const megaCols = item.mega_columns || item.megaColumns || [];
-                const isLocationsItem = labelLower.includes('location') || labelLower.includes('city') || item.url === '/locations' || item.url === '/cities' || item.type === 'locationsmenu' || item.type === 'city';
-                const isServicesItem = labelLower.includes('service') || labelLower.includes('design') || item.url === '/services' || item.url === '/designs' || item.type === 'servicesmenu' || item.type === 'megamenu';
-
-                if (isLocationsItem) {
-                  return (
-                    <CityMegaMenu
-                      cities={cityList}
-                      isOpen={true}
-                      onClose={() => setActiveMegaIdx(null)}
-                    />
-                  );
-                }
-
-                if (isServicesItem) {
-                  if (megaCols.length > 0) {
-                    return (
-                      <MegaMenu
-                        columns={megaCols}
-                        isOpen={true}
-                        onClose={() => setActiveMegaIdx(null)}
-                      />
-                    );
-                  }
-                  return (
-                    <ServicesMegaMenu
-                      isOpen={true}
-                      onClose={() => setActiveMegaIdx(null)}
-                    />
-                  );
-                }
 
                 if (megaCols.length > 0) {
                   return (

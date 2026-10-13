@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Logo from './Logo';
 import { SocialLink } from '@/types';
-import { Phone, Mail, MapPin, ShieldCheck, Award, Clock } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
+import { getImageUrl, apiClient } from '@/lib/api';
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -26,28 +28,119 @@ const WhatsappIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+  </svg>
+);
+
+const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+  </svg>
+);
+
+const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+    <rect x="2" y="9" width="4" height="12"></rect>
+    <circle cx="4" cy="4" r="2"></circle>
+  </svg>
+);
+
+const DEFAULT_LOCATIONS = [
+  { label: 'Interior Designers in Noida', url: '/locations/noida' },
+  { label: 'Interior Designers in Greater Noida', url: '/locations/greater-noida' },
+  { label: 'Interior Designers in Delhi', url: '/locations/delhi' },
+  { label: 'Interior Designers in New Delhi', url: '/locations/new-delhi' },
+  { label: 'Interior Designers in Gurgaon', url: '/locations/gurgaon' },
+];
+
+const DEFAULT_SERVICES = [
+  { label: 'Full Home Interior Design', url: '/services/full-home-interior-design' },
+  { label: 'Modular Kitchen Design', url: '/services/modular-kitchen-design' },
+  { label: 'Living Room Interior Design', url: '/services/living-room-interior-design' },
+  { label: 'Bedroom Interior Design', url: '/services/bedroom-interior-design' },
+  { label: 'Wardrobe Design', url: '/services/wardrobe-design' },
+  { label: 'Home Renovation & Remodeling', url: '/services/home-renovation' },
+  { label: 'Office Interior Design', url: '/services/office-interior-design' },
+  { label: 'Corporate Office Interior Design', url: '/services/corporate-office-interior-design' },
+  { label: 'Commercial Interior Design', url: '/services/commercial-interior-design' },
+  { label: 'Turnkey Interior Design', url: '/services/turnkey-interior-design' },
+];
+
+const parsePipeLinks = (rawText: string, fallback: { label: string; url: string }[]) => {
+  if (!rawText || !rawText.trim()) return fallback;
+  const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return fallback;
+  return lines.map((line) => {
+    const parts = line.split('|');
+    const label = parts[0]?.trim() || line;
+    const url = parts[1]?.trim() || '#';
+    return { label, url };
+  });
+};
+
 interface FooterProps {
   settings?: Record<string, any>;
   socialLinks?: SocialLink[];
 }
 
-export default function Footer({ settings = {}, socialLinks = [] }: FooterProps) {
-  const phone = settings.phone || '+91 98765 43210';
-  const email = settings.email || 'contact@archovex.com';
-  const address = settings.address || 'ARCHOVEX INFRA HQ, Connaught Place, New Delhi 110001';
+export default function Footer({ settings: initialSettings = {}, socialLinks: initialSocials = [] }: FooterProps) {
+  const [siteSettings, setSiteSettings] = useState<Record<string, any>>(initialSettings);
+  const [socials, setSocials] = useState<SocialLink[]>(initialSocials);
 
-  // 1. Determine Instagram URL (Settings > socialLinks > Fallback)
-  let instagramUrl = settings.instagram_url || settings.instagram;
-  if (!instagramUrl && Array.isArray(socialLinks) && socialLinks.length > 0) {
-    const found = socialLinks.find((s) => (s.platform || '').toLowerCase().includes('insta'));
+  useEffect(() => {
+    if (initialSettings && Object.keys(initialSettings).length > 0) {
+      setSiteSettings((prev) => ({ ...prev, ...initialSettings }));
+    }
+  }, [initialSettings]);
+
+  useEffect(() => {
+    const fetchLiveSettings = () => {
+      apiClient.get('/home').then((res) => {
+        if (res.data?.success && res.data.settings) {
+          setSiteSettings(res.data.settings);
+        }
+        if (res.data?.success && Array.isArray(res.data.social_links)) {
+          setSocials(res.data.social_links);
+        }
+      }).catch(() => {});
+    };
+
+    fetchLiveSettings();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('settingsUpdated', fetchLiveSettings);
+      return () => window.removeEventListener('settingsUpdated', fetchLiveSettings);
+    }
+  }, []);
+
+  const phone = siteSettings.phone || '+91 98765 43210';
+  const email = siteSettings.email || 'contact@archovex.com';
+  const address = siteSettings.address || 'ARCHOVEX INFRA HQ, Connaught Place, New Delhi 110001';
+
+  const footerLogo = siteSettings.footer_logo;
+  const footerDesc = siteSettings.footer_description || 'ARCHOVEX INFRA PRIVATE LIMITED is an architectural & interior design firm delivering bespoke modular kitchens, living room concepts, custom wardrobes, and turnkey home interiors across India.';
+  const footerCopyright = siteSettings.footer_copyright || siteSettings.copyright || '2026 Archovex. All Rights Reserved.';
+  const privacyUrl = siteSettings.footer_privacy_url || '/privacy-policy';
+  const termsUrl = siteSettings.footer_terms_url || '/terms-and-conditions';
+
+  const locationsList = parsePipeLinks(siteSettings.footer_locations, DEFAULT_LOCATIONS);
+  const servicesList = parsePipeLinks(siteSettings.footer_services, DEFAULT_SERVICES);
+
+  // Social Links Resolution
+  let instagramUrl = siteSettings.instagram_url || siteSettings.instagram;
+  if (!instagramUrl && Array.isArray(socials) && socials.length > 0) {
+    const found = socials.find((s) => (s.platform || '').toLowerCase().includes('insta'));
     if (found?.url) instagramUrl = found.url;
   }
   if (!instagramUrl) instagramUrl = 'https://instagram.com';
 
-  // 2. Determine Facebook URL (Settings > socialLinks > Fallback)
-  let facebookUrl = settings.facebook_url || settings.facebook;
-  if (!facebookUrl && Array.isArray(socialLinks) && socialLinks.length > 0) {
-    const found = socialLinks.find((s) => {
+  let facebookUrl = siteSettings.facebook_url || siteSettings.facebook;
+  if (!facebookUrl && Array.isArray(socials) && socials.length > 0) {
+    const found = socials.find((s) => {
       const p = (s.platform || '').toLowerCase();
       return p.includes('face') || p.includes('fb');
     });
@@ -55,10 +148,9 @@ export default function Footer({ settings = {}, socialLinks = [] }: FooterProps)
   }
   if (!facebookUrl) facebookUrl = 'https://facebook.com';
 
-  // 3. Determine WhatsApp URL (Settings > socialLinks > Fallback)
-  let rawWhatsapp = settings.whatsapp;
-  if (!rawWhatsapp && Array.isArray(socialLinks) && socialLinks.length > 0) {
-    const found = socialLinks.find((s) => {
+  let rawWhatsapp = siteSettings.whatsapp;
+  if (!rawWhatsapp && Array.isArray(socials) && socials.length > 0) {
+    const found = socials.find((s) => {
       const p = (s.platform || '').toLowerCase();
       return p.includes('what') || p.includes('wa');
     });
@@ -69,59 +161,45 @@ export default function Footer({ settings = {}, socialLinks = [] }: FooterProps)
     ? rawWhatsapp
     : `https://wa.me/${rawWhatsapp.replace(/[^0-9]/g, '')}`;
 
+  const twitterUrl = siteSettings.twitter_url;
+  const youtubeUrl = siteSettings.youtube_url;
+  const linkedinUrl = siteSettings.linkedin_url;
+
   const socialItems = [
     { id: 'instagram', name: 'Instagram', url: instagramUrl, Icon: InstagramIcon },
     { id: 'facebook', name: 'Facebook', url: facebookUrl, Icon: FacebookIcon },
     { id: 'whatsapp', name: 'WhatsApp', url: whatsappUrl, Icon: WhatsappIcon },
+    ...(twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: twitterUrl, Icon: TwitterIcon }] : []),
+    ...(youtubeUrl ? [{ id: 'youtube', name: 'YouTube', url: youtubeUrl, Icon: YoutubeIcon }] : []),
+    ...(linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: linkedinUrl, Icon: LinkedinIcon }] : []),
   ];
 
   return (
-    <footer className="bg-[#0C4A6E] text-slate-200 pt-16 pb-12 border-t border-sky-900">
+    <footer className="bg-[#FAF9F6] text-slate-800 pt-16 pb-12 border-t border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        {/* Top Trust Highlights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-12 border-b border-sky-800/60">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#075985]/60 border border-sky-700/60">
-            <div className="p-3 bg-[#F97316]/20 text-[#F97316] rounded-xl border border-[#F97316]/30">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">10-Year Warranty</h4>
-              <p className="text-xs text-sky-100/90">Flat 10 years material warranty on all modular units.</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#075985]/60 border border-sky-700/60">
-            <div className="p-3 bg-[#F97316]/20 text-[#F97316] rounded-xl border border-[#F97316]/30">
-              <Award className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">German Hardware</h4>
-              <p className="text-xs text-sky-100/90">Soft-close Blum & Hettich tandem drawer systems.</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#075985]/60 border border-sky-700/60">
-            <div className="p-3 bg-[#F97316]/20 text-[#F97316] rounded-xl border border-[#F97316]/30">
-              <Clock className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">45-Day Delivery</h4>
-              <p className="text-xs text-sky-100/90">Guaranteed on-time installation or we pay penalty.</p>
-            </div>
-          </div>
-        </div>
-
         {/* Main Footer Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand Info */}
           <div className="space-y-4">
-            <Logo light />
-            <p className="text-xs text-sky-100/90 leading-relaxed">
-              ARCHOVEX INFRA PRIVATE LIMITED is an architectural & interior design firm delivering bespoke modular kitchens, living room concepts, custom wardrobes, and turnkey home interiors across India.
+            {footerLogo ? (
+              <Link href="/" className="inline-block relative h-16 w-48">
+                <Image
+                  src={getImageUrl(footerLogo)}
+                  alt="Footer Logo"
+                  fill
+                  className="object-contain object-left"
+                />
+              </Link>
+            ) : (
+              <Logo />
+            )}
+
+            <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+              {footerDesc}
             </p>
 
-            {/* ONLY Instagram, Facebook & WhatsApp Social Icons */}
-            <div className="flex items-center gap-2.5 pt-2">
+            {/* Social Icons */}
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
               {socialItems.map((item) => (
                 <a
                   key={item.id}
@@ -130,9 +208,9 @@ export default function Footer({ settings = {}, socialLinks = [] }: FooterProps)
                   rel="noopener noreferrer"
                   title={item.name}
                   aria-label={item.name}
-                  className="w-9 h-9 rounded-full bg-[#075985]/80 hover:bg-[#F97316] text-sky-100 hover:text-white border border-sky-700/60 flex items-center justify-center transition-all shadow-xs group"
+                  className="w-9 h-9 rounded-full bg-white hover:bg-[#EA580C] text-slate-800 hover:text-white border border-slate-200 shadow-2xs flex items-center justify-center transition-all group cursor-pointer"
                 >
-                  <item.Icon className="w-4.5 h-4.5 text-[#F97316] group-hover:text-white transition-colors" />
+                  <item.Icon className="w-4 h-4 text-[#EA580C] group-hover:text-white transition-colors" />
                 </a>
               ))}
             </div>
@@ -140,62 +218,67 @@ export default function Footer({ settings = {}, socialLinks = [] }: FooterProps)
 
           {/* All Locations */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-widest text-[#F97316] border-b border-sky-800/80 pb-2">
+            <h4 className="text-sm font-bold tracking-wider text-slate-900 border-b border-slate-200 pb-2">
               All Locations
             </h4>
-            <ul className="space-y-2 text-xs font-medium text-sky-100/90">
-              <li><Link href="/locations/noida" className="hover:text-white transition-colors">Interior Designers in Noida</Link></li>
-              <li><Link href="/locations/greater-noida" className="hover:text-white transition-colors">Interior Designers in Greater Noida</Link></li>
-              <li><Link href="/locations/delhi" className="hover:text-white transition-colors">Interior Designers in Delhi</Link></li>
-              <li><Link href="/locations/new-delhi" className="hover:text-white transition-colors">Interior Designers in New Delhi</Link></li>
-              <li><Link href="/locations/gurgaon" className="hover:text-white transition-colors">Interior Designers in Gurgaon</Link></li>
+            <ul className="space-y-2 text-xs font-bold text-slate-800">
+              {locationsList.map((loc, i) => (
+                <li key={i}>
+                  <Link href={loc.url} className="hover:text-[#EA580C] transition-colors block py-0.5 tracking-wide">
+                    {loc.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Services */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-widest text-[#F97316] border-b border-sky-800/80 pb-2">
+            <h4 className="text-sm font-bold tracking-wider text-slate-900 border-b border-slate-200 pb-2">
               Services
             </h4>
-            <ul className="space-y-2 text-xs font-medium text-sky-100/90">
-              <li><Link href="/services/full-home-interior-design" className="hover:text-white transition-colors">Full Home Interior Design</Link></li>
-              <li><Link href="/services/modular-kitchen-design" className="hover:text-white transition-colors">Modular Kitchen Design</Link></li>
-              <li><Link href="/services/living-room-interior-design" className="hover:text-white transition-colors">Living Room Interior Design</Link></li>
-              <li><Link href="/services/bedroom-interior-design" className="hover:text-white transition-colors">Bedroom Interior Design</Link></li>
-              <li><Link href="/services/wardrobe-design" className="hover:text-white transition-colors">Wardrobe Design</Link></li>
-              <li><Link href="/services/home-renovation-remodeling" className="hover:text-white transition-colors">Home Renovation & Remodeling</Link></li>
-              <li><Link href="/services/office-interior-design" className="hover:text-white transition-colors">Office Interior Design</Link></li>
-              <li><Link href="/services/corporate-office-interior-design" className="hover:text-white transition-colors">Corporate Office Interior Design</Link></li>
-              <li><Link href="/services/commercial-interior-design" className="hover:text-white transition-colors">Commercial Interior Design</Link></li>
-              <li><Link href="/services/turnkey-interior-design" className="hover:text-white transition-colors">Turnkey Interior Design</Link></li>
+            <ul className="space-y-2 text-xs font-bold text-slate-800">
+              {servicesList.map((srv, i) => (
+                <li key={i}>
+                  <Link href={srv.url} className="hover:text-[#EA580C] transition-colors block py-0.5 tracking-wide">
+                    {srv.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Contact Details */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-widest text-[#F97316] border-b border-sky-800/80 pb-2">
+            <h4 className="text-sm font-bold tracking-wider text-slate-900 border-b border-slate-200 pb-2">
               Contact Details
             </h4>
-            <div className="space-y-3 text-xs text-sky-100/90">
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#F97316] mt-0.5 flex-shrink-0" />
+            <div className="space-y-3.5 text-xs text-slate-800 font-bold">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
+                  <MapPin className="w-4 h-4 text-[#EA580C] flex-shrink-0" />
+                </div>
                 <div>
-                  <span className="text-[10px] text-sky-300 font-bold uppercase tracking-wider block">Address</span>
-                  <span>{address}</span>
+                  <span className="text-[10px] text-slate-500 font-extrabold tracking-wider block mb-0.5">Address</span>
+                  <span className="text-slate-800 leading-snug font-bold">{address}</span>
                 </div>
               </div>
-              <div className="flex items-start gap-2.5">
-                <Phone className="w-4 h-4 text-[#F97316] mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
+                  <Phone className="w-4 h-4 text-[#EA580C] flex-shrink-0" />
+                </div>
                 <div>
-                  <span className="text-[10px] text-sky-300 font-bold uppercase tracking-wider block">Direct Call</span>
-                  <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-white transition-colors">{phone}</a>
+                  <span className="text-[10px] text-slate-500 font-extrabold tracking-wider block mb-0.5">Direct Call</span>
+                  <a href={`tel:${phone.replace(/\s+/g, '')}`} className="text-slate-900 font-extrabold hover:text-[#EA580C] transition-colors">{phone}</a>
                 </div>
               </div>
-              <div className="flex items-start gap-2.5">
-                <Mail className="w-4 h-4 text-[#F97316] mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
+                  <Mail className="w-4 h-4 text-[#EA580C] flex-shrink-0" />
+                </div>
                 <div>
-                  <span className="text-[10px] text-sky-300 font-bold uppercase tracking-wider block">Email Address</span>
-                  <a href={`mailto:${email}`} className="hover:text-white transition-colors">{email}</a>
+                  <span className="text-[10px] text-slate-500 font-extrabold tracking-wider block mb-0.5">Email Address</span>
+                  <a href={`mailto:${email}`} className="text-slate-900 font-extrabold hover:text-[#EA580C] transition-colors">{email}</a>
                 </div>
               </div>
             </div>
@@ -203,23 +286,23 @@ export default function Footer({ settings = {}, socialLinks = [] }: FooterProps)
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-sky-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-sky-200">
-          <div className="flex flex-wrap items-center gap-2 font-medium">
-            <span>2026 Archovex. All Rights Reserved.</span>
-            <span className="text-sky-400">|</span>
-            <Link href="/privacy-policy" className="hover:text-[#F97316] transition-colors">Privacy Policy</Link>
-            <span className="text-sky-400">|</span>
-            <Link href="/terms-and-conditions" className="hover:text-[#F97316] transition-colors">Terms & Conditions</Link>
+        <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-700 font-bold">
+          <div className="flex flex-wrap items-center gap-2 font-bold">
+            <span>{footerCopyright}</span>
+            <span className="text-slate-300">|</span>
+            <Link href={privacyUrl} className="hover:text-[#EA580C] transition-colors tracking-wider">Privacy Policy</Link>
+            <span className="text-slate-300">|</span>
+            <Link href={termsUrl} className="hover:text-[#EA580C] transition-colors tracking-wider">Terms & Conditions</Link>
           </div>
 
-          <div className="text-xs font-medium">
+          <div className="text-xs font-bold">
             <span>
               Designed & Developed by{' '}
               <a 
                 href="https://whitegravity.in/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-white hover:text-[#F97316] font-semibold transition-colors underline decoration-[#F97316]/50 underline-offset-2"
+                className="text-slate-900 hover:text-[#EA580C] font-extrabold transition-colors underline decoration-[#EA580C]/50 underline-offset-2"
               >
                 White Gravity Web Solutions
               </a>

@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
-use App\Models\City;
-use App\Models\DesignPost;
+use App\Models\Blog;
+use App\Models\Page;
 use App\Models\Lead;
-use App\Models\Project;
-use App\Models\Service;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
@@ -18,17 +15,18 @@ class AdminDashboardController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'total_categories' => Category::count(),
-                'total_designs' => DesignPost::count(),
-                'published_designs' => DesignPost::where('status', 'published')->count(),
-                'draft_designs' => DesignPost::where('status', 'draft')->count(),
-                'total_cities' => City::count(),
-                'total_projects' => Project::count(),
-                'total_services' => Service::count(),
+                'total_blogs' => Blog::count(),
+                'published_blogs' => Blog::where('status', 'published')->count(),
+                'draft_blogs' => Blog::where('status', 'draft')->count(),
+                'total_pages' => Page::count(),
+                'published_pages' => Page::where('status', 'published')->count(),
                 'total_leads' => Lead::count(),
-                'new_leads' => Lead::where('status', 'New')->count(),
-                'recent_leads' => Lead::with('city')->orderBy('created_at', 'desc')->limit(5)->get(),
-                'recent_designs' => DesignPost::with(['category', 'primaryImage'])->orderBy('updated_at', 'desc')->limit(5)->get(),
+                'new_leads' => Lead::where(function($q) {
+                    $q->where('status', 'New')->orWhere('status', 'new')->orWhereNull('status');
+                })->count(),
+                'recent_leads' => Lead::orderBy('created_at', 'desc')->limit(5)->get(),
+                'recent_blogs' => Blog::orderBy('updated_at', 'desc')->limit(5)->get(),
+                'recent_pages' => Page::orderBy('updated_at', 'desc')->limit(5)->get(['id', 'title', 'slug', 'status', 'updated_at']),
             ]
         ]);
     }

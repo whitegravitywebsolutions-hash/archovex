@@ -3,8 +3,17 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://archovex.com';
+export async function GET(request: Request) {
+  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!baseUrl) {
+    const host = request.headers.get('host') || request.headers.get('x-forwarded-host');
+    if (host) {
+      const proto = request.headers.get('x-forwarded-proto') || (host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https');
+      baseUrl = `${proto}://${host}`;
+    } else {
+      baseUrl = 'http://localhost:3000';
+    }
+  }
 
   const [homeData, blogsData, categoriesData] = await Promise.all([
     fetchPublicData('/home').catch(() => null),
@@ -22,7 +31,7 @@ export async function GET() {
     'living-room-interior-design',
     'bedroom-interior-design',
     'wardrobe-design',
-    'home-renovation-remodeling',
+    'home-renovation',
     'office-interior-design',
     'corporate-office-interior-design',
     'commercial-interior-design',
@@ -35,8 +44,9 @@ export async function GET() {
   <url><loc>${baseUrl}/about-us</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
   <url><loc>${baseUrl}/services</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
   <url><loc>${baseUrl}/locations</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
-  <url><loc>${baseUrl}/blogs</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>${baseUrl}/blog</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
   <url><loc>${baseUrl}/contact-us</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>${baseUrl}/faqs</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>${baseUrl}/privacy-policy</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
   <url><loc>${baseUrl}/terms-and-conditions</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
 `;
@@ -51,7 +61,7 @@ export async function GET() {
   categories.forEach((cat: any) => {
     if (cat.slug && !uniqueCatSlugs.has(cat.slug)) {
       uniqueCatSlugs.add(cat.slug);
-      xml += `  <url><loc>${baseUrl}/blogs/${cat.slug}</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>\n`;
+      xml += `  <url><loc>${baseUrl}/blog/${cat.slug}</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>\n`;
     }
   });
 
@@ -65,12 +75,12 @@ export async function GET() {
     }
   });
 
-  // 4. Individual Blog Posts (/blogs/[categorySlug]/[postSlug])
+  // 4. Individual Blog Posts (/blog/[categorySlug]/[postSlug])
   if (Array.isArray(blogs)) {
     blogs.forEach((post: any) => {
       if (post.slug) {
         const catSlug = post.category?.slug || 'modular-kitchen-designs';
-        xml += `  <url><loc>${baseUrl}/blogs/${catSlug}/${post.slug}</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>\n`;
+        xml += `  <url><loc>${baseUrl}/blog/${catSlug}/${post.slug}</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>\n`;
       }
     });
   }

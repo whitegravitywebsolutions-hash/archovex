@@ -50,20 +50,20 @@ export default function CategoryPageClient({
   return (
     <>
       {/* Breadcrumb */}
-      <div className="bg-[#F3EEE4] border-b border-[#E4DCD0] py-3">
+      <div className="bg-[#FAFAFA] border-b border-slate-200 py-3 font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 text-xs text-slate-600">
-          <Link href="/" className="hover:text-[#0C4A6E] flex items-center gap-1">
-            <Home className="w-3.5 h-3.5" /> Home
+          <Link href="/" className="hover:text-[#EA580C] flex items-center gap-1">
+            <Home className="w-3.5 h-3.5 text-slate-400" /> Home
           </Link>
           <ChevronRight className="w-3 h-3 text-slate-400" />
-          <Link href={parentUrl} className="hover:text-[#0C4A6E]">{parentLabel}</Link>
+          <Link href={parentUrl} className="hover:text-[#EA580C]">{parentLabel}</Link>
           <ChevronRight className="w-3 h-3 text-slate-400" />
-          <span className="font-bold text-[#0C4A6E]">{category.name}</span>
+          <span className="font-bold text-slate-900">{category.name}</span>
         </div>
       </div>
 
       {/* CATEGORY HERO */}
-      <section className="relative bg-gradient-to-br from-[#0C4A6E] via-[#075985] to-[#0E7490] text-white py-16 sm:py-24 overflow-hidden border-b border-sky-900">
+      <section className="relative bg-gradient-to-b from-[#FAFAFA] via-[#F6F4EF] to-[#FAFAFA] text-slate-900 py-16 sm:py-24 overflow-hidden border-b border-slate-200/80 font-sans">
         {category.image && (
           <div className="absolute inset-0 z-0">
             <Image
@@ -71,25 +71,25 @@ export default function CategoryPageClient({
               alt=""
               aria-hidden="true"
               fill
-              className="object-cover opacity-25 scale-105 text-transparent select-none"
+              className="object-cover opacity-15 scale-105 select-none"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0C4A6E] via-[#0C4A6E]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAFA]/90 via-[#FAFAFA]/70 to-[#FAFAFA]" />
           </div>
         )}
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <span className="text-xs font-black uppercase tracking-widest text-[#FFEDD5] bg-[#F97316]/20 border border-[#F97316]/40 px-4 py-1.5 rounded-full inline-block shadow-sm">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#EA580C] bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-full inline-block shadow-2xs">
             ARCHOVEX • DESIGN COLLECTION
           </span>
-          <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight">{category.name}</h1>
-          <p className="text-xs sm:text-sm text-sky-100 max-w-2xl mx-auto leading-relaxed">
+          <h1 className="text-3xl sm:text-5xl font-serif font-bold uppercase tracking-tight text-slate-900">{category.name}</h1>
+          <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
             {category.description || category.short_description}
           </p>
           <div className="pt-2">
             <button
               onClick={() => setIsConsultationOpen(true)}
-              className="px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-xl shadow-[#F97316]/30 transition-all border border-amber-300/40"
+              className="px-8 py-4 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md transition-all border border-amber-500/20 cursor-pointer"
             >
               BOOK FREE CONSULTATION
             </button>

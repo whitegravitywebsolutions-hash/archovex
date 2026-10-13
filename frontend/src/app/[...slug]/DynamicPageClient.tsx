@@ -1,0 +1,26 @@
+'use client';
+
+import React from 'react';
+import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
+
+interface DynamicPageClientProps {
+  page: any;
+  cities?: any[];
+}
+
+export default function DynamicPageClient({ page }: DynamicPageClientProps) {
+  const sections = Array.isArray(page?.sections) ? page.sections : [];
+
+  return (
+    <>
+      {sections.length > 0 ? (
+        <DynamicSectionRenderer sections={sections} />
+      ) : (
+        <div className="py-20 px-4 text-center max-w-3xl mx-auto">
+          <h1 className="text-3xl font-black text-[#0B132B] uppercase">{page?.title || 'Page Content'}</h1>
+          <p className="text-sm text-slate-500 mt-2">This page currently has no section content configured.</p>
+        </div>
+      )}
+    </>
+  );
+}

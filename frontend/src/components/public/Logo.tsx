@@ -8,14 +8,15 @@ interface LogoProps {
   className?: string;
   light?: boolean;
   hasBg?: boolean;
+  href?: string;
 }
 
-export default function Logo({ className = '', light = false, hasBg = false }: LogoProps) {
+export default function Logo({ className = '', light = false, hasBg = false, href = '/' }: LogoProps) {
   const isWhiteBg = light || hasBg;
 
   if (isWhiteBg) {
     return (
-      <Link href="/" className={`inline-flex items-center justify-center group transition-all ${className}`}>
+      <Link href={href} className={`inline-flex items-center justify-center group transition-all ${className}`}>
         <div className="bg-white/95 rounded-2xl px-4 py-2 shadow-md border border-amber-500/25 group-hover:border-amber-500/50 group-hover:shadow-lg transition-all duration-300 backdrop-blur-md">
           <Image
             src="/logo.png"
@@ -31,7 +32,7 @@ export default function Logo({ className = '', light = false, hasBg = false }: L
   }
 
   return (
-    <Link href="/" className={`inline-flex items-center justify-center group transition-all ${className}`}>
+    <Link href={href} className={`inline-flex items-center justify-center group transition-all ${className}`}>
       <Image
         src="/logo.png"
         alt="ARCHOVEX INFRA PRIVATE LIMITED"

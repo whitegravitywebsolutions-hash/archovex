@@ -14,11 +14,17 @@ export default function EditBlogPage() {
 
   useEffect(() => {
     if (id) {
-      apiClient.get(`/admin/design-posts/${id}`).then((res) => {
+      apiClient.get(`/admin/blogs/${id}`).then((res) => {
         if (res.data.success) {
           setPost(res.data.data);
         }
-      }).catch((err) => console.error(err)).finally(() => setLoading(false));
+      }).catch(() => {
+        apiClient.get(`/admin/design-posts/${id}`).then((res) => {
+          if (res.data.success) {
+            setPost(res.data.data);
+          }
+        }).catch((err) => console.error(err));
+      }).finally(() => setLoading(false));
     }
   }, [id]);
 

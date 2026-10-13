@@ -192,22 +192,20 @@ export default function AdminMenusPage() {
   /* MEGA MENU ITEMS / SUB-LINKS HANDLERS                                      */
   /* -------------------------------------------------------------------------- */
   const handleAddMegaItem = async (columnId: number) => {
-    const label = prompt('Enter Sub-link Label (e.g. L-Shaped Kitchens):', 'New Sub Link');
-    if (!label) return;
-    const url = prompt('Enter Sub-link Target URL Path (e.g. /services/modular-kitchen-design?style=L-Shaped):', '/services');
-
     try {
       const res = await apiClient.post('/admin/mega-items', {
         mega_menu_column_id: columnId,
-        label,
-        url: url || '#',
-        description: 'HOT',
+        label: 'New Link',
+        url: '/services',
+        description: '',
+        target: '_self',
+        open_new_tab: false,
         sort_order: 1,
         is_active: true,
       });
 
       if (res.data.success) {
-        setMessage(`Added sub-link "${label}"`);
+        setMessage('Added new sub-link. Configure its title, URL, and window option below.');
         fetchMenu();
       }
     } catch (err: any) {
@@ -217,12 +215,15 @@ export default function AdminMenusPage() {
 
   const handleUpdateMegaItem = async (item: MegaMenuItem) => {
     try {
+      const isNewTab = (item as any).target === '_blank' || (item as any).open_new_tab === true;
       await apiClient.put(`/admin/mega-items/${item.id}`, {
         label: item.label,
         url: item.url,
         description: item.description,
-        is_active: item.is_active,
-        sort_order: item.sort_order,
+        target: isNewTab ? '_blank' : '_self',
+        open_new_tab: isNewTab,
+        is_active: item.is_active ?? true,
+        sort_order: item.sort_order ?? 1,
       });
       setMessage(`Saved sub-link "${item.label}"`);
       setTimeout(() => setMessage(''), 3000);
@@ -327,7 +328,6 @@ export default function AdminMenusPage() {
               >
                 <option value="link">Direct Link</option>
                 <option value="megamenu">Mega Menu Dropdown</option>
-                <option value="city">City Locations Dropdown</option>
               </select>
             </div>
 
@@ -423,7 +423,6 @@ export default function AdminMenusPage() {
                       >
                         <option value="link">Direct Link</option>
                         <option value="megamenu">Mega Menu Dropdown</option>
-                        <option value="city">City Locations Dropdown</option>
                       </select>
                     </div>
                   </div>
@@ -520,87 +519,97 @@ export default function AdminMenusPage() {
                                   SUB-LINKS / ITEMS ({colItems.length})
                                 </span>
 
-                                {colItems.map((subItem: MegaMenuItem) => (
-                                  <div key={subItem.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <input
-                                        type="text"
-                                        value={subItem.label}
-                                        onChange={(e) => {
-                                          const updatedCols = megaCols.map((c: MegaMenuColumn) => {
-                                            if (c.id !== col.id) return c;
-                                            return {
-                                              ...c,
-                                              items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, label: e.target.value } : i)
-                                            };
-                                          });
-                                          setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
-                                        }}
-                                        placeholder="Sub-link Title"
-                                        className="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 text-xs focus:outline-none focus:border-blue-500"
-                                      />
+                                {colItems.map((subItem: MegaMenuItem) => {
+                                  const targetVal = (subItem as any).target || ((subItem as any).open_new_tab ? '_blank' : '_self');
+                                  return (
+                                    <div key={subItem.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div className="flex-1">
+                                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Title / Text *</label>
+                                          <input
+                                            type="text"
+                                            value={subItem.label}
+                                            onChange={(e) => {
+                                              const updatedCols = megaCols.map((c: MegaMenuColumn) => {
+                                                if (c.id !== col.id) return c;
+                                                return {
+                                                  ...c,
+                                                  items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, label: e.target.value } : i)
+                                                };
+                                              });
+                                              setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
+                                            }}
+                                            placeholder="Sub-link Title (e.g. Wardrobe Design)"
+                                            className="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                                          />
+                                        </div>
 
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteMegaItem(subItem.id, subItem.label)}
-                                        className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg shrink-0"
-                                        title="Delete Sub-link"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                      <div>
-                                        <input
-                                          type="text"
-                                          value={subItem.url || ''}
-                                          onChange={(e) => {
-                                            const updatedCols = megaCols.map((c: MegaMenuColumn) => {
-                                              if (c.id !== col.id) return c;
-                                              return {
-                                                ...c,
-                                                items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, url: e.target.value } : i)
-                                              };
-                                            });
-                                            setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
-                                          }}
-                                          placeholder="/services/..."
-                                          className="w-full p-2 bg-white border border-slate-200 rounded-xl font-mono text-[10px] text-blue-600 focus:outline-none"
-                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteMegaItem(subItem.id, subItem.label)}
+                                          className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg shrink-0 mt-3"
+                                          title="Delete Sub-link"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
                                       </div>
 
-                                      <div>
-                                        <input
-                                          type="text"
-                                          value={subItem.description || ''}
-                                          onChange={(e) => {
-                                            const updatedCols = megaCols.map((c: MegaMenuColumn) => {
-                                              if (c.id !== col.id) return c;
-                                              return {
-                                                ...c,
-                                                items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, description: e.target.value } : i)
-                                              };
-                                            });
-                                            setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
-                                          }}
-                                          placeholder="Short Description"
-                                          className="w-full p-2 bg-white border border-slate-200 rounded-xl text-[10px] text-slate-700 focus:outline-none"
-                                        />
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">URL Path / Link *</label>
+                                          <input
+                                            type="text"
+                                            value={subItem.url || ''}
+                                            onChange={(e) => {
+                                              const updatedCols = megaCols.map((c: MegaMenuColumn) => {
+                                                if (c.id !== col.id) return c;
+                                                return {
+                                                  ...c,
+                                                  items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, url: e.target.value } : i)
+                                                };
+                                              });
+                                              setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
+                                            }}
+                                            placeholder="/services/wardrobe-design"
+                                            className="w-full p-2 bg-white border border-slate-200 rounded-xl font-mono text-[10px] text-blue-600 focus:outline-none"
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Open Link In</label>
+                                          <select
+                                            value={targetVal}
+                                            onChange={(e) => {
+                                              const val = e.target.value;
+                                              const updatedCols = megaCols.map((c: MegaMenuColumn) => {
+                                                if (c.id !== col.id) return c;
+                                                return {
+                                                  ...c,
+                                                  items: c.items.map((i: MegaMenuItem) => i.id === subItem.id ? { ...i, target: val, open_new_tab: val === '_blank' } : i)
+                                                };
+                                              });
+                                              setMenuItems(menuItems.map(it => it.id === item.id ? { ...it, megaColumns: updatedCols } : it));
+                                            }}
+                                            className="w-full p-2 bg-white border border-slate-200 rounded-xl text-[10px] font-semibold text-slate-800 focus:outline-none"
+                                          >
+                                            <option value="_self">Same Window (_self)</option>
+                                            <option value="_blank">New Window / Tab (_blank)</option>
+                                          </select>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex justify-end pt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdateMegaItem(subItem)}
+                                          className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
+                                        >
+                                          <Save className="w-3 h-3" /> SAVE SUB-LINK
+                                        </button>
                                       </div>
                                     </div>
-
-                                    <div className="flex justify-end pt-1">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleUpdateMegaItem(subItem)}
-                                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-sm"
-                                      >
-                                        <Save className="w-3 h-3" /> SAVE SUB-LINK
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
 

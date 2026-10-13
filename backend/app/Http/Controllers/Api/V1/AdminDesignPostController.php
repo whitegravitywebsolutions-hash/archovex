@@ -19,14 +19,15 @@ class AdminDesignPostController extends Controller
         $post->loadMissing('category');
         $catSlug = $post->category ? $post->category->slug : 'design-guides';
         $path = "/blogs/{$catSlug}/{$post->slug}";
-        $fullUrl = "https://archovex.com" . $path;
+        $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $fullUrl = $frontendUrl . $path;
 
         return [$path, $fullUrl];
     }
 
     public function index(Request $request)
     {
-        $query = DesignPost::with(['category', 'city', 'primaryImage', 'images']);
+        $query = DesignPost::with(['primaryImage', 'images']);
 
         if ($request->has('search') && $request->search) {
             $s = $request->search;
@@ -53,7 +54,28 @@ class AdminDesignPostController extends Controller
             $query->where('is_featured', filter_var($request->is_featured, FILTER_VALIDATE_BOOLEAN));
         }
 
-        $posts = $query->orderBy('updated_at', 'desc')->paginate(15);
+        if ($request->has('order') && $request->order) {
+            $order = $request->order;
+            if ($order === 'published_desc' || $order === 'newest') {
+                $query->orderByRaw('COALESCE(published_at, created_at) DESC')->orderBy('id', 'desc');
+            } else if ($order === 'published_asc' || $order === 'oldest') {
+                $query->orderByRaw('COALESCE(published_at, created_at) ASC')->orderBy('id', 'asc');
+            } else if ($order === 'updated_desc') {
+                $query->orderBy('updated_at', 'desc');
+            } else if ($order === 'updated_asc') {
+                $query->orderBy('updated_at', 'asc');
+            } else if ($order === 'title_asc') {
+                $query->orderBy('title', 'asc');
+            } else if ($order === 'title_desc') {
+                $query->orderBy('title', 'desc');
+            } else {
+                $query->orderBy('updated_at', 'desc');
+            }
+        } else {
+            $query->orderBy('updated_at', 'desc');
+        }
+
+        $posts = $query->paginate($perPage);
 
         return response()->json(['success' => true, 'data' => $posts]);
     }
@@ -168,10 +190,11 @@ class AdminDesignPostController extends Controller
 
         // Sync 15 Strapi-style SEO fields to seo_metadata table
         if (!empty($post->slug)) {
-            [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
+            [$defaultPath, $fullUrl] = $this->getSeoPathAndUrls($post);
             $seoInput = $request->input('seo_data', []);
+            $targetPath = !empty($seoInput['path']) ? $seoInput['path'] : $defaultPath;
             SeoMetadata::updateOrCreate(
-                ['path' => $seoPath],
+                ['path' => $targetPath],
                 [
                     'meta_title' => $seoInput['meta_title'] ?? $validated['meta_title'] ?? $post->title,
                     'meta_description' => $seoInput['meta_description'] ?? $validated['meta_description'] ?? $post->short_description,
@@ -315,10 +338,11 @@ class AdminDesignPostController extends Controller
 
         // Sync 15 Strapi-style SEO fields to seo_metadata table
         if (!empty($post->slug)) {
-            [$seoPath, $fullUrl] = $this->getSeoPathAndUrls($post);
+            [$defaultPath, $fullUrl] = $this->getSeoPathAndUrls($post);
             $seoInput = $request->input('seo_data', []);
+            $targetPath = !empty($seoInput['path']) ? $seoInput['path'] : $defaultPath;
             SeoMetadata::updateOrCreate(
-                ['path' => $seoPath],
+                ['path' => $targetPath],
                 [
                     'meta_title' => $seoInput['meta_title'] ?? $validated['meta_title'] ?? $post->title,
                     'meta_description' => $seoInput['meta_description'] ?? $validated['meta_description'] ?? $post->short_description,

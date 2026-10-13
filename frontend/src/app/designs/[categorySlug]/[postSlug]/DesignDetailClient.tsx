@@ -90,10 +90,10 @@ export default function DesignDetailClient({ post, category, related, cities }: 
   return (
     <>
       {/* 1. Breadcrumb Navigation */}
-      <div className="bg-[#f3eee4] border-b border-[#e4dcd0] py-3.5">
+      <div className="bg-[#FAFAFA] border-b border-slate-200 py-3.5 font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 text-xs text-slate-500 overflow-x-auto whitespace-nowrap">
           <Link href="/" className="hover:text-slate-900 flex items-center gap-1">
-            <Home className="w-3.5 h-3.5" /> Home
+            <Home className="w-3.5 h-3.5 text-slate-400" /> Home
           </Link>
           <ChevronRight className="w-3 h-3 text-slate-300" />
           <Link href="/blogs" className="hover:text-slate-900">Blogs</Link>
@@ -108,36 +108,36 @@ export default function DesignDetailClient({ post, category, related, cities }: 
 
         {/* 2. Top Title & Editorial Header Block */}
         <div className="max-w-4xl space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-md border border-blue-200/60">
+          <div className="flex flex-wrap items-center gap-2 font-sans">
+            <span className="bg-amber-50 text-[#EA580C] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-amber-200">
               {category.name}
             </span>
             {post.style && (
-              <span className="bg-slate-100 text-slate-700 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-md">
+              <span className="bg-slate-100 text-slate-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-slate-200">
                 {post.style}
               </span>
             )}
             {post.city && (
-              <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-md">
+              <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-emerald-200">
                 {post.city.name}
               </span>
             )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-slate-900 tracking-tight leading-tight">
             {post.title}
           </h1>
 
           {post.short_description && (
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-3xl font-medium">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-3xl font-normal font-sans">
               {post.short_description}
             </p>
           )}
         </div>
 
         {/* 3. First Full Featured Image Display */}
-        <div className="space-y-4">
-          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full rounded-3xl overflow-hidden bg-slate-950 shadow-2xl border border-slate-200">
+        <div className="space-y-4 font-sans">
+          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full rounded-3xl overflow-hidden bg-slate-900 shadow-xl border border-slate-200">
             <Image
               src={currentImg}
               alt={post.title}
@@ -178,7 +178,7 @@ export default function DesignDetailClient({ post, category, related, cities }: 
                   key={img.id || idx}
                   onClick={() => setActiveImgIdx(idx)}
                   className={`relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
-                    activeImgIdx === idx ? 'border-blue-600 scale-105 shadow-md' : 'border-slate-200 opacity-70 hover:opacity-100'
+                    activeImgIdx === idx ? 'border-[#EA580C] scale-105 shadow-xs' : 'border-slate-200 opacity-70 hover:opacity-100'
                   }`}
                 >
                   <Image src={img.image} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
@@ -189,20 +189,20 @@ export default function DesignDetailClient({ post, category, related, cities }: 
         </div>
 
         {/* 4. 2-Column Blog Layout (Left Content + Right Sticky Lead Form) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start font-sans">
 
           {/* LEFT COLUMN (8 Cols): Blog Article Content & Specs */}
           <div className="lg:col-span-8 space-y-8">
             {/* Rich Content Article */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-10 shadow-sm space-y-6">
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 border-b pb-3 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-600" />
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-10 shadow-2xs space-y-6">
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#EA580C]" />
                 <span>Detailed Description & Content</span>
               </h2>
 
               {rawContent ? (
                 <div
-                  className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed prose-headings:font-extrabold prose-headings:text-slate-900 prose-a:text-blue-600 hover:prose-a:underline prose-img:rounded-2xl prose-img:shadow-md prose-table:border-collapse prose-td:border prose-td:border-slate-200 prose-td:p-2.5 prose-th:bg-slate-100 prose-th:p-2.5"
+                  className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed prose-headings:font-serif prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-[#EA580C] hover:prose-a:underline prose-img:rounded-2xl prose-img:shadow-md prose-table:border-collapse prose-td:border prose-td:border-slate-200 prose-td:p-2.5 prose-th:bg-slate-50 prose-th:p-2.5"
                   dangerouslySetInnerHTML={{ __html: isHtml ? rawContent : rawContent.replace(/\n/g, '<br />') }}
                 />
               ) : (
@@ -210,13 +210,11 @@ export default function DesignDetailClient({ post, category, related, cities }: 
               )}
             </div>
 
-
-
             {/* Wishlist & Share Action Bar */}
-            <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-[#FAFAFA] border border-slate-200/90 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
               <button
                 onClick={toggleWishlist}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold border transition-colors ${
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                   isWishlisted ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
                 }`}
               >
@@ -230,14 +228,14 @@ export default function DesignDetailClient({ post, category, related, cities }: 
                   href={`https://wa.me/?text=${encodeURIComponent(`Check out this interior design on ARCHOVEX: ${canonicalShareUrl}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs"
                   title="Share on WhatsApp"
                 >
                   <MessageCircle className="w-4 h-4" /> WhatsApp
                 </a>
                 <button
                   onClick={copyToClipboard}
-                  className="px-3.5 py-2 bg-slate-200 text-slate-800 hover:bg-slate-300 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 bg-slate-200/80 text-slate-800 hover:bg-slate-300 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
                   title="Copy Link"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -251,12 +249,12 @@ export default function DesignDetailClient({ post, category, related, cities }: 
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
             
             {/* Lead Form Box */}
-            <div className="bg-white border-2 border-slate-900 rounded-3xl p-6 shadow-xl space-y-4">
-              <div className="border-b pb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md inline-block mb-1">
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-lg space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#EA580C] bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md inline-block mb-1">
                   DIRECT DESIGN INQUIRY
                 </span>
-                <h3 className="text-lg font-extrabold text-slate-900">Let's Design Your Space</h3>
+                <h3 className="text-lg font-serif font-bold text-slate-900">Let's Design Your Space</h3>
                 <p className="text-xs text-slate-600 mt-1">
                   Talk to our senior interior experts & get personalized 3D plan options.
                 </p>
@@ -265,15 +263,13 @@ export default function DesignDetailClient({ post, category, related, cities }: 
               <ConsultationForm cities={cities} compact={true} />
             </div>
 
-
-
           </div>
         </div>
 
         {/* 5. RELATED DESIGNS SECTION */}
         {related.length > 0 && (
-          <section className="pt-12 border-t border-slate-200 space-y-8">
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Related Design Concepts</h2>
+          <section className="pt-12 border-t border-slate-200/90 space-y-8 font-sans">
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 uppercase tracking-tight">Related Design Concepts</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {related.map((rel) => (
                 <DesignCard key={rel.id} post={rel} />

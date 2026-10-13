@@ -4,12 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PublicController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
-use App\Http\Controllers\Api\V1\AdminCategoryController;
 use App\Http\Controllers\Api\V1\AdminDesignPostController;
-use App\Http\Controllers\Api\V1\AdminCityController;
-use App\Http\Controllers\Api\V1\AdminServiceController;
 use App\Http\Controllers\Api\V1\AdminProjectController;
 use App\Http\Controllers\Api\V1\AdminBlogController;
+use App\Http\Controllers\Api\V1\AdminBlogCategoryController;
 use App\Http\Controllers\Api\V1\AdminMenuController;
 use App\Http\Controllers\Api\V1\AdminMediaController;
 use App\Http\Controllers\Api\V1\AdminLeadController;
@@ -29,23 +27,14 @@ Route::prefix('v1')->group(function () {
     // 1. PUBLIC ROUTES
     Route::get('/home', [PublicController::class, 'home']);
     Route::get('/menus', [PublicController::class, 'menus']);
-    Route::get('/categories', [PublicController::class, 'categories']);
-    Route::get('/design-categories/{categorySlug}', [PublicController::class, 'categoryBySlug']);
-    Route::get('/design-categories/{categorySlug}/{postSlug}', [PublicController::class, 'categoryPostDetail']);
     Route::get('/designs', [PublicController::class, 'designs']);
     Route::get('/designs/{slug}', [PublicController::class, 'designDetail']);
-    Route::get('/cities', [PublicController::class, 'cities']);
-    Route::get('/cities/{slug}', [PublicController::class, 'cityBySlug']);
-    Route::get('/locations', [PublicController::class, 'cities']);
-    Route::get('/locations/{slug}', [PublicController::class, 'cityBySlug']);
-
-    Route::get('/services', [PublicController::class, 'services']);
-    Route::get('/services/{slug}', [PublicController::class, 'serviceBySlug']);
     Route::get('/projects', [PublicController::class, 'projects']);
     Route::get('/projects/{slug}', [PublicController::class, 'projectBySlug']);
     Route::get('/blogs', [PublicController::class, 'blogs']);
-    Route::get('/blogs/{slug}', [PublicController::class, 'blogBySlug']);
-    Route::get('/pages/{slug}', [PublicController::class, 'pageBySlug']);
+    Route::get('/blog-categories', [PublicController::class, 'blogCategories']);
+    Route::get('/blogs/{slug}', [PublicController::class, 'blogBySlug'])->where('slug', '.*');
+    Route::get('/pages/{slug}', [PublicController::class, 'pageBySlug'])->where('slug', '.*');
     Route::get('/settings', [PublicController::class, 'settings']);
     Route::get('/seo', [PublicController::class, 'seoByPath']);
     
@@ -64,24 +53,18 @@ Route::prefix('v1')->group(function () {
 
         // Pages & Visual Builder
         Route::apiResource('pages', AdminPageController::class);
-
-        // Categories
-        Route::apiResource('categories', AdminCategoryController::class);
+        Route::post('/pages/{id}/clone', [AdminPageController::class, 'clone']);
 
         // Design Posts & Multi-Image Upload
         Route::apiResource('design-posts', AdminDesignPostController::class);
         Route::post('/design-posts/{id}/toggle-featured', [AdminDesignPostController::class, 'toggleFeatured']);
-        Route::post('/design-posts/{id}/images', [AdminDesignPostController::class, 'uploadImages']);
-        Route::post('/design-posts/{id}/images/primary/{imageId}', [AdminDesignPostController::class, 'setPrimaryImage']);
-        Route::post('/design-posts/{id}/images/reorder', [AdminDesignPostController::class, 'reorderImages']);
-        Route::delete('/design-posts/{id}/images/{imageId}', [AdminDesignPostController::class, 'deleteImage']);
 
-        // Cities, Locations, Services, Projects, Blogs
-        Route::apiResource('cities', AdminCityController::class);
-        Route::apiResource('locations', AdminCityController::class);
-        Route::apiResource('services', AdminServiceController::class);
+        // Projects, Blogs & Blog Categories
         Route::apiResource('projects', AdminProjectController::class);
         Route::apiResource('blogs', AdminBlogController::class);
+        Route::post('/blogs/{id}/clone', [AdminBlogController::class, 'clone']);
+        Route::apiResource('blog-categories', AdminBlogCategoryController::class);
+        Route::post('/blogs/{id}/toggle-featured', [AdminBlogController::class, 'toggleFeatured']);
 
         // Menus
         Route::get('/menus', [AdminMenuController::class, 'index']);

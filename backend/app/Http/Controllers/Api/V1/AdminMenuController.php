@@ -145,6 +145,8 @@ class AdminMenuController extends Controller
             'description' => 'nullable|string',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
+            'open_new_tab' => 'nullable|boolean',
+            'target' => 'nullable|string',
         ]);
 
         $item = MegaMenuItem::create($validated);
@@ -164,6 +166,8 @@ class AdminMenuController extends Controller
             'description' => 'nullable|string',
             'sort_order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
+            'open_new_tab' => 'nullable|boolean',
+            'target' => 'nullable|string',
         ]);
 
         $item->update($validated);
