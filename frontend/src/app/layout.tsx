@@ -62,39 +62,41 @@ export default async function RootLayout({
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL 
     ? process.env.NEXT_PUBLIC_SITE_URL 
-    : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://archovex.vercel.app');
 
-  const organizationSchema = {
+  const orgLocalBusinessSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    'name': settings.site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
-    'url': siteUrl,
-    'logo': `${siteUrl}/logo.png`,
-    'contactPoint': {
-      '@type': 'ContactPoint',
-      'telephone': settings.phone || '+91 98765 43210',
-      'contactType': 'customer service',
-      'areaServed': 'IN',
-      'availableLanguage': ['en', 'hi']
-    },
-    'sameAs': [
-      settings.facebook_url,
-      settings.instagram_url,
-      'https://pinterest.com/archovexinfra',
-      'https://linkedin.com/company/archovexinfra'
-    ].filter(Boolean)
+    '@type': ['Organization', 'LocalBusiness'],
+    '@id': `${siteUrl}/#organization`,
+    name: 'Archovex Infra',
+    legalName: '[REGISTERED NAME]',
+    url: 'https://archovex.vercel.app',
+    logo: 'https://archovex.vercel.app/logo.png',
+    telephone: '[PHONE]',
+    email: '[EMAIL]',
+    address: '[ADDRESS]',
+    geo: '[LAT, LONG]',
+    openingHours: '[HOURS]',
+    areaServed: [
+      'Noida',
+      'Greater Noida',
+      'Delhi',
+      'New Delhi',
+      'Gurgaon'
+    ],
+    sameAs: [
+      settings.instagram_url || 'https://www.instagram.com/archovexinfra',
+      settings.facebook_url || 'https://www.facebook.com/archovexinfra',
+      '[Google Business Profile URL]'
+    ],
+    foundingDate: '[YEARS]'
   };
 
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    'name': settings.site_name || 'ARCHOVEX INFRA',
-    'url': siteUrl,
-    'potentialAction': {
-      '@type': 'SearchAction',
-      'target': `${siteUrl}/blogs?search={search_term_string}`,
-      'query-input': 'required name=search_term_string'
-    }
+    name: 'Archovex Infra',
+    url: 'https://archovex.vercel.app'
   };
 
   const scriptHead = settings.script_head || '';
@@ -109,7 +111,7 @@ export default async function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLocalBusinessSchema) }}
         />
         <script
           type="application/ld+json"

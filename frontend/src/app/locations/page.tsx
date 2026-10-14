@@ -51,18 +51,83 @@ export default async function LocationsHubPage() {
 
   const dynamicSections = Array.isArray(customPage?.sections) && customPage.sections.length > 0 ? customPage.sections : null;
 
-  const jsonLd = {
+  const collectionSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: 'Interior Designers in NCR Locations',
+    name: 'Interior Designers Across Delhi NCR | Archovex Locations',
     url: 'https://archovex.vercel.app/locations',
-    description: 'Explore Archovex interior design studios across Delhi NCR: Noida, Greater Noida, Delhi, New Delhi and Gurgaon.',
-    hasPart: [
-      { '@type': 'WebPage', url: 'https://archovex.vercel.app/locations/noida', name: 'Interior Designers in Noida' },
-      { '@type': 'WebPage', url: 'https://archovex.vercel.app/locations/greater-noida', name: 'Interior Designers in Greater Noida' },
-      { '@type': 'WebPage', url: 'https://archovex.vercel.app/locations/delhi', name: 'Interior Designers in Delhi' },
-      { '@type': 'WebPage', url: 'https://archovex.vercel.app/locations/new-delhi', name: 'Interior Designers in New Delhi' },
-      { '@type': 'WebPage', url: 'https://archovex.vercel.app/locations/gurgaon', name: 'Interior Designers in Gurgaon' },
+    description: 'Archovex serves Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Find local interior design, renovation and office fit-out help in your city.',
+    provider: {
+      '@type': 'Organization',
+      '@id': 'https://archovex.vercel.app/#organization',
+      name: 'Archovex Infra',
+      areaServed: ['Noida', 'Greater Noida', 'Delhi', 'New Delhi', 'Gurgaon'],
+    },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Interior Designers in Noida', url: 'https://archovex.vercel.app/locations/noida' },
+        { '@type': 'ListItem', position: 2, name: 'Interior Designers in Greater Noida', url: 'https://archovex.vercel.app/locations/greater-noida' },
+        { '@type': 'ListItem', position: 3, name: 'Interior Designers in Delhi', url: 'https://archovex.vercel.app/locations/delhi' },
+        { '@type': 'ListItem', position: 4, name: 'Interior Designers in New Delhi', url: 'https://archovex.vercel.app/locations/new-delhi' },
+        { '@type': 'ListItem', position: 5, name: 'Interior Designers in Gurgaon', url: 'https://archovex.vercel.app/locations/gurgaon' },
+      ],
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://archovex.vercel.app' },
+      { '@type': 'ListItem', position: 2, name: 'Locations', item: 'https://archovex.vercel.app/locations' },
+    ],
+  };
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Which areas does Archovex serve?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Archovex serves Noida, Greater Noida, Delhi, New Delhi and Gurgaon. We take on homes, offices and commercial spaces in all five cities. If your property is near these areas, share the address and we will confirm whether we can visit.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do you charge extra for site visits in different cities?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The first site visit within our five cities is part of our free consultation. Any charges for repeat visits or locations outside these cities are explained before booking.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do you work outside Delhi NCR?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Our core service area is the five NCR cities listed above. For projects elsewhere, contact us with details and we will tell you honestly whether we can deliver.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is the process different in each city?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The steps are the same everywhere. What changes is planning for local rules, such as society work hours, RWA permissions in Delhi colonies and building approvals for offices. We account for these in the schedule.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do you have an office I can visit?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Our studio is located at Sector 63, Noida and is open Monday to Saturday, 10:00 AM – 7:00 PM. Visits are by appointment so a designer is available to meet you.',
+        },
+      },
     ],
   };
 
@@ -70,7 +135,15 @@ export default async function LocationsHubPage() {
     <div className="min-h-screen bg-white flex flex-col font-sans">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       <main className="flex-grow">

@@ -42,14 +42,27 @@ interface ArticleOutline {
 interface BlogIndexClientProps {
   initialBlogs?: DynamicBlogPost[];
   initialCategories?: DynamicBlogCategory[];
+  dynamicSections?: any[] | null;
+  whatsappNumber?: string;
 }
 
 export default function BlogIndexClient({
   initialBlogs = [],
   initialCategories = [],
+  dynamicSections = null,
+  whatsappNumber = '',
 }: BlogIndexClientProps) {
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Extract Page Builder custom editor sections if present
+  const introSection = dynamicSections?.find(
+    (s: any) => s.id === 'sec-blog-intro' || (s.title && s.title.toLowerCase().includes('intro'))
+  ) || dynamicSections?.[0];
+
+  const ctaSection = dynamicSections?.find(
+    (s: any) => s.id === 'sec-blog-cta' || (s.title && s.title.toLowerCase().includes('cta'))
+  );
 
   // Map backend blogs to unified ArticleOutline
   const articles: ArticleOutline[] = useMemo(() => {
@@ -146,53 +159,93 @@ export default function BlogIndexClient({
   return (
     <div className="font-sans text-slate-800">
       
-      {/* 1. HERO */}
-      <section className="relative bg-gradient-to-b from-[#FAF8F5] via-white to-[#FAF8F5] py-16 lg:py-24 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#EA580C] bg-orange-50 border border-orange-200 px-4 py-1.5 rounded-full inline-block">
-            ARCHOVEX KNOWLEDGE HUB
-          </span>
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-slate-900 leading-tight">
-            Interior Design Guides, Costs & Insights
-          </h1>
-          <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
-            Honest material advice, real Delhi NCR price guides, and practical architectural tips from our design and site execution team.
-          </p>
+      {/* 1. HERO & INTRO (MANAGED VIA PAGE BUILDER CUSTOM EDITOR) */}
+      {introSection && introSection.content ? (
+        <div
+          dangerouslySetInnerHTML={{ __html: introSection.content }}
+          className="blog-intro-builder-container"
+        />
+      ) : (
+        <section className="relative bg-[#FAF8F3] py-14 lg:py-20 border-b border-slate-200/90 font-sans">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-8">
+              <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
+              <span>›</span>
+              <span className="text-[#0F172A] font-bold">Blog</span>
+            </nav>
 
-          {/* Search Bar */}
-          <div className="max-w-md mx-auto relative pt-2">
-            <input
-              type="text"
-              placeholder="Search guides (e.g. kitchen, wardrobe, cost, Noida)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-5 py-3.5 pl-11 bg-white border border-slate-200 rounded-2xl text-xs sm:text-sm font-medium shadow-sm focus:ring-2 focus:ring-[#EA580C] focus:outline-none"
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 mt-1" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              {/* Left Column: H1 and Intro Copy */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF7ED] border border-[#FFEDD5] text-[11px] font-bold uppercase tracking-wider text-[#EA580C]">
+                  <span>Archovex Knowledge Hub · Delhi NCR</span>
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-extrabold text-slate-900 tracking-tight leading-[1.18]">
+                  Interior Design Blog: Practical Guides for NCR Homes and Offices
+                </h1>
+
+                <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+                  The Archovex interior design blog answers the questions people ask us before they start a project: what drives cost, which materials last, how to plan around society rules and what to check in an older home. Every guide is written for homes and offices in Noida, Greater Noida, Delhi, New Delhi and Gurgaon, in plain language and without sales talk.
+                </p>
+              </div>
+
+              {/* Right Column: Designer's Desk Visual */}
+              <div className="lg:col-span-5 relative">
+                <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-slate-200/90 bg-white">
+                  <Image
+                    src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80"
+                    alt="Designer's desk with samples, drawings and a laptop"
+                    fill
+                    priority
+                    className="object-cover"
+                  />
+                  <div className="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/60 text-[11px] text-white flex items-center justify-between">
+                    <span className="font-bold">Real NCR Case Studies & Specifications</span>
+                    <span className="text-orange-400 font-semibold">Archovex Studio</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* 2. CATEGORY PILLS */}
-      <section className="py-6 bg-white border-b border-slate-200/80 sticky top-16 z-20 backdrop-blur-md bg-white/95">
+      {/* 2. CATEGORY FILTERS & SEARCH */}
+      <section className="py-5 bg-white border-b border-slate-200/80 sticky top-16 z-20 backdrop-blur-md bg-white/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none justify-start lg:justify-center">
-            {categoryTabs.map((tab) => {
-              const isActive = selectedCategorySlug === tab.slug;
-              return (
-                <button
-                  key={tab.slug}
-                  onClick={() => setSelectedCategorySlug(tab.slug)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-[#EA580C] text-white shadow-md'
-                      : 'bg-[#FAF8F5] text-slate-700 hover:bg-orange-50 hover:text-[#EA580C] border border-slate-200/80'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none justify-start flex-1">
+              {categoryTabs.map((tab) => {
+                const isActive = selectedCategorySlug === tab.slug;
+                return (
+                  <button
+                    key={tab.slug}
+                    onClick={() => setSelectedCategorySlug(tab.slug)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[#EA580C] text-white shadow-md'
+                        : 'bg-[#FAF8F5] text-slate-700 hover:bg-orange-50 hover:text-[#EA580C] border border-slate-200/80'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick Search */}
+            <div className="relative w-full sm:w-64 flex-shrink-0">
+              <input
+                type="text"
+                placeholder="Search practical guides..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 pl-9 bg-[#FAF8F5] border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#EA580C] focus:bg-white focus:outline-none"
+              />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            </div>
           </div>
         </div>
       </section>
@@ -298,28 +351,37 @@ export default function BlogIndexClient({
         </div>
       </section>
 
-      {/* 4. INLINE CTA */}
-      <section className="py-16 bg-slate-900 text-white text-center font-sans">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-400 bg-slate-800 border border-slate-700 px-4 py-1.5 rounded-full inline-block">
-            NEED BESPOKE GUIDANCE?
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-            Have a Specific Question About Your Space?
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto font-medium">
-            Speak directly with an Archovex design expert. We will evaluate your floor plan and share transparent advice on layout, materials and costs.
-          </p>
-          <div className="pt-2 flex items-center justify-center gap-4">
-            <Link
-              href="/contact-us"
-              className="px-7 py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md transition-all"
-            >
-              BOOK FREE CONSULTATION
-            </Link>
+      {/* 4. INLINE CTA (MANAGED VIA PAGE BUILDER CUSTOM EDITOR) */}
+      {ctaSection && ctaSection.content ? (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: ctaSection.content.replace(/\[WHATSAPP\]/g, whatsappNumber || '919999999999'),
+          }}
+          className="blog-cta-builder-container"
+        />
+      ) : (
+        <section className="relative py-20 sm:py-24 font-sans overflow-hidden text-center bg-[#0F172A] border-t border-slate-800">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white tracking-tight leading-[1.18] max-w-2xl mx-auto">
+              Have a question a guide does not answer?
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal">
+              Ask a designer directly.
+            </p>
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href={`https://wa.me/${whatsappNumber || '919999999999'}?text=Hi%20Archovex,%20I%20have%20a%20question%20about%20my%20interior%20project.`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl bg-[#EA580C] hover:bg-[#c2410c] text-white text-base font-bold shadow-xl shadow-orange-600/30 hover:shadow-orange-600/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+              >
+                <span>Talk to a Designer</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
     </div>
   );

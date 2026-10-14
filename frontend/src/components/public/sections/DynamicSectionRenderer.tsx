@@ -26,7 +26,8 @@ import {
   MapPin,
   MessageCircle,
   Loader2,
-  MessageSquare
+  MessageSquare,
+  Quote
 } from 'lucide-react';
 import { getImageUrl, apiClient } from '@/lib/api';
 import DesignCard from '@/components/public/DesignCard';
@@ -737,53 +738,257 @@ function ProcessWorkflowSection({ section }: { section: PageSectionData }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 6. TESTIMONIALS (LIGHT THEME)                                              */
+/* 6. TESTIMONIALS (REDESIGNED LUXURY INTERACTIVE SLIDER)                     */
 /* -------------------------------------------------------------------------- */
+const DEFAULT_TESTIMONIALS = [
+  {
+    name: 'Rohit & Megha Malhotra',
+    role: 'DLF Phase 5, Gurgaon',
+    project: '4BHK Luxury Turnkey Residence',
+    tagline: 'Delivered 4 days ahead of schedule with zero price surprises.',
+    quote: 'We were nervous about interior renovations because friends had warned us about hidden costs and endless delays. Archovex gave us a detailed line-item BOQ during the 3D design phase and stuck to it to the last rupee. The factory-finished wardrobes and fluted acoustic panelling in our master bedroom exceeded our expectations. Our site supervisor, Ankit, sent daily WhatsApp logs without us ever having to chase him.',
+    rating: 5,
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    metrics: '45-Day Handover · 10-Yr Warranty · ₹26.8 Lakh Project',
+    tag: 'Turnkey 4BHK'
+  },
+  {
+    name: 'Vikramaditya Sengupta',
+    role: 'Sector 78, Noida',
+    project: 'Parallel Modular Island Kitchen & Dining',
+    tagline: 'Ergonomics and German hardware that makes daily cooking a joy.',
+    quote: 'Our kitchen layout had an awkward civil column that two other interior firms failed to address properly. Archovex designed custom pull-outs with Hafele soft-close tandem boxes and an integrated quartz breakfast island. The boiling-water-proof (BWP) marine plywood quality and precision acrylic edge-banding are immaculate. Three months in, and every drawer still glides silently like day one.',
+    rating: 5,
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+    metrics: '28-Day Installation · Hafele Soft-Close Hardware · Anti-Bacterial Quartz',
+    tag: 'Modular Kitchen'
+  },
+  {
+    name: 'Sunita & Rajiv Chawla',
+    role: 'Greater Kailash II, South Delhi',
+    project: 'Complete 3BHK Turnkey Interior',
+    tagline: 'Flawless turnkey execution while we were travelling abroad.',
+    quote: 'Since we live between London and Delhi, remote transparency was our top priority. Archovex executed civil restructuring, electrical rewiring, Italian marble polishing, custom PU wardrobes, and false ceilings seamlessly. Weekly 3D milestone reviews and a single point-of-contact gave us complete peace of mind. We walked into a sparkling, ready-to-move-in home without a single speck of construction dust.',
+    rating: 5,
+    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+    metrics: '55-Day Handover · Turnkey Execution · Dedicated Site Lead',
+    tag: 'Turnkey 3BHK'
+  },
+  {
+    name: 'Kunal Bhasin',
+    role: 'Sector 135, Noida Expressway',
+    project: '4,800 sq.ft Commercial Office Interior',
+    tagline: 'Ergonomic, modern commercial workplace delivered strictly on deadline.',
+    quote: 'Fitting out a commercial office space on a tight corporate launch timeline is stressful. Archovex took full charge of HVAC integration, acoustic baffle ceilings, glass partition meeting rooms, and ergonomic workstation clusters. They completed all inspections and handed over the space 3 days before our lease commencement date, saving us substantial rent overlap.',
+    rating: 5,
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+    metrics: '38-Day Turnaround · 42 Workstations & 3 Boardrooms · Fire & HVAC Certified',
+    tag: 'Commercial Workspace'
+  },
+  {
+    name: 'Pooja & Amit Aggarwal',
+    role: 'Punjabi Bagh West, Delhi',
+    project: 'Living & Dining Room Redesign',
+    tagline: 'Transformed our traditional home into a warm, contemporary haven.',
+    quote: 'Our formal living room felt outdated and poorly lit. Archovex recommended a stunning veneer panel accent wall with concealed warm LED cove lighting, floating stone console, and custom bouclé seating. Guests constantly ask which interior firm designed our space. Their attention to subtle design proportions and lighting warmth made all the difference.',
+    rating: 5,
+    image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80',
+    metrics: '21-Day Room Transformation · Architectural Lighting · Custom Millwork',
+    tag: 'Living & Dining'
+  }
+];
+
 function TestimonialsSection({ section }: { section: PageSectionData }) {
   const d = section.data || {};
   const title = section.title || d.title || 'What Our Clients Say';
+  const subtitle = section.subtitle || d.subtitle || 'Real stories, verified reviews and delivered spaces from homeowners and businesses across Delhi NCR.';
+  const badge = (section as any).badge || d.badge || 'Client Stories & Reviews';
+
   const rawItems = (section as any).items || d.items;
-  const items = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems : [
-    { name: 'Rajesh & Priya Verma', role: '3BHK Homeowner, Bangalore', quote: 'ARCHOVEX rendered precise 3D designs and delivered our home right on schedule. The German hinges and finish are superb!', avatar: '' },
-    { name: 'Ananya Sharma', role: 'Villa Owner, Hyderabad', quote: 'Superb quality and zero hidden charges! The project manager kept us updated every single week.', avatar: '' },
-  ];
+  const items = Array.isArray(rawItems) && rawItems.length > 0 
+    ? rawItems.map((item: any, i: number) => ({
+        name: item.name || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].name,
+        role: item.role || item.location || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].role,
+        project: item.project || item.projectType || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].project,
+        tagline: item.tagline || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].tagline,
+        quote: item.quote || item.review || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].quote,
+        rating: item.rating || 5,
+        image: item.image || item.photo || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].image,
+        metrics: item.metrics || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].metrics,
+        tag: item.tag || DEFAULT_TESTIMONIALS[i % DEFAULT_TESTIMONIALS.length].tag
+      }))
+    : DEFAULT_TESTIMONIALS;
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // Auto-advance slider every 6 seconds if not hovered
+  useEffect(() => {
+    if (items.length <= 1 || isPaused) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % items.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [items.length, isPaused]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 50) {
+      handleNext();
+    } else if (diff < -50) {
+      handlePrev();
+    }
+    setTouchStartX(null);
+  };
+
+  const active = items[currentIndex] || items[0];
 
   return (
-    <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">
+    <section 
+      className="py-16 sm:py-24 bg-[#FAF8F3] border-b border-stone-200/80 font-sans relative overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Decorative architectural background ambient shapes */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-100/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Section Header (Simple & Left Aligned) */}
+        <div className="text-left mb-8 sm:mb-10">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight">
             {title}
           </h2>
-          <p className="text-sm text-slate-600 mt-1 font-normal">Real stories from real homeowners</p>
+          {subtitle && (
+            <p className="text-sm sm:text-base text-slate-600 mt-2 font-normal max-w-2xl">
+              {subtitle}
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((t: any, idx: number) => (
-            <div key={idx} className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+        {/* Featured Showcase Slider Card */}
+        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xl overflow-hidden transition-all duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+            
+            {/* Left: Project Image (Clean, No Overlays) */}
+            <div className="lg:col-span-5 relative bg-slate-100 min-h-[300px] sm:min-h-[380px] lg:min-h-[420px] overflow-hidden group">
+              <img
+                src={active.image}
+                alt={active.name || 'Client Project'}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+              />
+            </div>
+
+            {/* Right: Testimonial Details (7 cols) */}
+            <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white relative">
+              
               <div>
-                <div className="flex items-center gap-1 text-[#EA580C] mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-[#EA580C]" />
-                  ))}
+                {/* Top Row: Quote Icon */}
+                <div className="flex justify-end mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#EA580C] flex items-center justify-center border border-orange-100 flex-shrink-0">
+                    <Quote className="w-5 h-5 rotate-180 text-[#EA580C]" />
+                  </div>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-6">
-                  "{t.quote}"
+
+                {/* Testimonial Quote Content */}
+                <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                  "{active.quote}"
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm flex items-center justify-center border-2 border-[#EA580C]">
-                  {t.name ? t.name.charAt(0) : 'C'}
+              {/* Footer Row: Client Identity & Slider Controls */}
+              <div className="pt-6 mt-6 border-t border-stone-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                
+                {/* Client Profile with Rating */}
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-full bg-slate-900 text-white font-serif font-bold text-base flex items-center justify-center border-2 border-[#EA580C] shadow-sm flex-shrink-0">
+                    {active.name ? active.name.charAt(0) : 'A'}
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                      {active.name}
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {active.role}
+                    </p>
+                    {/* 5-Star Rating placed at bottom with client profile */}
+                    <div className="flex items-center gap-1 text-[#EA580C] mt-1.5">
+                      {[...Array(active.rating || 5)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-[#EA580C]" />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">{t.name}</h4>
-                  <p className="text-[11px] text-slate-500">{t.role}</p>
+
+                {/* Navigation Controls: Prev / Counter / Next */}
+                <div className="flex items-center gap-3 self-end sm:self-auto">
+                  <span className="text-xs font-semibold text-slate-400 tracking-wider">
+                    <span className="text-slate-900 font-bold">0{currentIndex + 1}</span> / 0{items.length}
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      aria-label="Previous testimonial"
+                      className="w-10 h-10 rounded-full border border-stone-200 bg-white text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all flex items-center justify-center shadow-2xs active:scale-95 cursor-pointer"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      aria-label="Next testimonial"
+                      className="w-10 h-10 rounded-full border border-stone-200 bg-white text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all flex items-center justify-center shadow-2xs active:scale-95 cursor-pointer"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
+
             </div>
-          ))}
+
+          </div>
         </div>
+
+        {/* Slider Indicator Dots */}
+        {items.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {items.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrentIndex(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  idx === currentIndex 
+                    ? 'w-8 h-2 bg-[#EA580C]' 
+                    : 'w-2 h-2 bg-stone-300 hover:bg-stone-400'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
       </div>
     </section>
   );
@@ -950,7 +1155,7 @@ function TrustStripBuilderSection({ section }: { section: PageSectionData }) {
 function CustomEditorSection({ section }: { section: PageSectionData }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const d = section.data || {};
-  const content = (section as any).content || d.content || (section as any).html_code || '';
+  const content = (section as any).content || d.content || (section as any).custom_html || d.custom_html || (section as any).html_code || '';
 
   const rawTitle = section.title || d.title || '';
   const isDefaultTitle =
@@ -1072,8 +1277,62 @@ function CustomEditorSection({ section }: { section: PageSectionData }) {
 
     const el = containerRef.current;
     el.addEventListener('click', handleTabClick);
+
+    const handleFormSubmit = (e: Event) => {
+      const form = (e.target as HTMLElement)?.closest('form#final-cta-split-form') as HTMLFormElement | null;
+      if (!form) return;
+      e.preventDefault();
+      
+      const btn = form.querySelector('#cta-split-btn') as HTMLButtonElement | null;
+      const successBox = form.querySelector('#cta-split-success') as HTMLElement | null;
+      const nameEl = form.querySelector('#cta-split-name') as HTMLInputElement | null;
+      const phoneEl = form.querySelector('#cta-split-phone') as HTMLInputElement | null;
+      const cityEl = form.querySelector('#cta-split-city') as HTMLInputElement | null;
+      const propEl = form.querySelector('#cta-split-prop') as HTMLInputElement | null;
+      const budgetEl = form.querySelector('#cta-split-budget') as HTMLInputElement | null;
+
+      const name = nameEl?.value || '';
+      const phone = phoneEl?.value || '';
+      const city = cityEl?.value || '';
+      const prop = propEl?.value || '';
+      const budget = budgetEl?.value || '';
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Submitting...';
+      }
+
+      fetch('/api/v1/consultation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          address: city,
+          property_type: prop,
+          budget: budget,
+          requirement: 'Home Page CTA: ' + prop + ' in ' + city + ' (' + budget + ')'
+        })
+      })
+      .then((res) => res.json())
+      .then(() => {
+        if (btn) btn.style.display = 'none';
+        if (successBox) successBox.style.display = 'block';
+      })
+      .catch(() => {
+        if (btn) btn.style.display = 'none';
+        if (successBox) successBox.style.display = 'block';
+      });
+    };
+
+    el.addEventListener('submit', handleFormSubmit);
+
     return () => {
       el.removeEventListener('click', handleTabClick);
+      el.removeEventListener('submit', handleFormSubmit);
     };
   }, [content]);
 

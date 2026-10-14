@@ -40,6 +40,7 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   const [activeMegaIdx, setActiveMegaIdx] = useState<number | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [defaultRequirement, setDefaultRequirement] = useState('');
   const [wishlistCount, setWishlistCount] = useState(0);
 
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,7 +103,25 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
       window.addEventListener('storage', updateWishlist);
       window.addEventListener('wishlistUpdated', updateWishlist);
 
-      const handleOpenModal = () => setIsModalOpen(true);
+      const getServiceByPath = (path: string) => {
+        if (path.includes('full-home-interior-design')) return 'Full Home Interior Design';
+        if (path.includes('modular-kitchen-design')) return 'Modular Kitchen Design';
+        if (path.includes('living-room-interior-design')) return 'Living Room Interior Design';
+        if (path.includes('bedroom-interior-design')) return 'Bedroom Interior Design';
+        if (path.includes('wardrobe-design')) return 'Wardrobe Design';
+        if (path.includes('home-renovation')) return 'Home Renovation & Remodeling';
+        if (path.includes('office-interior-design')) return 'Office Interior Design';
+        if (path.includes('corporate-office-interior-design')) return 'Corporate Office Interior Design';
+        if (path.includes('commercial-interior-design')) return 'Commercial Interior Design';
+        if (path.includes('turnkey-interior-design')) return 'Turnkey Interior Design';
+        return '';
+      };
+
+      const handleOpenModal = (e?: any) => {
+        const req = e?.detail?.service || getServiceByPath(window.location.pathname);
+        if (req) setDefaultRequirement(req);
+        setIsModalOpen(true);
+      };
       window.addEventListener('open-consultation-modal', handleOpenModal);
 
       const handleAnchorClick = (e: MouseEvent) => {
@@ -111,6 +130,8 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
           const href = target.getAttribute('href');
           if (href && href.includes('#consultation')) {
             e.preventDefault();
+            const req = getServiceByPath(window.location.pathname);
+            if (req) setDefaultRequirement(req);
             setIsModalOpen(true);
           }
         }
@@ -279,6 +300,7 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         cities={cityList}
+        defaultRequirement={defaultRequirement}
       />
     </>
   );

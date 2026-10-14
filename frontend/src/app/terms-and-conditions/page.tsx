@@ -48,8 +48,38 @@ export default async function TermsAndConditionsPage() {
 
   const dynamicSections = Array.isArray(customPage?.sections) && customPage.sections.length > 0 ? customPage.sections : null;
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://archovex.vercel.app' },
+      { '@type': 'ListItem', position: 2, name: 'Terms & Conditions', item: 'https://archovex.vercel.app/terms-and-conditions' },
+    ],
+  };
+
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Terms & Conditions | Archovex Infra',
+    description: 'Terms for using the Archovex Infra website and general terms that apply to enquiries, quotes and interior design projects.',
+    url: 'https://archovex.vercel.app/terms-and-conditions',
+    publisher: {
+      '@type': 'Organization',
+      name: 'ARCHOVEX INFRA PRIVATE LIMITED',
+      logo: 'https://archovex.vercel.app/logo.png',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-800">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       
       <main className="flex-grow">

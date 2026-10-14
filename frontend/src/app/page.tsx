@@ -76,8 +76,83 @@ export default async function HomePage() {
     ? customPage.sections
     : [];
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How much do home interiors cost in Delhi NCR?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Cost depends on the size of your home, the rooms included, the materials you pick and any civil work. There is no fixed rate that fits every home. Archovex visits your site, discusses your needs and then shares an itemised quote, so you know the cost of each part before deciding.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How long does a full home interior project take?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Timelines depend on the number of rooms, how much carpentry is involved and whether civil work is needed. A typical full home takes [TIMELINE]. We share a written schedule after design approval, and we update you at each stage.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Which areas does Archovex serve?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Archovex works in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Our team visits your site for measurement and checks in during execution. If your property is just outside these cities, contact us and we will confirm whether we can take it on.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do you handle both design and execution?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Archovex designs the space and also builds it. Our team manages carpentry, installation and coordination of civil work, so you deal with one team instead of several contractors. This keeps responsibility clear and reduces delays between trades.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do you design offices and commercial spaces?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Along with homes, we design offices, corporate workplaces, showrooms, retail stores, restaurants and clinics. Commercial projects follow the same steps of site visit, design, itemised quote and execution, with the schedule planned around your business needs.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is the first consultation free?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Your first consultation with an Archovex designer is free and carries no obligation. We use it to understand your space, needs and budget, and to explain how a project with us would work. [CONFIRM what is included, e.g. site visit or design.]',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What warranty do you offer?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Archovex offers [WARRANTY TERMS] on the work we deliver. Your quote and agreement list what the warranty covers and for how long. Ask your designer for the full terms before you sign.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I do just one room instead of the whole home?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. We take on single rooms such as a kitchen, bedroom or living room, as well as complete homes. Many clients start with one room and add others later. Your designer will help you plan so the rooms match over time.',
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       
       <main className="flex-grow">

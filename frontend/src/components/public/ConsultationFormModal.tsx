@@ -9,9 +9,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   cities?: City[];
+  defaultRequirement?: string;
 }
 
-export default function ConsultationFormModal({ isOpen, onClose, cities = [] }: ModalProps) {
+export default function ConsultationFormModal({ isOpen, onClose, cities = [], defaultRequirement = '' }: ModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -37,7 +38,7 @@ export default function ConsultationFormModal({ isOpen, onClose, cities = [] }: 
           </p>
         </div>
 
-        <ConsultationForm cities={cities} onSuccess={() => {}} />
+        <ConsultationForm cities={cities} defaultRequirement={defaultRequirement} onSuccess={() => {}} />
       </div>
     </div>
   );

@@ -9,16 +9,23 @@ interface ConsultationFormProps {
   cities?: City[];
   onSuccess?: () => void;
   compact?: boolean;
+  defaultRequirement?: string;
 }
 
-export default function ConsultationForm({ cities = [], onSuccess, compact = false }: ConsultationFormProps) {
+export default function ConsultationForm({ cities = [], onSuccess, compact = false, defaultRequirement = '' }: ConsultationFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
     address: '',
-    requirement: '',
+    requirement: defaultRequirement || '',
   });
+
+  React.useEffect(() => {
+    if (defaultRequirement) {
+      setFormData((prev) => ({ ...prev, requirement: defaultRequirement }));
+    }
+  }, [defaultRequirement]);
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);

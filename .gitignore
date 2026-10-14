@@ -39,8 +39,12 @@ Thumbs.db
 **/backend/delete_*.php
 **/backend/update_*.php
 **/backend/add_*.php
+scratch*
+*.txt
+*.sql
 *.zip
 backend/archovex_database.sql
 backend/.env.production.hostinger
 vertech/
+
 

@@ -48,8 +48,38 @@ export default async function PrivacyPolicyPage() {
 
   const dynamicSections = Array.isArray(customPage?.sections) && customPage.sections.length > 0 ? customPage.sections : null;
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://archovex.vercel.app' },
+      { '@type': 'ListItem', position: 2, name: 'Privacy Policy', item: 'https://archovex.vercel.app/privacy-policy' },
+    ],
+  };
+
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Privacy Policy | Archovex Infra',
+    description: 'How Archovex Infra collects, uses and protects personal information shared through this website and during interior projects.',
+    url: 'https://archovex.vercel.app/privacy-policy',
+    publisher: {
+      '@type': 'Organization',
+      name: 'ARCHOVEX INFRA PRIVATE LIMITED',
+      logo: 'https://archovex.vercel.app/logo.png',
+    },
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-800">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       
       <main className="flex-grow">

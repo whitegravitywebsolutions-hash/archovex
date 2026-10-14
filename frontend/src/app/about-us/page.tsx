@@ -51,31 +51,122 @@ export default async function AboutUsPage() {
 
   const dynamicSections = Array.isArray(customPage?.sections) && customPage.sections.length > 0 ? customPage.sections : null;
 
-  const jsonLd = {
+  const siteUrl = 'https://archovex.vercel.app';
+
+  const aboutPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    name: 'About Archovex Infra',
-    url: 'https://archovex.vercel.app/about-us',
+    name: 'About Archovex Infra | Interior Design Company, NCR',
+    url: `${siteUrl}/about-us`,
+    description: 'Meet Archovex Infra, an interior design and execution company serving homes and businesses in Noida, Greater Noida, Delhi, New Delhi and Gurgaon.',
     mainEntity: {
       '@type': 'Organization',
-      name: 'ARCHOVEX INFRA PRIVATE LIMITED',
-      legalName: 'ARCHOVEX INFRA PRIVATE LIMITED',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Connaught Place',
-        addressLocality: 'New Delhi',
-        postalCode: '110001',
-        addressCountry: 'IN',
+      name: 'Archovex Infra',
+      legalName: '[REGISTERED NAME]',
+      foundingDate: '[YEAR FOUNDED]',
+      founder: {
+        '@type': 'Person',
+        name: '[FOUNDER NAMES]',
       },
+      address: '[ADDRESS]',
+      telephone: '[PHONE]',
+      email: '[EMAIL]',
       areaServed: ['Noida', 'Greater Noida', 'Delhi', 'New Delhi', 'Gurgaon'],
+      sameAs: [
+        'https://www.instagram.com/archovexinfra',
+        'https://www.facebook.com/archovexinfra',
+        '[Google Business Profile URL]',
+      ],
     },
   };
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'About Us',
+        item: `${siteUrl}/about-us`,
+      },
+    ],
+  };
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Who is behind Archovex Infra?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Archovex Infra was founded by [FOUNDER NAMES] in [YEAR FOUNDED]. The team includes interior designers and site professionals who handle both design and execution. You meet your designer at the first consultation and stay with the same team through the project.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Where is Archovex Infra located?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Our office is at [ADDRESS]. We work on projects across Noida, Greater Noida, Delhi, New Delhi and Gurgaon. You can visit us by appointment, or we can meet you at your site for the first consultation.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What kind of projects does Archovex take on?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'We design and build interiors for homes and businesses. Home projects range from a single kitchen or wardrobe to a complete flat or builder floor. Business projects include offices, corporate workplaces, showrooms, retail stores, restaurants and clinics.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How is Archovex different from a local carpenter?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'A carpenter builds what you describe. Archovex plans the full space first, shows you the design, lists every item in the quote and then builds and coordinates all trades. You get one team accountable for the result instead of managing several contractors yourself.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How many projects has Archovex completed?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Archovex has completed [PROJECTS] projects across homes and businesses in Delhi NCR. Ask your designer for examples similar to your space, including the city and property type, during your consultation.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does Archovex work on commercial projects too?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Along with homes, we design offices, corporate workplaces and commercial spaces such as showrooms, restaurants and clinics. These projects follow the same process of site visit, design, itemised quote and managed execution.',
+        },
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
       <main className="flex-grow">

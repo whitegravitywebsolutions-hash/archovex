@@ -48,8 +48,89 @@ export default async function ContactPage() {
 
   const dynamicSections = Array.isArray(customContactPage?.sections) ? customContactPage.sections : [];
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://archovex.vercel.app' },
+      { '@type': 'ListItem', position: 2, name: 'Contact Us', item: 'https://archovex.vercel.app/contact-us' },
+    ],
+  };
+
+  const contactPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Contact Archovex Infra',
+    description: 'Call, WhatsApp or message Archovex Infra to plan your home or office interiors in Noida, Greater Noida, Delhi, New Delhi or Gurgaon.',
+    url: 'https://archovex.vercel.app/contact-us',
+    mainEntity: {
+      '@type': 'LocalBusiness',
+      name: 'ARCHOVEX INFRA PRIVATE LIMITED',
+      telephone: '+919999999999',
+      email: 'contact@archovex.com',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Sector 63',
+        addressLocality: 'Noida',
+        addressRegion: 'Uttar Pradesh',
+        postalCode: '201301',
+        addressCountry: 'IN',
+      },
+      areaServed: ['Noida', 'Greater Noida', 'Delhi', 'New Delhi', 'Gurgaon'],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: '+919999999999',
+        contactType: 'customer service',
+        availableLanguage: ['English', 'Hindi'],
+      },
+    },
+  };
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How soon will someone call me back?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'A designer usually calls back within 24 hours on working days. For faster contact, message us on WhatsApp at +91 99999 99999. If you contact us outside office hours, we reply on the next working day.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I visit your office without an appointment?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Please book a visit first so a designer is available to meet you. Our office is at Sector 63, Noida and is open Monday to Saturday, 10:00 AM – 7:00 PM. Call or WhatsApp us to fix a time that suits you.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What should I share in my first message?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Share your city, property type, approximate size, which rooms need work and your timeline. Photos or a floor plan help us prepare. A budget range is optional but helps us suggest the right materials.',
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF8F3] flex flex-col font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
 
       <main className="flex-grow">
