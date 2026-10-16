@@ -166,15 +166,8 @@ export default function BlogIndexClient({
           className="blog-intro-builder-container"
         />
       ) : (
-        <section className="relative bg-[#FAF8F3] py-14 lg:py-20 border-b border-slate-200/90 font-sans">
+        <section className="relative bg-[#FAF8F3] pt-7 lg:pt-10 pb-14 lg:pb-20 border-b border-slate-200/90 font-sans">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-8">
-              <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
-              <span>›</span>
-              <span className="text-[#0F172A] font-bold">Blog</span>
-            </nav>
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               {/* Left Column: H1 and Intro Copy */}
               <div className="lg:col-span-7 space-y-6">

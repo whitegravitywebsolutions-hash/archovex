@@ -12,9 +12,11 @@ import {
   ShieldCheck,
   Send,
   Loader2,
-  Heart
+  MessageCircle,
+  ExternalLink
 } from 'lucide-react';
 import { getImageUrl, apiClient } from '@/lib/api';
+import { createWhatsAppConsultationUrl } from '@/lib/pageUtils';
 
 interface BlogDetailClientProps {
   post: any;
@@ -24,43 +26,6 @@ interface BlogDetailClientProps {
 
 export default function BlogDetailClient({ post, related = [], cities = [] }: BlogDetailClientProps) {
   const [copied, setCopied] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && post?.id) {
-      const checkWishlist = () => {
-        try {
-          const list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-          setIsWishlisted(Array.isArray(list) && list.includes(post.id));
-        } catch {
-          setIsWishlisted(false);
-        }
-      };
-      checkWishlist();
-      window.addEventListener('wishlistUpdated', checkWishlist);
-      return () => window.removeEventListener('wishlistUpdated', checkWishlist);
-    }
-  }, [post?.id]);
-
-  const toggleWishlist = () => {
-    if (typeof window !== 'undefined' && post?.id) {
-      try {
-        let list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-        if (!Array.isArray(list)) list = [];
-        if (list.includes(post.id)) {
-          list = list.filter((id: number) => id !== post.id);
-          setIsWishlisted(false);
-        } else {
-          list.push(post.id);
-          setIsWishlisted(true);
-        }
-        localStorage.setItem('archovex_wishlist', JSON.stringify(list));
-        window.dispatchEvent(new Event('wishlistUpdated'));
-      } catch (err) {
-        console.error('Wishlist error:', err);
-      }
-    }
-  };
 
   // Form State for Right Sidebar Lead Widget (LIGHT THEME)
   const [formData, setFormData] = useState({
@@ -72,6 +37,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedUrl, setSubmittedUrl] = useState('');
   const [formError, setFormError] = useState('');
 
   const imgUrl = getImageUrl(post.primary_image?.image || post.featured_image || post.image);
@@ -90,18 +56,30 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setFormError('Please enter your name and phone number.');
+      return;
+    }
     setSubmitting(true);
     setFormError('');
 
     try {
-      const res = await apiClient.post('/consultation', formData);
-      if (res.data?.success) {
-        setSubmitted(true);
-      } else {
-        setFormError(res.data?.message || 'Failed to submit. Please try again.');
+      const waUrl = createWhatsAppConsultationUrl({
+        whatsappNumber: post.whatsapp || '+919876543210',
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        requirement: `Property Type: ${formData.property_type}`,
+        sourceTitle: `Blog: ${post.title}`,
+      });
+
+      setSubmittedUrl(waUrl);
+      if (typeof window !== 'undefined') {
+        window.open(waUrl, '_blank');
       }
+      setSubmitted(true);
     } catch (err: any) {
-      setFormError(err?.response?.data?.message || 'Failed to submit request. Please try again.');
+      setFormError('Failed to prepare consultation request. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -111,28 +89,18 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
   const displayedRelated = related.slice(0, 3);
 
   return (
-    <article className="py-8 sm:py-12 bg-white text-slate-800 font-sans">
+    <article className="pt-4 sm:pt-6 pb-8 sm:pb-12 bg-white text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-14">
-        {/* 1. TOP EDITORIAL BREADCRUMB & ARTICLE HEADER */}
+        {/* 1. ARTICLE HEADER */}
         <div className="max-w-5xl space-y-5">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">
-            <Link href="/" className="hover:text-slate-900 transition-colors">HOME</Link>
-            <span>/</span>
-            <Link href="/blogs" className="hover:text-slate-900 transition-colors">BLOGS</Link>
-            <span>/</span>
-            <span className="text-[#0F172A] font-extrabold truncate max-w-[280px]">
-              {post.title}
-            </span>
-          </div>
-
           {/* Main Article Heading */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-extrabold text-[#0F172A] leading-[1.15] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-slate-900 leading-[1.15] tracking-tight">
             {post.title}
           </h1>
 
           {/* Subtitle / Excerpt */}
           {post.excerpt || post.short_description ? (
-            <p className="text-slate-600 font-serif text-lg sm:text-xl font-light leading-relaxed max-w-4xl">
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal font-sans max-w-4xl">
               {post.excerpt || post.short_description}
             </p>
           ) : null}
@@ -169,7 +137,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                 }
                 return (
                   <div
-                    className="prose prose-slate max-w-none text-slate-700 text-base leading-relaxed space-y-6 font-normal font-sans prose-headings:font-serif prose-headings:font-extrabold prose-headings:text-[#0F172A] prose-a:text-[#EA580C] prose-blockquote:border-[#EA580C] prose-blockquote:bg-amber-50/50 prose-blockquote:p-6 prose-blockquote:rounded-2xl"
+                    className="prose prose-slate max-w-none text-slate-700 text-base leading-relaxed space-y-6 font-normal font-sans prose-headings:font-serif prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight prose-p:font-sans prose-p:text-slate-600 prose-p:leading-relaxed prose-li:font-sans prose-li:text-slate-600 prose-a:text-[#EA580C] prose-a:font-semibold prose-blockquote:border-[#EA580C] prose-blockquote:bg-amber-50/50 prose-blockquote:p-6 prose-blockquote:rounded-2xl prose-strong:text-slate-900"
                     dangerouslySetInnerHTML={{ __html: bodyHtml }}
                   />
                 );
@@ -178,7 +146,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
               {/* Optional Multi-Image Gallery */}
               {Array.isArray(post.images) && post.images.length > 1 && (
                 <div className="pt-8 space-y-4 border-t border-slate-100">
-                  <h3 className="text-lg font-serif font-extrabold text-[#0F172A] uppercase tracking-wide">
+                  <h3 className="text-lg font-serif font-bold text-slate-900 tracking-tight uppercase">
                     Design Gallery
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -195,32 +163,20 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
               )}
 
               {/* Published Meta Bar - Displayed After Editor Content */}
-              <div className="pt-6 mt-8 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-4 text-xs font-medium text-slate-500">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <div className="pt-6 mt-8 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-4 text-xs font-medium text-slate-500 font-sans">
+                <div className="flex items-center gap-4 font-sans">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-sans">
+                    <Calendar className="w-3.5 h-3.5 text-[#EA580C]" />
                     <span>{dateStr}</span>
                   </div>
                   <span className="text-slate-300">|</span>
-                  <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-sans">
+                    <Clock className="w-3.5 h-3.5 text-[#EA580C]" />
                     <span>5 Min Read</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={toggleWishlist}
-                    className={`px-3.5 py-1.5 border rounded-xl transition-all shadow-xs flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
-                      isWishlisted
-                        ? 'bg-rose-50 border-rose-300 text-rose-600 hover:bg-rose-100'
-                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
-                    title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                  >
-                    <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current text-rose-500' : 'text-slate-500'}`} />
-                    <span>{isWishlisted ? 'Saved' : 'Add to Wishlist'}</span>
-                  </button>
 
                   <button
                     onClick={handleShare}
@@ -238,30 +194,45 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
           <div id="consultation-sidebar" className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 font-sans">
             
             {/* LIGHT THEME LEAD CONSULTATION FORM CARD */}
-            <div className="bg-[#FAF8F5] text-slate-900 p-6 sm:p-7 rounded-3xl shadow-xl border-2 border-slate-200/90 space-y-5">
+            <div className="bg-[#FAF8F5] text-slate-900 p-6 sm:p-7 rounded-3xl shadow-xl border-2 border-slate-200/90 space-y-5 font-sans">
               <div className="space-y-1.5 border-b border-slate-200 pb-4">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#EA580C] bg-amber-50 border border-amber-200 px-3 py-1 rounded-full inline-block">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#EA580C] bg-[#FFF7ED] border border-[#FFEDD5] px-3 py-1 rounded-full inline-block font-sans">
                   BOOK FREE CONSULTATION
                 </span>
-                <h3 className="text-xl font-serif font-extrabold tracking-tight text-[#0F172A]">
+                <h3 className="text-xl font-serif font-bold tracking-tight text-slate-900">
                   DESIGN YOUR DREAM SPACE
                 </h3>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                <p className="text-xs text-slate-600 font-normal font-sans leading-relaxed">
                   Get a personalized 3D design proposal, material specification breakdown & price estimate.
                 </p>
               </div>
 
               {submitted ? (
-                <div className="p-6 bg-emerald-50 border-2 border-emerald-300 text-emerald-950 rounded-2xl text-center space-y-3">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                  <h4 className="font-extrabold text-base text-slate-950">Consultation Requested!</h4>
-                  <p className="text-xs text-emerald-800 font-medium">
-                    Our senior interior designer will get in touch with you within 2 business hours.
+                <div className="p-6 bg-emerald-50 border-2 border-emerald-300 text-emerald-950 rounded-2xl text-center space-y-3 font-sans">
+                  <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-md">
+                    <MessageCircle className="w-6 h-6 fill-current" />
+                  </div>
+                  <h4 className="font-extrabold text-base text-slate-950 font-serif">Consultation Request Ready!</h4>
+                  <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+                    We are connecting you directly with our senior interior architect on WhatsApp.
                   </p>
+                  {submittedUrl && (
+                    <div className="pt-1">
+                      <a
+                        href={submittedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
+                      >
+                        <MessageCircle className="w-4 h-4 fill-current" />
+                        <span>Continue to WhatsApp</span>
+                      </a>
+                    </div>
+                  )}
                   <button
                     type="button"
-                    onClick={() => setSubmitted(false)}
-                    className="text-xs font-bold text-emerald-900 underline pt-2 block mx-auto cursor-pointer uppercase tracking-wider"
+                    onClick={() => { setSubmitted(false); setFormData({ name: '', phone: '', email: '', property_type: '3 BHK Home', city_id: '' }); }}
+                    className="text-xs font-bold text-emerald-900 underline pt-2 block mx-auto cursor-pointer uppercase tracking-wider hover:text-emerald-950"
                   >
                     Submit another enquiry
                   </button>
@@ -275,7 +246,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                   )}
 
                   <div>
-                    <label className="block text-[11px] font-extrabold uppercase text-slate-900 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-900 mb-1 font-sans">
                       FULL NAME *
                     </label>
                     <input
@@ -284,12 +255,12 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                       placeholder="e.g. Rahul Sharma"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-[#EA580C] focus:ring-2 focus:ring-amber-500/20 transition-all shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-[#EA580C] focus:ring-2 focus:ring-amber-500/20 transition-all shadow-2xs font-sans text-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-extrabold uppercase text-slate-900 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-900 mb-1 font-sans">
                       MOBILE NUMBER *
                     </label>
                     <input
@@ -298,12 +269,12 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                       placeholder="+91 98765 43210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-[#EA580C] focus:ring-2 focus:ring-amber-500/20 transition-all shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-[#EA580C] focus:ring-2 focus:ring-amber-500/20 transition-all shadow-2xs font-sans text-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-extrabold uppercase text-slate-900 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-900 mb-1 font-sans">
                       EMAIL ADDRESS (OPTIONAL)
                     </label>
                     <input
@@ -311,18 +282,18 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                       placeholder="rahul@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-[#EA580C] focus:ring-2 focus:ring-amber-500/20 transition-all shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-semibold focus:outline-none focus:border-[#EA580C] focus:ring-2 focus:ring-amber-500/20 transition-all shadow-2xs font-sans text-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-extrabold uppercase text-slate-900 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-900 mb-1 font-sans">
                       PROPERTY SCOPE / TYPE
                     </label>
                     <select
                       value={formData.property_type}
                       onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-[#EA580C] transition-all shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-[#EA580C] transition-all shadow-2xs font-sans text-xs"
                     >
                       <option value="3 BHK Home">Full Home Interior (3 BHK)</option>
                       <option value="2 BHK Home">Full Home Interior (2 BHK)</option>
@@ -336,19 +307,19 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3.5 px-4 bg-[#EA580C] hover:bg-[#C2410C] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 border border-amber-500/20 disabled:opacity-50 mt-2 cursor-pointer"
+                    className="w-full py-3.5 px-4 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 border border-amber-500/20 disabled:opacity-50 mt-2 cursor-pointer font-sans"
                   >
                     {submitting ? (
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
                     ) : (
                       <>
-                        <span>BOOK FREE CONSULTATION</span>
-                        <Send className="w-3.5 h-3.5 text-white" />
+                        <MessageCircle className="w-4 h-4 fill-current text-white" />
+                        <span>BOOK CONSULTATION ON WHATSAPP</span>
                       </>
                     )}
                   </button>
 
-                  <div className="pt-2 flex items-center justify-center gap-3 text-[11px] text-slate-600 font-bold">
+                  <div className="pt-2 flex items-center justify-center gap-3 text-[11px] text-slate-600 font-semibold font-sans">
                     <span className="flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                       <span>45-Day Handover</span>
@@ -364,13 +335,13 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
 
         {/* 4. BOTTOM RELATED ARTICLES GRID (EXACTLY 3 CARDS + VIEW ALL BUTTON) */}
         {displayedRelated.length > 0 && (
-          <div className="pt-10 border-t border-slate-200/90 space-y-8">
+          <div className="pt-10 border-t border-slate-200/90 space-y-8 font-sans">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-extrabold uppercase tracking-widest text-[#EA580C] bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full inline-block mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#EA580C] bg-[#FFF7ED] border border-[#FFEDD5] px-3.5 py-1 rounded-full inline-block mb-2 font-sans">
                   MORE EDITORIAL GUIDES
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-serif font-extrabold text-[#0F172A]">
+                <h3 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 tracking-tight">
                   Related Architectural Studies & Design Guides
                 </h3>
               </div>
@@ -378,7 +349,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
               {/* VIEW ALL BLOGS BUTTON */}
               <Link
                 href="/blog"
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2 group shrink-0"
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2 group shrink-0 font-sans"
               >
                 <span>VIEW ALL BLOGS</span>
                 <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform" />
@@ -421,13 +392,13 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                           sizes="(max-width: 768px) 100vw, 33vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <span className="absolute top-3 left-3 text-[10px] font-bold text-[#EA580C] bg-white/95 backdrop-blur-md px-3 py-1 rounded-full shadow-sm uppercase tracking-wider">
+                        <span className="absolute top-3 left-3 text-[10px] font-bold text-[#EA580C] bg-white/95 backdrop-blur-md px-3 py-1 rounded-full shadow-sm uppercase tracking-wider font-sans">
                           {catName}
                         </span>
                       </Link>
 
                       <div className="p-6 space-y-3">
-                        <div className="flex items-center gap-3 text-[11px] text-slate-400 font-semibold">
+                        <div className="flex items-center gap-3 text-[11px] text-slate-500 font-medium font-sans">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3 text-[#EA580C]" /> {relDateStr}
                           </span>
@@ -441,13 +412,13 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                           </Link>
                         </h4>
 
-                        <p className="text-xs text-slate-600 leading-relaxed font-medium line-clamp-3">
+                        <p className="text-xs text-slate-600 leading-relaxed font-normal font-sans line-clamp-3">
                           {desc || 'Explore key architectural insights and custom interior design specifications.'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#EA580C]">
+                    <div className="p-6 pt-0 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#EA580C] font-sans">
                       <Link
                         href={`/blog/${item.slug}`}
                         className="hover:underline flex items-center gap-1.5"
@@ -457,7 +428,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
                       </Link>
                       <Link
                         href="/contact-us"
-                        className="text-[10px] text-slate-400 hover:text-[#EA580C] font-semibold uppercase"
+                        className="text-[10px] text-slate-400 hover:text-[#EA580C] font-semibold uppercase font-sans"
                       >
                         Consult Expert
                       </Link>

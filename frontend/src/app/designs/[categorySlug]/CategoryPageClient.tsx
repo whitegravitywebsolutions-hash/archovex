@@ -18,6 +18,7 @@ interface ClientProps {
   cities: City[];
   parentLabel?: string;
   parentUrl?: string;
+  hideBreadcrumb?: boolean;
 }
 
 export default function CategoryPageClient({
@@ -25,8 +26,9 @@ export default function CategoryPageClient({
   initialPosts,
   faqs,
   cities,
-  parentLabel = 'Blogs',
-  parentUrl = '/blogs',
+  parentLabel = 'Blog',
+  parentUrl = '/blog',
+  hideBreadcrumb = false,
 }: ClientProps) {
   const [posts, setPosts] = useState<DesignPost[]>(initialPosts);
   const [loading, setLoading] = useState(false);
@@ -50,20 +52,22 @@ export default function CategoryPageClient({
   return (
     <>
       {/* Breadcrumb */}
-      <div className="bg-[#FAFAFA] border-b border-slate-200 py-3 font-sans">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 text-xs text-slate-600">
-          <Link href="/" className="hover:text-[#EA580C] flex items-center gap-1">
-            <Home className="w-3.5 h-3.5 text-slate-400" /> Home
-          </Link>
-          <ChevronRight className="w-3 h-3 text-slate-400" />
-          <Link href={parentUrl} className="hover:text-[#EA580C]">{parentLabel}</Link>
-          <ChevronRight className="w-3 h-3 text-slate-400" />
-          <span className="font-bold text-slate-900">{category.name}</span>
+      {!hideBreadcrumb && (
+        <div className="bg-[#FAF8F3] border-b border-slate-200/80 py-3 font-sans">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 text-xs text-slate-600">
+            <Link href="/" className="hover:text-[#EA580C] flex items-center gap-1">
+              <Home className="w-3.5 h-3.5 text-slate-400" /> Home
+            </Link>
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <Link href={parentUrl} className="hover:text-[#EA580C]">{parentLabel}</Link>
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <span className="font-bold text-slate-900">{category.name}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* CATEGORY HERO */}
-      <section className="relative bg-gradient-to-b from-[#FAFAFA] via-[#F6F4EF] to-[#FAFAFA] text-slate-900 py-16 sm:py-24 overflow-hidden border-b border-slate-200/80 font-sans">
+      <section className="relative bg-gradient-to-b from-[#FAFAFA] via-[#F6F4EF] to-[#FAFAFA] text-slate-900 pt-8 sm:pt-12 pb-16 sm:pb-24 overflow-hidden border-b border-slate-200/80 font-sans">
         {category.image && (
           <div className="absolute inset-0 z-0">
             <Image

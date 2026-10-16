@@ -9,7 +9,7 @@ import MegaMenu from './MegaMenu';
 import MobileMenu from './MobileMenu';
 import ConsultationFormModal from './ConsultationFormModal';
 import { MenuItem, City } from '@/types';
-import { Menu as MenuIcon, Phone, Heart, ChevronDown } from 'lucide-react';
+import { Menu as MenuIcon, Phone, ChevronDown } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
 interface HeaderProps {
@@ -41,7 +41,6 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [defaultRequirement, setDefaultRequirement] = useState('');
-  const [wishlistCount, setWishlistCount] = useState(0);
 
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -91,18 +90,6 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const updateWishlist = () => {
-        try {
-          const list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-          setWishlistCount(Array.isArray(list) ? list.length : 0);
-        } catch {
-          setWishlistCount(0);
-        }
-      };
-      updateWishlist();
-      window.addEventListener('storage', updateWishlist);
-      window.addEventListener('wishlistUpdated', updateWishlist);
-
       const getServiceByPath = (path: string) => {
         if (path.includes('full-home-interior-design')) return 'Full Home Interior Design';
         if (path.includes('modular-kitchen-design')) return 'Modular Kitchen Design';
@@ -139,8 +126,6 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
       window.addEventListener('click', handleAnchorClick);
 
       return () => {
-        window.removeEventListener('storage', updateWishlist);
-        window.removeEventListener('wishlistUpdated', updateWishlist);
         window.removeEventListener('open-consultation-modal', handleOpenModal);
         window.removeEventListener('click', handleAnchorClick);
       };
@@ -220,19 +205,6 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
               <span>+91 98765 43210</span>
             </a>
 
-            {/* Wishlist Link */}
-            <Link
-              href="/blogs?wishlist=true"
-              className="relative p-2 text-slate-700 hover:text-[#EA580C] rounded-full hover:bg-slate-100 transition-all"
-              title="View Wishlist"
-            >
-              <Heart className="w-5 h-5 text-slate-800" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-[#EA580C] text-white font-bold text-[9px] rounded-full flex items-center justify-center shadow-2xs">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
 
             {/* Book Consultation Button (Kept visible on mobile) */}
             <button

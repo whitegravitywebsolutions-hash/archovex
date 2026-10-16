@@ -37,6 +37,7 @@ import SeoFormBlock, { SeoData } from '@/components/admin/SeoFormBlock';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import SearchableSingleSelect from '@/components/admin/SearchableSingleSelect';
+import { getPageName } from '@/lib/pageUtils';
 
 interface SectionItem {
   id: string;
@@ -580,7 +581,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
           </button>
           <div>
             <h1 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <span>Editing: {title || 'Untitled Page'}</span>
+              <span>Editing: {getPageName({ title, slug }) || 'Untitled Page'}</span>
               <span className="text-[10px] font-bold uppercase bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full font-mono">
                 {slug === 'home' ? '/' : `/${slug}`}
               </span>
@@ -1550,7 +1551,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                   noneLabel="-- None (Top Level) --"
                   options={allPages.map((p) => ({
                     id: p.id,
-                    name: p.title,
+                    name: getPageName(p),
                     slug: p.slug,
                     isTopLevel: !p.parent_id,
                     parentId: p.parent_id,

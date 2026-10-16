@@ -5,6 +5,7 @@ import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
+import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -942,6 +943,20 @@ export default async function ServicePageRouter({ params }: PageProps) {
     };
   }
 
+  const serviceTitles: Record<string, string> = {
+    'full-home-interior-design': 'Full Home Interior Design',
+    'modular-kitchen-design': 'Modular Kitchen Design',
+    'living-room-interior-design': 'Living Room Interior Design',
+    'bedroom-interior-design': 'Bedroom Interior Design',
+    'wardrobe-design': 'Wardrobe Design',
+    'home-renovation': 'Home Renovation & Remodeling',
+    'office-interior-design': 'Office Interior Design',
+    'corporate-office-interior-design': 'Corporate Office Interior Design',
+    'commercial-interior-design': 'Commercial Interior Design',
+    'turnkey-interior-design': 'Turnkey Interior Design',
+  };
+  const currentTitle = serviceTitles[slug] || customPage?.title?.split('|')[0]?.trim() || 'Service Details';
+
   return (
     <div className="min-h-screen bg-[#faf8f3] flex flex-col font-sans">
       {serviceSchema && (
@@ -963,6 +978,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
         />
       )}
       <Header initialMenu={homeData?.menus || []} cities={cities} />
+      <Breadcrumbs items={[{ label: 'Services', href: '/services' }, { label: currentTitle }]} />
 
       <main className="flex-grow">
         {dynamicSections && dynamicSections.length > 0 ? (

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { Plus, Edit3, Trash2, Globe, Layers, Search, Eye, ExternalLink, Loader2, Sparkles, CheckCircle2, Copy } from 'lucide-react';
 import SearchableSingleSelect from '@/components/admin/SearchableSingleSelect';
+import { getPageName } from '@/lib/pageUtils';
 
 interface PageItem {
   id: number;
@@ -15,6 +16,7 @@ interface PageItem {
   parent_id?: number | null;
   parent?: PageItem | null;
   sections?: any[];
+  published_at?: string | null;
   updated_at: string;
 }
 
@@ -83,7 +85,7 @@ export default function AdminPagesListPage() {
           const bTop = !b.parent_id;
           if (aTop && !bTop) return -1;
           if (!aTop && bTop) return 1;
-          return a.title.localeCompare(b.title);
+          return getPageName(a).localeCompare(getPageName(b));
         });
         setAllParents(sorted);
       }
@@ -237,8 +239,8 @@ export default function AdminPagesListPage() {
               <option value="updated_at-desc">Last Modified (Newest First)</option>
               <option value="updated_at-asc">Last Modified (Oldest First)</option>
               <option value="created_at-desc">Created Date (Newest First)</option>
-              <option value="title-asc">Title (A to Z)</option>
-              <option value="title-desc">Title (Z to A)</option>
+              <option value="title-asc">Page Name (A to Z)</option>
+              <option value="title-desc">Page Name (Z to A)</option>
               <option value="slug-asc">Slug (A to Z)</option>
             </select>
           </div>
@@ -268,7 +270,7 @@ export default function AdminPagesListPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500 border-b border-slate-100">
-                <th className="p-4">Page Title</th>
+                <th className="p-4">Page Name</th>
                 <th className="p-4">Publish Date & Time</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Last Modified</th>
@@ -299,7 +301,7 @@ export default function AdminPagesListPage() {
                   return (
                     <tr key={page.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-4 font-bold text-slate-900 flex items-center gap-2">
-                        <span>{page.title}</span>
+                        <span title={page.title}>{getPageName(page)}</span>
                         {page.slug === 'home' && (
                           <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
                             Home Page
@@ -450,7 +452,7 @@ export default function AdminPagesListPage() {
                   noneLabel="-- None (Top Level Page) --"
                   options={allParents.map((p) => ({
                     id: p.id,
-                    name: p.title,
+                    name: getPageName(p),
                     slug: p.slug,
                     isTopLevel: !p.parent_id,
                     parentId: p.parent_id,

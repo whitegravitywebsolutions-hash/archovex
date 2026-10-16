@@ -10,7 +10,7 @@ class AdminLeadController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Lead::with('city');
+        $query = Lead::query();
 
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);

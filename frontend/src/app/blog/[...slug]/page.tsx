@@ -2,6 +2,7 @@ import React from 'react';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
+import Breadcrumbs from '@/components/public/Breadcrumbs';
 import BlogDetailClient from './BlogDetailClient';
 import CategoryPageClient from '@/app/designs/[categorySlug]/CategoryPageClient';
 import { fetchPublicData } from '@/lib/api';
@@ -145,8 +146,8 @@ export default async function DynamicBlogOrCategoryPage({ params }: PageProps) {
       '@type': 'BreadcrumbList',
       'itemListElement': [
         { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': `${siteUrl}/` },
-        { '@type': 'ListItem', 'position': 2, 'name': 'Blogs', 'item': `${siteUrl}/blogs` },
-        { '@type': 'ListItem', 'position': 3, 'name': post.title, 'item': `${siteUrl}/blogs/${post.slug}` }
+        { '@type': 'ListItem', 'position': 2, 'name': 'Blog', 'item': `${siteUrl}/blog` },
+        { '@type': 'ListItem', 'position': 3, 'name': post.title, 'item': `${siteUrl}/blog/${post.slug}` }
       ]
     };
 
@@ -156,6 +157,12 @@ export default async function DynamicBlogOrCategoryPage({ params }: PageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
         <Header initialMenu={homeData?.menus || []} cities={cities} />
+        <Breadcrumbs
+          items={[
+            { label: 'Blog', href: '/blog' },
+            { label: post.title }
+          ]}
+        />
         <main className="flex-grow">
           <BlogDetailClient post={post} related={related} cities={cities} />
         </main>
@@ -177,7 +184,7 @@ export default async function DynamicBlogOrCategoryPage({ params }: PageProps) {
       '@type': 'BreadcrumbList',
       'itemListElement': [
         { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': `${siteUrl}/` },
-        { '@type': 'ListItem', 'position': 2, 'name': category.name, 'item': `${siteUrl}/blogs/${category.slug}` }
+        { '@type': 'ListItem', 'position': 2, 'name': category.name, 'item': `${siteUrl}/blog/${category.slug}` }
       ]
     };
 
@@ -185,8 +192,14 @@ export default async function DynamicBlogOrCategoryPage({ params }: PageProps) {
       <div className="min-h-screen bg-white flex flex-col font-sans">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <Header initialMenu={homeData?.menus || []} cities={cities} />
+        <Breadcrumbs
+          items={[
+            { label: 'Blog', href: '/blog' },
+            { label: category.name }
+          ]}
+        />
         <main className="flex-grow">
-          <CategoryPageClient category={category} initialPosts={initialPosts} faqs={faqs} cities={cities} />
+          <CategoryPageClient category={category} initialPosts={initialPosts} faqs={faqs} cities={cities} hideBreadcrumb={true} />
         </main>
         <Footer settings={settings} socialLinks={socialLinks} />
         <FloatingWhatsAppButton number={settings.whatsapp} />

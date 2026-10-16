@@ -226,6 +226,7 @@ export interface Lead {
   name: string;
   email?: string;
   phone: string;
+  address?: string;
   city_id?: number;
   city?: City;
   property_type?: string;

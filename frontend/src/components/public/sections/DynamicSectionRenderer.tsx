@@ -19,7 +19,6 @@ import {
   Building2,
   Search,
   BookOpen,
-  Heart,
   LayoutGrid,
   Phone,
   Mail,
@@ -33,6 +32,7 @@ import { getImageUrl, apiClient } from '@/lib/api';
 import DesignCard from '@/components/public/DesignCard';
 import DesignFilters from '@/components/public/DesignFilters';
 import ConsultationForm from '@/components/public/ConsultationForm';
+import { createWhatsAppConsultationUrl } from '@/lib/pageUtils';
 
 export interface PageSectionData {
   id: string;
@@ -188,32 +188,33 @@ function HeroHomeSection({
   // Inline consultation form state
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '', requirement: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submittedUrl, setSubmittedUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone) return;
+    if (!formData.name.trim() || !formData.phone.trim()) return;
     setLoading(true);
     setError('');
-    try {
-      const res = await apiClient.post('/consultation', {
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        requirement: formData.requirement,
-      });
-      if (res.data?.success) {
-        setSubmitted(true);
-      } else {
-        setError(res.data?.message || 'Failed to submit enquiry.');
-      }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to submit. Please try again.');
-    } finally {
-      setLoading(false);
+
+    const targetNumber = whatsappNumber || settings.whatsapp || '+919876543210';
+    const waUrl = createWhatsAppConsultationUrl({
+      whatsappNumber: targetNumber,
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      address: formData.address,
+      requirement: formData.requirement,
+      sourceTitle: 'Home Hero Consultation',
+    });
+
+    setSubmittedUrl(waUrl);
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank');
     }
+    setSubmitted(true);
+    setLoading(false);
   };
 
   const triggerModal = () => {
@@ -333,18 +334,31 @@ function HeroHomeSection({
               </div>
 
               {submitted ? (
-                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-6 text-center space-y-3">
+                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-6 text-center space-y-3 font-sans">
                   <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-md">
-                    <Check className="w-6 h-6" />
+                    <MessageSquare className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-extrabold text-emerald-950">Consultation Requested!</h3>
+                  <h3 className="text-lg font-extrabold text-emerald-950 font-serif">Consultation Request Ready!</h3>
                   <p className="text-xs text-emerald-800 font-medium leading-relaxed">
-                    Thank you! Our design expert will contact you shortly to share 3D renders and cost estimates.
+                    We are connecting you directly with our design architect on WhatsApp.
                   </p>
+                  {submittedUrl && (
+                    <div className="pt-1">
+                      <a
+                        href={submittedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Continue on WhatsApp</span>
+                      </a>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => { setSubmitted(false); setFormData({ name: '', phone: '', email: '', address: '', requirement: '' }); }}
-                    className="text-xs font-bold text-emerald-900 underline pt-2 cursor-pointer uppercase tracking-wider"
+                    className="text-xs font-bold text-emerald-900 underline pt-2 block mx-auto cursor-pointer uppercase tracking-wider hover:text-emerald-950"
                   >
                     Submit Another Inquiry
                   </button>
@@ -410,12 +424,15 @@ function HeroHomeSection({
                     className="w-full py-3.5 bg-gradient-to-r from-[#EA580C] to-[#F97316] hover:from-[#C2410C] hover:to-[#EA580C] text-white font-extrabold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-600/30 transition-all hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 cursor-pointer border border-orange-500/20 disabled:opacity-50 mt-1"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (
-                      <><span>BOOK FREE CONSULTATION</span><ArrowRight className="w-4 h-4 text-white" /></>
+                      <>
+                        <MessageSquare className="w-4 h-4 text-white" />
+                        <span>BOOK CONSULTATION ON WHATSAPP</span>
+                      </>
                     )}
                   </button>
                   <div className="text-[11px] font-bold text-slate-500 text-center flex items-center justify-center gap-1 pt-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                    <span>No Spam Guarantee • 100% Free Consultation</span>
+                    <span>Direct WhatsApp Chat • Free 3D Design Consultation</span>
                   </div>
                 </form>
               )}
@@ -1681,40 +1698,11 @@ function HeroSliderSection({
 /* -------------------------------------------------------------------------- */
 function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
   const [blogs, setBlogs] = useState<any[]>([]);
-  const [allWishlistBlogs, setAllWishlistBlogs] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [wishlistMode, setWishlistMode] = useState(false);
-  const [wishlistIds, setWishlistIds] = useState<number[]>([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const syncWishlist = () => {
-      try {
-        const list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-        setWishlistIds(Array.isArray(list) ? list.map((id: any) => Number(id)) : []);
-      } catch {
-        setWishlistIds([]);
-      }
-    };
-    syncWishlist();
-    window.addEventListener('storage', syncWishlist);
-    window.addEventListener('wishlistUpdated', syncWishlist);
-
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('wishlist') === 'true') {
-        setWishlistMode(true);
-      }
-    }
-
-    return () => {
-      window.removeEventListener('storage', syncWishlist);
-      window.removeEventListener('wishlistUpdated', syncWishlist);
-    };
-  }, []);
 
   useEffect(() => {
     apiClient.get('/categories')
@@ -1723,21 +1711,6 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
       })
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (wishlistIds.length > 0 || wishlistMode) {
-      const idsParam = wishlistIds.join(',');
-      const url = idsParam ? `/blogs?ids=${idsParam}&limit=1000` : '/blogs?limit=1000';
-      apiClient.get(url)
-        .then((res) => {
-          if (res.data?.success) {
-            const list = res.data.data?.data || res.data.data || [];
-            setAllWishlistBlogs(list);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [wishlistIds.join(','), wishlistMode]);
 
   const fetchBlogs = async (filters: Record<string, string> = {}, pageNum = page) => {
     setLoading(true);
@@ -1780,56 +1753,9 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
     fetchBlogs(newFilters, 1);
   };
 
-  const handleWishlistToggle = (mode: boolean) => {
-    setWishlistMode(mode);
-    if (typeof window !== 'undefined') {
-      const newUrl = mode
-        ? `${window.location.pathname}?wishlist=true`
-        : window.location.pathname;
-      window.history.pushState({}, '', newUrl);
-    }
-  };
-
-  const displayedBlogs = wishlistMode
-    ? (allWishlistBlogs.length > 0 ? allWishlistBlogs : blogs).filter((b) => wishlistIds.includes(Number(b.id)))
-    : blogs;
-
   return (
     <section className="py-12 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-
-        {/* Mode Switcher Bar */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-2 bg-slate-200/80 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => handleWishlistToggle(false)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wider flex items-center gap-2 transition-all ${
-                !wishlistMode
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-              <span>All Blogs</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleWishlistToggle(true)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wider flex items-center gap-2 transition-all ${
-                wishlistMode
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:text-rose-600'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${wishlistMode ? 'fill-current' : ''}`} />
-              <span>My Wishlist ({wishlistIds.length})</span>
-            </button>
-          </div>
-        </div>
-
-
 
         {/* 4-Column Grid */}
         {loading ? (
@@ -1838,28 +1764,11 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
               <div key={i} className="bg-slate-200 aspect-[4/5] rounded-2xl" />
             ))}
           </div>
-        ) : displayedBlogs.length > 0 ? (
+        ) : blogs.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {displayedBlogs.map((blog) => (
+            {blogs.map((blog) => (
               <DesignCard key={blog.id} post={blog} />
             ))}
-          </div>
-        ) : wishlistMode ? (
-          <div className="bg-white p-12 rounded-3xl border border-slate-200/90 text-center space-y-4 shadow-sm max-w-lg mx-auto my-8">
-            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
-              <Heart className="w-8 h-8 fill-current" />
-            </div>
-            <h3 className="text-xl font-serif font-bold text-slate-900">Your Wishlist is Empty</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Click the heart icon on any design or blog post card to save your favorite concepts here.
-            </p>
-            <button
-              type="button"
-              onClick={() => handleWishlistToggle(false)}
-              className="px-6 py-2.5 bg-slate-900 text-white font-bold text-xs tracking-wider rounded-xl hover:bg-slate-800 transition-all inline-block shadow-md"
-            >
-              Explore All Blogs
-            </button>
           </div>
         ) : (
           <div className="bg-white p-12 rounded-2xl border border-slate-200/90 text-center space-y-3">
@@ -1870,7 +1779,7 @@ function AllBlogsFilterSection({ section }: { section: PageSectionData }) {
         )}
 
         {/* Pagination Controls */}
-        {!wishlistMode && pagination && pagination.last_page > 1 && (
+        {pagination && pagination.last_page > 1 && (
           <div className="flex items-center justify-center gap-2 pt-6 border-t border-slate-200">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -2190,7 +2099,7 @@ function ContactWithFormSection({ section }: { section: PageSectionData }) {
               </p>
             )}
           </div>
-          <ConsultationForm />
+          <ConsultationForm isContactForm={true} whatsappNumber={whatsapp} />
         </div>
       </div>
     </section>

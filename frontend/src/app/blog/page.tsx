@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
+import Breadcrumbs from '@/components/public/Breadcrumbs';
 import BlogIndexClient from './BlogIndexClient';
 import { fetchPublicData } from '@/lib/api';
 
@@ -103,6 +104,7 @@ export default async function BlogIndexPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
       />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
+      <Breadcrumbs items={[{ label: 'Blog' }]} />
       <main className="flex-grow">
         <BlogIndexClient
           initialBlogs={blogs}

@@ -5,6 +5,7 @@ import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
+import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -478,6 +479,15 @@ export default async function CityLocationPage({ params }: PageProps) {
     };
   }
 
+  const cityTitles: Record<string, string> = {
+    'noida': 'Noida',
+    'greater-noida': 'Greater Noida',
+    'gurgaon': 'Gurgaon',
+    'delhi': 'Delhi',
+    'new-delhi': 'New Delhi',
+  };
+  const currentCityTitle = cityTitles[slug] || customPage?.title?.split('|')[0]?.trim() || slug.split('-').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
       {serviceSchema && (
@@ -499,6 +509,7 @@ export default async function CityLocationPage({ params }: PageProps) {
         />
       )}
       <Header initialMenu={homeData?.menus || []} cities={cities} />
+      <Breadcrumbs items={[{ label: 'Locations', href: '/locations' }, { label: currentCityTitle }]} />
 
       <main className="flex-grow">
         {dynamicSections && dynamicSections.length > 0 ? (

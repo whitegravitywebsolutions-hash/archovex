@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { DesignPost } from '@/types';
-import { Heart, ArrowUpRight, Calendar, Clock } from 'lucide-react';
+import { ArrowUpRight, Calendar, Clock } from 'lucide-react';
 import { getImageUrl } from '@/lib/api';
 
 interface DesignCardProps {
@@ -12,45 +12,6 @@ interface DesignCardProps {
 }
 
 export default function DesignCard({ post }: DesignCardProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const checkWishlist = () => {
-        try {
-          const wishlist = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-          setIsWishlisted(Array.isArray(wishlist) && wishlist.includes(post.id));
-        } catch {
-          setIsWishlisted(false);
-        }
-      };
-      checkWishlist();
-      window.addEventListener('wishlistUpdated', checkWishlist);
-      return () => window.removeEventListener('wishlistUpdated', checkWishlist);
-    }
-  }, [post.id]);
-
-  const toggleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (typeof window !== 'undefined') {
-      try {
-        let wishlist = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-        if (!Array.isArray(wishlist)) wishlist = [];
-        if (wishlist.includes(post.id)) {
-          wishlist = wishlist.filter((id: number) => id !== post.id);
-          setIsWishlisted(false);
-        } else {
-          wishlist.push(post.id);
-          setIsWishlisted(true);
-        }
-        localStorage.setItem('archovex_wishlist', JSON.stringify(wishlist));
-        window.dispatchEvent(new Event('wishlistUpdated'));
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
 
   const rawImg =
     post.primary_image?.image ||
@@ -111,19 +72,6 @@ export default function DesignCard({ post }: DesignCardProps) {
             </span>
           )}
         </div>
-
-        {/* Wishlist Button */}
-        <button
-          onClick={toggleWishlist}
-          className={`absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-md transition-all z-10 ${
-            isWishlisted
-              ? 'bg-[#EA580C] text-white shadow-md'
-              : 'bg-white/90 text-slate-700 hover:bg-[#EA580C] hover:text-white shadow-2xs'
-          }`}
-          aria-label="Add to Wishlist"
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-        </button>
       </div>
 
       {/* Content Container */}

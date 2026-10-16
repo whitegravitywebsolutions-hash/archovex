@@ -4,6 +4,7 @@ import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
+import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -214,6 +215,7 @@ export default async function MasterFaqsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
+      <Breadcrumbs items={[{ label: 'FAQs' }]} />
       <main className="flex-grow">
         {dynamicSections && dynamicSections.length > 0 ? (
           <DynamicSectionRenderer sections={dynamicSections} />

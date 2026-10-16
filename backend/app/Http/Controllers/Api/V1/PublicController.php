@@ -599,6 +599,7 @@ class PublicController extends Controller
             'budget' => 'nullable|string',
             'city_id' => 'nullable|integer',
             'type' => 'nullable|string',
+            'source' => 'nullable|string',
         ]);
 
         $requirementText = $validated['requirement'] ?? $validated['message'] ?? null;
@@ -613,8 +614,8 @@ class PublicController extends Controller
             'property_type' => $validated['property_type'] ?? null,
             'budget' => $validated['budget'] ?? null,
             'city_id' => $validated['city_id'] ?? null,
-            'type' => $validated['type'] ?? 'consultation',
-            'source' => 'website',
+            'type' => $validated['type'] ?? 'contact',
+            'source' => $validated['source'] ?? 'website',
             'status' => 'New',
         ]);
 

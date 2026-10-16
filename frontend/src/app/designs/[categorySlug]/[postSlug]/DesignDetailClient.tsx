@@ -27,45 +27,8 @@ interface ClientProps {
 
 export default function DesignDetailClient({ post, category, related, cities }: ClientProps) {
   const [activeImgIdx, setActiveImgIdx] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const checkWishlist = () => {
-        try {
-          const list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-          setIsWishlisted(Array.isArray(list) && list.includes(post.id));
-        } catch {
-          setIsWishlisted(false);
-        }
-      };
-      checkWishlist();
-      window.addEventListener('wishlistUpdated', checkWishlist);
-      return () => window.removeEventListener('wishlistUpdated', checkWishlist);
-    }
-  }, [post.id]);
-
-  const toggleWishlist = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        let list = JSON.parse(localStorage.getItem('archovex_wishlist') || '[]');
-        if (!Array.isArray(list)) list = [];
-        if (list.includes(post.id)) {
-          list = list.filter((id: number) => id !== post.id);
-          setIsWishlisted(false);
-        } else {
-          list.push(post.id);
-          setIsWishlisted(true);
-        }
-        localStorage.setItem('archovex_wishlist', JSON.stringify(list));
-        window.dispatchEvent(new Event('wishlistUpdated'));
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
 
   const images = post.images && post.images.length > 0
     ? post.images
@@ -104,7 +67,7 @@ export default function DesignDetailClient({ post, category, related, cities }: 
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-8 sm:pb-12 space-y-10">
 
         {/* 2. Top Title & Editorial Header Block */}
         <div className="max-w-4xl space-y-4">
@@ -210,17 +173,8 @@ export default function DesignDetailClient({ post, category, related, cities }: 
               )}
             </div>
 
-            {/* Wishlist & Share Action Bar */}
-            <div className="bg-[#FAFAFA] border border-slate-200/90 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-              <button
-                onClick={toggleWishlist}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                  isWishlisted ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                <span>{isWishlisted ? 'Saved to Wishlist' : 'Add to Wishlist'}</span>
-              </button>
+            {/* Share Action Bar */}
+            <div className="bg-[#FAFAFA] border border-slate-200/90 p-4 rounded-2xl flex flex-wrap items-center justify-end gap-4">
 
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Share Design:</span>

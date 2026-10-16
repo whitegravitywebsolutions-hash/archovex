@@ -4,6 +4,7 @@ import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
+import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -81,6 +82,7 @@ export default async function TermsAndConditionsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
       />
       <Header initialMenu={homeData?.menus || []} cities={cities} />
+      <Breadcrumbs items={[{ label: 'Terms & Conditions' }]} />
       
       <main className="flex-grow">
         {dynamicSections && dynamicSections.length > 0 ? (
