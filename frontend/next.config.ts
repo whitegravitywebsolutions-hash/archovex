@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'shreesaikrishnaart.in',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.archovexinfra.com',
+      },
     ],
   },
   async redirects() {
@@ -98,7 +102,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL 
       ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/v1\/?$/, '')
-      : 'http://127.0.0.1:8005';
+      : (process.env.NODE_ENV === 'production' ? 'https://api.archovexinfra.com' : 'http://127.0.0.1:8005');
     return [
       {
         source: '/api/v1/:path*',
