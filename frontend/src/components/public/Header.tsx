@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
-import ServicesMegaMenu from './ServicesMegaMenu';
 import MegaMenu from './MegaMenu';
 import MobileMenu from './MobileMenu';
 import ConsultationFormModal from './ConsultationFormModal';
@@ -15,6 +14,7 @@ import { apiClient } from '@/lib/api';
 interface HeaderProps {
   initialMenu?: MenuItem[];
   cities?: City[];
+  phoneNumber?: string;
 }
 
 const DEFAULT_MENU_ITEMS: MenuItem[] = [
@@ -28,8 +28,14 @@ const DEFAULT_MENU_ITEMS: MenuItem[] = [
 
 let globalCachedMenuItems: MenuItem[] | null = null;
 
-export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
+// Session & reload tracking for 5-second consultation popup
+let hasHandledInitialSiteLoad = false;
+let isConsultationDismissed = false;
+let autoConsultationTimer: NodeJS.Timeout | null = null;
+
+export default function Header({ initialMenu = [], cities = [], phoneNumber }: HeaderProps) {
   const pathname = usePathname() || '';
+  const [phone, setPhone] = useState(phoneNumber || '+91 98765 43210');
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
     if (initialMenu && initialMenu.length > 0) return initialMenu;
     if (globalCachedMenuItems && globalCachedMenuItems.length > 0) return globalCachedMenuItems;
@@ -43,6 +49,18 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
   const [defaultRequirement, setDefaultRequirement] = useState('');
 
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (phoneNumber) {
+      setPhone(phoneNumber);
+    } else {
+      apiClient.get('/settings').then((res) => {
+        if (res.data?.data?.settings?.phone) {
+          setPhone(res.data.data.settings.phone);
+        }
+      }).catch(() => {});
+    }
+  }, [phoneNumber]);
 
   const handleMenuEnter = (idx: number) => {
     if (leaveTimeoutRef.current) {
@@ -132,6 +150,54 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
     }
   }, []);
 
+  const handleCloseModal = () => {
+    if (autoConsultationTimer) {
+      clearTimeout(autoConsultationTimer);
+      autoConsultationTimer = null;
+    }
+    isConsultationDismissed = true;
+    try {
+      sessionStorage.setItem('consultation_modal_dismissed', 'true');
+    } catch {}
+    setIsModalOpen(false);
+  };
+
+  // Auto-open consultation modal 5 seconds after initial site load/reload
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname.startsWith('/admin')) return;
+
+    if (!hasHandledInitialSiteLoad) {
+      hasHandledInitialSiteLoad = true;
+      // On fresh website load or full reload, reset dismissed status
+      try {
+        sessionStorage.removeItem('consultation_modal_dismissed');
+      } catch {}
+      isConsultationDismissed = false;
+    }
+
+    let isDismissed = isConsultationDismissed;
+    if (!isDismissed) {
+      try {
+        isDismissed = sessionStorage.getItem('consultation_modal_dismissed') === 'true';
+      } catch {}
+    }
+
+    if (!isDismissed && !autoConsultationTimer) {
+      autoConsultationTimer = setTimeout(() => {
+        let stillDismissed = isConsultationDismissed;
+        try {
+          stillDismissed = stillDismissed || sessionStorage.getItem('consultation_modal_dismissed') === 'true';
+        } catch {}
+
+        if (!stillDismissed) {
+          window.dispatchEvent(new CustomEvent('open-consultation-modal'));
+        }
+        autoConsultationTimer = null;
+      }, 5000);
+    }
+  }, []);
+
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/80 transition-all shadow-xs">
@@ -145,9 +211,9 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
               const megaCols = item.mega_columns || item.megaColumns || [];
               const labelLower = (item.label || '').toLowerCase();
               const urlLower = (item.url || '').toLowerCase();
-              const isLocationsItem = labelLower.includes('location') || labelLower.includes('city') || urlLower === '/locations' || urlLower === '/cities' || item.type === 'city' || item.type === 'locationsmenu';
+              const isLocationsItem = labelLower.includes('location') || labelLower.includes('city') || urlLower === '/locations' || urlLower === '/cities' || (item.type as string) === 'city' || (item.type as string) === 'locationsmenu';
               const isBlogsItem = labelLower.includes('blog') || urlLower === '/blogs';
-              const isServicesItem = (labelLower.includes('service') || urlLower === '/services' || item.type === 'servicesmenu' || item.type === 'megamenu') && !isBlogsItem;
+              const isServicesItem = (labelLower.includes('service') || urlLower === '/services' || (item.type as string) === 'servicesmenu' || item.type === 'megamenu') && !isBlogsItem;
               const hasMega = megaCols.length > 0;
               const hasDropdown = hasMega || isServicesItem || isLocationsItem;
               const isHovered = activeMegaIdx === idx;
@@ -196,15 +262,15 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
 
           {/* Right Action CTA Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Phone Quick Link */}
+            {/* Call Now Quick CTA */}
             <a
-              href="tel:+919876543210"
-              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-[#EA580C] px-2.5 py-2 rounded-lg transition-colors"
+              href={`tel:${phone.replace(/\s+/g, '')}`}
+              className="hidden md:inline-flex items-center gap-2 text-xs font-bold text-slate-800 hover:text-[#EA580C] px-3.5 py-2.5 rounded-xl border border-slate-200/90 hover:border-[#EA580C]/40 bg-slate-50/70 hover:bg-orange-50/60 transition-all shadow-2xs group cursor-pointer"
+              title={`Call Archovex Infra (${phone})`}
             >
-              <Phone className="w-4 h-4 text-[#EA580C]" />
-              <span>+91 98765 43210</span>
+              <Phone className="w-3.5 h-3.5 text-[#EA580C] group-hover:scale-110 transition-transform" />
+              <span>Call Now</span>
             </a>
-
 
             {/* Book Consultation Button (Kept visible on mobile) */}
             <button
@@ -264,13 +330,14 @@ export default function Header({ initialMenu = [], cities = [] }: HeaderProps) {
         onClose={() => setIsMobileOpen(false)}
         items={menuItems}
         cities={cityList}
+        phoneNumber={phone}
         onOpenConsultation={() => setIsModalOpen(true)}
       />
 
       {/* Consultation Modal */}
       <ConsultationFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         cities={cityList}
         defaultRequirement={defaultRequirement}
       />

@@ -13,6 +13,7 @@ export default function AdminMediaPage() {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string>('all');
 
   // Selected media for WordPress-style Attachment Details Modal
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
@@ -21,9 +22,10 @@ export default function AdminMediaPage() {
   const fetchMedia = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/admin/media');
+      const res = await apiClient.get('/admin/media?all=1');
       if (res.data.success) {
-        setMediaList(res.data.data.data || res.data.data);
+        const list = res.data.data?.data || res.data.data || [];
+        setMediaList(Array.isArray(list) ? list : []);
       }
     } catch (err) {
       console.error(err);
@@ -82,9 +84,17 @@ export default function AdminMediaPage() {
     setIsDetailModalOpen(true);
   };
 
-  const filtered = mediaList.filter((m) =>
-    (m.original_name || m.filename || m.alt_text || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = mediaList.filter((m) => {
+    const matchesSearch = (m.original_name || m.filename || m.alt_text || m.title || '')
+      .toLowerCase()
+      .includes(search.toLowerCase());
+    const matchesFolder = selectedFolder === 'all' || (m.folder || 'general') === selectedFolder;
+    return matchesSearch && matchesFolder;
+  });
+
+  const websiteCount = mediaList.filter((m) => m.folder === 'website').length;
+  const clientsCount = mediaList.filter((m) => m.folder === 'clients').length;
+  const generalCount = mediaList.filter((m) => (m.folder || 'general') === 'general').length;
 
   return (
     <div className="space-y-6 text-xs font-sans">
@@ -104,21 +114,74 @@ export default function AdminMediaPage() {
         </label>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by title, alt text, filename..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:bg-white"
-          />
+      {/* Filter Tabs & Search Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Folder Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setSelectedFolder('all')}
+            className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+              selectedFolder === 'all'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            All Images ({mediaList.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedFolder('website')}
+            className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+              selectedFolder === 'website'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Website ({websiteCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedFolder('clients')}
+            className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+              selectedFolder === 'clients'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Clients ({clientsCount})
+          </button>
+          {generalCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedFolder('general')}
+              className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                selectedFolder === 'general'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              General ({generalCount})
+            </button>
+          )}
         </div>
-        <span className="text-xs text-slate-400 font-medium">
-          Showing {filtered.length} asset(s)
-        </span>
+
+        {/* Search Input & Total Count */}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by title, alt text, filename..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:bg-white"
+            />
+          </div>
+          <span className="text-xs text-slate-500 font-bold whitespace-nowrap">
+            Showing {filtered.length} of {mediaList.length}
+          </span>
+        </div>
       </div>
 
       {/* Grid Display */}

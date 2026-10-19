@@ -57,6 +57,12 @@ class AdminSettingController extends Controller
             Setting::setValue('copyright', $data['footer_copyright']);
         }
 
+        if (isset($data['og_image'])) {
+            Setting::setValue('default_og_image', $data['og_image']);
+        } elseif (isset($data['default_og_image'])) {
+            Setting::setValue('og_image', $data['default_og_image']);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Settings updated successfully',

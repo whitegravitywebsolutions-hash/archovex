@@ -5,6 +5,8 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
 import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +26,7 @@ export async function generateMetadata() {
         description: seo.og_description || seo.meta_description,
         images: seo.og_image ? [{ url: seo.og_image }] : ['/logo.png'],
       },
-      robots: seo.robots || 'index, follow',
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
@@ -34,6 +36,7 @@ export async function generateMetadata() {
     alternates: {
       canonical: '/contact-us',
     },
+    robots: getRobotsDirective(),
   };
 }
 
@@ -42,6 +45,10 @@ export default async function ContactPage() {
     fetchPublicData('/home').catch(() => null),
     fetchPublicData('/pages/contact-us').catch(() => null)
   ]);
+
+  if (!customContactPage || customContactPage.status === 'draft') {
+    notFound();
+  }
 
   const cities = homeData?.cities || [];
   const settings = homeData?.settings || {};
@@ -67,7 +74,7 @@ export default async function ContactPage() {
     mainEntity: {
       '@type': 'LocalBusiness',
       name: 'ARCHOVEX INFRA PRIVATE LIMITED',
-      telephone: '+919999999999',
+      telephone: '+919217614436',
       email: 'contact@archovex.com',
       address: {
         '@type': 'PostalAddress',
@@ -80,7 +87,7 @@ export default async function ContactPage() {
       areaServed: ['Noida', 'Greater Noida', 'Delhi', 'New Delhi', 'Gurgaon'],
       contactPoint: {
         '@type': 'ContactPoint',
-        telephone: '+919999999999',
+        telephone: '+919217614436',
         contactType: 'customer service',
         availableLanguage: ['English', 'Hindi'],
       },
@@ -96,7 +103,7 @@ export default async function ContactPage() {
         name: 'How soon will someone call me back?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'A designer usually calls back within 24 hours on working days. For faster contact, message us on WhatsApp at +91 99999 99999. If you contact us outside office hours, we reply on the next working day.',
+          text: 'A designer usually calls back within 24 hours on working days. For faster contact, message us on WhatsApp at +91 9217614436. If you contact us outside office hours, we reply on the next working day.',
         },
       },
       {

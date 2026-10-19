@@ -15,10 +15,11 @@ use App\Models\Faq;
 use App\Models\Menu;
 use App\Models\Setting;
 use App\Models\SocialLink;
-use App\Models\Lead;
 use App\Models\SeoMetadata;
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class PublicController extends Controller
 {
@@ -586,13 +587,14 @@ class PublicController extends Controller
         ]);
     }
 
-    public function submitLead(Request $request)
+    public function submitEnquiry(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:30',
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
+            'city' => 'nullable|string',
             'requirement' => 'nullable|string',
             'message' => 'nullable|string',
             'property_type' => 'nullable|string',
@@ -602,28 +604,112 @@ class PublicController extends Controller
             'source' => 'nullable|string',
         ]);
 
-        $requirementText = $validated['requirement'] ?? $validated['message'] ?? null;
+        $name = trim($validated['name']);
+        $phone = trim($validated['phone']);
+        $email = !empty($validated['email']) ? trim($validated['email']) : 'Not provided';
+        $location = !empty($validated['address']) ? trim($validated['address']) : (!empty($validated['city']) ? trim($validated['city']) : 'Not provided');
+        $propType = !empty($validated['property_type']) ? trim($validated['property_type']) : 'Not specified';
+        $budget = !empty($validated['budget']) ? trim($validated['budget']) : 'Not specified';
+        $requirement = $validated['requirement'] ?? $validated['message'] ?? 'Not specified';
+        $source = $validated['source'] ?? $validated['type'] ?? 'Website Form';
 
-        $lead = Lead::create([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-            'email' => $validated['email'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'requirement' => $requirementText,
-            'message' => $requirementText,
-            'property_type' => $validated['property_type'] ?? null,
-            'budget' => $validated['budget'] ?? null,
-            'city_id' => $validated['city_id'] ?? null,
-            'type' => $validated['type'] ?? 'contact',
-            'source' => $validated['source'] ?? 'website',
-            'status' => 'New',
-        ]);
+        // Format email subject & HTML body
+        $subject = "New Enquiry: {$name} ({$phone}) - {$source}";
+        $recipient = env('ENQUIRY_NOTIFICATION_EMAIL', 'whitegravitywebsolutions@gmail.com');
+        $submittedAt = now()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A (T)');
+        $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
+        $waPhone = preg_replace('/[^0-9]/', '', $phone);
+
+        $html = "
+        <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);\">
+            <div style=\"background: #0C4A6E; padding: 24px 30px; text-align: center;\">
+                <h1 style=\"color: #ffffff; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;\">ARCHOVEX INFRA</h1>
+                <p style=\"color: #F97316; margin: 6px 0 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;\">New Customer Enquiry</p>
+            </div>
+            <div style=\"padding: 30px;\">
+                <p style=\"color: #334155; font-size: 14px; margin-top: 0; margin-bottom: 20px; line-height: 1.5;\">
+                    A new enquiry has been submitted through the website. Here are the full details:
+                </p>
+                <table style=\"width: 100%; border-collapse: collapse; font-size: 14px;\">
+                    <tr style=\"background: #f8fafc;\">
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569; width: 35%;\">Form Source</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0C4A6E; font-weight: 700;\">" . htmlspecialchars($source) . "</td>
+                    </tr>
+                    <tr>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569;\">Customer Name</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;\">" . htmlspecialchars($name) . "</td>
+                    </tr>
+                    <tr style=\"background: #f8fafc;\">
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569;\">Phone Number</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #ea580c; font-weight: 700;\">
+                            <a href=\"tel:{$cleanPhone}\" style=\"color: #ea580c; text-decoration: none;\">" . htmlspecialchars($phone) . "</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569;\">Email Address</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a;\">" . ($email !== 'Not provided' ? "<a href=\"mailto:" . htmlspecialchars($email) . "\" style=\"color: #0284c7; text-decoration: none;\">" . htmlspecialchars($email) . "</a>" : "Not provided") . "</td>
+                    </tr>
+                    <tr style=\"background: #f8fafc;\">
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569;\">Location / City</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a;\">" . htmlspecialchars($location) . "</td>
+                    </tr>
+                    <tr>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569;\">Property Type</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a;\">" . htmlspecialchars($propType) . "</td>
+                    </tr>
+                    <tr style=\"background: #f8fafc;\">
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569;\">Budget Range</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a;\">" . htmlspecialchars($budget) . "</td>
+                    </tr>
+                    <tr>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #475569; vertical-align: top;\">Requirement / Details</td>
+                        <td style=\"padding: 12px 14px; border-bottom: 1px solid #e2e8f0; color: #0f172a; line-height: 1.5;\">" . nl2br(htmlspecialchars($requirement)) . "</td>
+                    </tr>
+                    <tr style=\"background: #f8fafc;\">
+                        <td style=\"padding: 12px 14px; font-weight: 700; color: #475569;\">Submitted At</td>
+                        <td style=\"padding: 12px 14px; color: #64748b; font-size: 13px;\">" . htmlspecialchars($submittedAt) . "</td>
+                    </tr>
+                </table>
+
+                <div style=\"margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;\">
+                    <a href=\"tel:{$cleanPhone}\" style=\"display: inline-block; background: #ea580c; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; margin-right: 10px;\">
+                        📞 Call Customer
+                    </a>
+                    <a href=\"https://wa.me/{$waPhone}\" target=\"_blank\" style=\"display: inline-block; background: #25D366; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px;\">
+                        💬 WhatsApp Customer
+                    </a>
+                </div>
+            </div>
+            <div style=\"background: #f1f5f9; padding: 16px; text-align: center; color: #64748b; font-size: 12px;\">
+                This notification was sent to <strong>{$recipient}</strong> from ARCHOVEX INFRA website.
+            </div>
+        </div>";
+
+        // Dispatch Email Notification
+        try {
+            Mail::html($html, function ($message) use ($recipient, $subject) {
+                $message->to($recipient)
+                        ->subject($subject);
+            });
+            Log::info("Enquiry email dispatched to {$recipient} for: {$name} ({$phone}) via [{$source}]");
+        } catch (\Throwable $e) {
+            Log::error("Failed sending enquiry email to {$recipient}: " . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Thank you! Your enquiry has been submitted successfully. Our team will contact you shortly.',
-            'data' => $lead
+            'message' => 'Thank you! Your enquiry has been received successfully. Our team will contact you shortly.',
+            'data' => [
+                'name' => $name,
+                'phone' => $phone,
+                'source' => $source
+            ]
         ]);
+    }
+
+    public function submitLead(Request $request)
+    {
+        return $this->submitEnquiry($request);
     }
 
     public function seoByPath(Request $request)
@@ -674,5 +760,18 @@ class PublicController extends Controller
         $data['seo_data'] = $seo;
 
         return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    public function pages()
+    {
+        $pages = Page::where('status', 'published')
+            ->select('id', 'title', 'slug', 'updated_at', 'created_at')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $pages
+        ]);
     }
 }

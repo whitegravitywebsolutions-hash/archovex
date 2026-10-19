@@ -6,6 +6,8 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
 import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: seo.meta_title,
       description: seo.meta_description || 'Terms & Conditions | Archovex Infra',
       alternates: { canonical: seo.canonical_url || '/terms-and-conditions' },
-      robots: seo.robots || 'index, follow',
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
@@ -30,10 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: '/terms-and-conditions',
     },
-    robots: {
-      index: true,
-      follow: true,
-    },
+    robots: getRobotsDirective(),
   };
 }
 
@@ -42,6 +41,10 @@ export default async function TermsAndConditionsPage() {
     fetchPublicData('/home').catch(() => null),
     fetchPublicData('/pages/terms-and-conditions').catch(() => null),
   ]);
+
+  if (!customPage || customPage.status === 'draft') {
+    notFound();
+  }
 
   const cities = homeData?.cities || [];
   const settings = homeData?.settings || {};
@@ -67,7 +70,7 @@ export default async function TermsAndConditionsPage() {
     publisher: {
       '@type': 'Organization',
       name: 'ARCHOVEX INFRA PRIVATE LIMITED',
-      logo: 'https://archovex.vercel.app/logo.png',
+      logo: 'http://127.0.0.1:8005/storage/media/website/page_tsx_fe9d6266.png',
     },
   };
 

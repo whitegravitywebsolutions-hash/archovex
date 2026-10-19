@@ -183,7 +183,7 @@ function HeroHomeSection({
   const rawBg = (section as any).bg_image || d.bg_image || d.background_image;
   const bgImage = rawBg
     ? getImageUrl(rawBg)
-    : 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80';
+    : 'http://127.0.0.1:8005/storage/media/website/page_tsx_8d41033e.jpg';
 
   // Inline consultation form state
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '', requirement: '' });
@@ -198,7 +198,7 @@ function HeroHomeSection({
     setLoading(true);
     setError('');
 
-    const targetNumber = whatsappNumber || settings.whatsapp || '+919876543210';
+    const targetNumber = whatsappNumber || settings.whatsapp || '+919217614436';
     const waUrl = createWhatsAppConsultationUrl({
       whatsappNumber: targetNumber,
       name: formData.name,
@@ -469,7 +469,7 @@ function HeroBannerSection({
   const secondaryCtaLink = (section as any).secondary_cta_link || d.secondary_cta_link || '';
 
   const rawBg = (section as any).bg_image || d.bg_image || d.background_image;
-  const bgImage = rawBg ? getImageUrl(rawBg) : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80';
+  const bgImage = rawBg ? getImageUrl(rawBg) : 'http://127.0.0.1:8005/storage/media/website/dynamicsectionrenderer_tsx_08160636.jpg';
 
   const isPrimaryConsultation = !ctaLink || ctaLink.includes('#consultation');
   const isSecondaryConsultation = secondaryCtaLink && secondaryCtaLink.includes('#consultation');
@@ -659,7 +659,7 @@ function DesignPostsSection({ section }: { section: PageSectionData }) {
               design.primary_image?.file_path ||
               design.featured_image ||
               (design.images && design.images.length > 0 ? (design.images[0].image || design.images[0].file_path) : null) ||
-              'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+              'http://127.0.0.1:8005/storage/media/website/turnkey_interior_design_in_del_1d0bb6fa.jpg';
             const catSlug = design.category?.slug || 'general';
             return (
               <Link 
@@ -765,7 +765,7 @@ const DEFAULT_TESTIMONIALS = [
     tagline: 'Delivered 4 days ahead of schedule with zero price surprises.',
     quote: 'We were nervous about interior renovations because friends had warned us about hidden costs and endless delays. Archovex gave us a detailed line-item BOQ during the 3D design phase and stuck to it to the last rupee. The factory-finished wardrobes and fluted acoustic panelling in our master bedroom exceeded our expectations. Our site supervisor, Ankit, sent daily WhatsApp logs without us ever having to chase him.',
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    image: 'http://127.0.0.1:8005/storage/media/website/interior_designers_in_delhi_nc_c7bdcf94.jpg',
     metrics: '45-Day Handover · 10-Yr Warranty · ₹26.8 Lakh Project',
     tag: 'Turnkey 4BHK'
   },
@@ -776,7 +776,7 @@ const DEFAULT_TESTIMONIALS = [
     tagline: 'Ergonomics and German hardware that makes daily cooking a joy.',
     quote: 'Our kitchen layout had an awkward civil column that two other interior firms failed to address properly. Archovex designed custom pull-outs with Hafele soft-close tandem boxes and an integrated quartz breakfast island. The boiling-water-proof (BWP) marine plywood quality and precision acrylic edge-banding are immaculate. Three months in, and every drawer still glides silently like day one.',
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+    image: 'http://127.0.0.1:8005/storage/media/website/interior_designers_in_delhi_nc_71ab7320.jpg',
     metrics: '28-Day Installation · Hafele Soft-Close Hardware · Anti-Bacterial Quartz',
     tag: 'Modular Kitchen'
   },
@@ -787,7 +787,7 @@ const DEFAULT_TESTIMONIALS = [
     tagline: 'Flawless turnkey execution while we were travelling abroad.',
     quote: 'Since we live between London and Delhi, remote transparency was our top priority. Archovex executed civil restructuring, electrical rewiring, Italian marble polishing, custom PU wardrobes, and false ceilings seamlessly. Weekly 3D milestone reviews and a single point-of-contact gave us complete peace of mind. We walked into a sparkling, ready-to-move-in home without a single speck of construction dust.',
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+    image: 'http://127.0.0.1:8005/storage/media/website/interior_designers_in_delhi_nc_471a6208.jpg',
     metrics: '55-Day Handover · Turnkey Execution · Dedicated Site Lead',
     tag: 'Turnkey 3BHK'
   },
@@ -798,7 +798,7 @@ const DEFAULT_TESTIMONIALS = [
     tagline: 'Ergonomic, modern commercial workplace delivered strictly on deadline.',
     quote: 'Fitting out a commercial office space on a tight corporate launch timeline is stressful. Archovex took full charge of HVAC integration, acoustic baffle ceilings, glass partition meeting rooms, and ergonomic workstation clusters. They completed all inspections and handed over the space 3 days before our lease commencement date, saving us substantial rent overlap.',
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+    image: 'http://127.0.0.1:8005/storage/media/website/interior_designers_in_delhi_nc_a79b7adf.jpg',
     metrics: '38-Day Turnaround · 42 Workstations & 3 Boardrooms · Fire & HVAC Certified',
     tag: 'Commercial Workspace'
   },
@@ -809,7 +809,7 @@ const DEFAULT_TESTIMONIALS = [
     tagline: 'Transformed our traditional home into a warm, contemporary haven.',
     quote: 'Our formal living room felt outdated and poorly lit. Archovex recommended a stunning veneer panel accent wall with concealed warm LED cove lighting, floating stone console, and custom bouclé seating. Guests constantly ask which interior firm designed our space. Their attention to subtle design proportions and lighting warmth made all the difference.',
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80',
+    image: 'http://127.0.0.1:8005/storage/media/website/interior_designers_in_delhi_nc_787b21a4.jpg',
     metrics: '21-Day Room Transformation · Architectural Lighting · Custom Millwork',
     tag: 'Living & Dining'
   }
@@ -1331,7 +1331,13 @@ function CustomEditorSection({ section }: { section: PageSectionData }) {
           address: city,
           property_type: prop,
           budget: budget,
-          requirement: 'Home Page CTA: ' + prop + ' in ' + city + ' (' + budget + ')'
+          requirement: [
+            'Home Page CTA',
+            prop ? `Type: ${prop}` : null,
+            city ? `City: ${city}` : null,
+            budget ? `Budget: ${budget}` : null,
+          ].filter(Boolean).join(' | ') || 'Home Page CTA Inquiry',
+          source: 'Home Page Form'
         })
       })
       .then((res) => res.json())
@@ -1505,7 +1511,7 @@ function HeroSliderSection({
         {
           title: section.title || 'Luxury Turnkey Interiors & Architecture',
           subtitle: section.subtitle || 'Bespoke modular kitchens, living room spaces, and custom wardrobes with German hardware & 10-year warranty.',
-          bg_image: (section as any).bg_image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80',
+          bg_image: (section as any).bg_image || 'http://127.0.0.1:8005/storage/media/website/page_tsx_13246fc0.jpg',
           cta_text: (section as any).cta_text || 'Book Free Consultation',
           cta_link: (section as any).cta_link || '',
           badge: (section as any).badge || 'Archovex Luxury Homes',
@@ -1513,7 +1519,7 @@ function HeroSliderSection({
         {
           title: 'Crafted in Automated German Factories',
           subtitle: 'Sub-millimeter precision woodworking with Boiling Water Resistant (BWR) plywood and 45-day guaranteed handover.',
-          bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
+          bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_8d41033e.jpg',
           cta_text: 'Explore Designs',
           cta_link: '/designs',
           badge: '45-Day Handover Guarantee',
@@ -1521,7 +1527,7 @@ function HeroSliderSection({
         {
           title: 'Photorealistic 3D Design Renders',
           subtitle: 'Visualize your entire home in 3D before execution begins with complete line-item price transparency.',
-          bg_image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2000&q=80',
+          bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_f40680bb.jpg',
           cta_text: 'See Recent Projects',
           cta_link: '/designs',
           badge: '10-Year Warranty',
@@ -1550,7 +1556,7 @@ function HeroSliderSection({
     <section className="relative w-full min-h-[580px] lg:min-h-[700px] flex items-center bg-slate-950 overflow-hidden group font-sans">
       {slides.map((slide: any, idx: number) => {
         const rawBg = slide.bg_image || slide.background_image || slide.image;
-        const bgImg = rawBg ? getImageUrl(rawBg) : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80';
+        const bgImg = rawBg ? getImageUrl(rawBg) : 'http://127.0.0.1:8005/storage/media/website/page_tsx_13246fc0.jpg';
         const isActive = idx === currentIndex;
 
         return (
@@ -2040,10 +2046,10 @@ function ContactWithFormSection({ section }: { section: PageSectionData }) {
     }).catch(() => {});
   }, []);
 
-  const address = (section as any).address || d.address || settings.address || 'ARCHOVEX INFRA HQ, Connaught Place, New Delhi 110001';
-  const phone = (section as any).phone || d.phone || settings.phone || '+91 98765 43210';
-  const email = (section as any).email || d.email || settings.email || 'contact@archovex.com';
-  const whatsapp = (section as any).whatsapp || d.whatsapp || settings.whatsapp || '+91 98765 43210';
+  const address = (section as any).address || d.address || settings.address || 'Floor No. 1, Building No. 01AB, Kh-814, SS, Behind Ace City, Near Nix Hospital, Bisrakh Jalalpur Village, Greater Noida, Gautambuddha Nagar, Uttar Pradesh – 201306, India.';
+  const phone = (section as any).phone || d.phone || settings.phone || '+91 9217614436';
+  const email = (section as any).email || d.email || settings.email || 'info@archovexinfra.com';
+  const whatsapp = (section as any).whatsapp || d.whatsapp || settings.whatsapp || '+91 9217614436';
 
   return (
     <section className="py-16 bg-[#FAFAFA] border-b border-slate-200/90 font-sans">

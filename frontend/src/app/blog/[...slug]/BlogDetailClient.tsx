@@ -64,8 +64,24 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
     setFormError('');
 
     try {
+      // 1. Submit enquiry to backend API -> sends email to whitegravitywebsolutions@gmail.com
+      try {
+        await apiClient.post('/enquiry', {
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim() || undefined,
+          requirement: `Property Scope: ${formData.property_type}`,
+          source: `Blog Post: ${post.title}`,
+          type: 'blog_consultation',
+        });
+      } catch (apiErr) {
+        console.error('Email dispatch error (continuing to WhatsApp):', apiErr);
+      }
+
+      // 2. Open WhatsApp directly with senior architect
+      const targetWhatsApp = post.whatsapp || '+919217614436';
       const waUrl = createWhatsAppConsultationUrl({
-        whatsappNumber: post.whatsapp || '+919876543210',
+        whatsappNumber: targetWhatsApp,
         name: formData.name,
         phone: formData.phone,
         email: formData.email,
@@ -111,7 +127,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
           <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 bg-slate-100">
             <Image
               src={imgUrl}
-              alt={post.title}
+              alt={post.title ? `${post.title} - Archovex Infra Interior Design` : 'Archovex Infra Luxury Living'}
               fill
               className="object-cover"
               priority
@@ -359,7 +375,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
             {/* EXACTLY 3-COLUMN GRID MATCHING /blog CARD DESIGN */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {displayedRelated.map((item: any) => {
-                const relImg = getImageUrl(item.primary_image?.image || item.featured_image || item.image) || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+                const relImg = getImageUrl(item.primary_image?.image || item.featured_image || item.image) || 'http://127.0.0.1:8005/storage/media/website/turnkey_interior_design_in_del_1d0bb6fa.jpg';
                 const relDate = item.published_at || item.created_at;
                 const relDateStr = relDate
                   ? new Date(relDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })

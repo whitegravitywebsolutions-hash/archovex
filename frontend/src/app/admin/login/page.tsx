@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
         <div className="text-center space-y-2">
           <Logo className="justify-center mb-2" />
           <h1 className="text-xl font-black text-[#0C4A6E] uppercase tracking-wide">ADMIN PORTAL CMS</h1>
-          <p className="text-xs text-slate-600">Sign in to manage website content, leads & designs.</p>
+          <p className="text-xs text-slate-600">Sign in to manage website pages, blogs & designs.</p>
         </div>
 
         {error && (

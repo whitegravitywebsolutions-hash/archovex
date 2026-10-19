@@ -200,20 +200,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </div>
 
-            {/* 5. Leads CRM */}
-            <Link
-              href="/admin/leads"
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-                pathname.startsWith('/admin/leads')
-                  ? 'bg-[#F97316] text-white shadow-md shadow-[#F97316]/25 border border-amber-300/30'
-                  : 'text-sky-100 hover:text-white hover:bg-[#0369A1]/60'
-              }`}
-            >
-              <Users className={`w-4 h-4 ${pathname.startsWith('/admin/leads') ? 'text-white' : 'text-sky-200'}`} />
-              <span>Leads CRM</span>
-            </Link>
-
-            {/* 6. Header & Menus */}
+            {/* Header & Menus */}
             <Link
               href="/admin/menus"
               className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${

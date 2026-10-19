@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import ConsultationForm from './ConsultationForm';
 import { City } from '@/types';
@@ -13,17 +13,34 @@ interface ModalProps {
 }
 
 export default function ConsultationFormModal({ isOpen, onClose, cities = [], defaultRequirement = '' }: ModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C4A6E]/80 backdrop-blur-md animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0C4A6E]/80 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-lg bg-[#FAF8F3] rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden max-h-[90vh] overflow-y-auto border border-[#E4DCD0]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-[#0C4A6E] hover:bg-[#F3EEE4] rounded-full transition-all"
+          aria-label="Close Modal"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-[#0C4A6E] hover:bg-[#F3EEE4] rounded-full transition-all cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -38,7 +55,7 @@ export default function ConsultationFormModal({ isOpen, onClose, cities = [], de
           </p>
         </div>
 
-        <ConsultationForm cities={cities} defaultRequirement={defaultRequirement} onSuccess={() => {}} />
+        <ConsultationForm cities={cities} defaultRequirement={defaultRequirement} onSuccess={onClose} />
       </div>
     </div>
   );

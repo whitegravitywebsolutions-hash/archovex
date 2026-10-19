@@ -8,6 +8,7 @@ import CategoryPageClient from '@/app/designs/[categorySlug]/CategoryPageClient'
 import { fetchPublicData } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,10 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       alternates: { canonical },
-      robots: {
-        index: seo.robots_index ?? true,
-        follow: seo.robots_follow ?? true,
-      },
+      robots: getRobotsDirective(),
       openGraph: {
         title,
         description,
@@ -74,6 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       alternates: { canonical },
+      robots: getRobotsDirective(),
       openGraph: {
         title,
         description,
@@ -85,7 +84,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  return { title: 'Blog Post Not Found | ARCHOVEX INFRA' };
+  return { title: 'Blog Post Not Found | ARCHOVEX INFRA', robots: getRobotsDirective() };
 }
 
 export default async function DynamicBlogOrCategoryPage({ params }: PageProps) {

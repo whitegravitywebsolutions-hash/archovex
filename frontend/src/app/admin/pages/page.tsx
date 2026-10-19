@@ -119,7 +119,7 @@ export default function AdminPagesListPage() {
             subtitle: 'Welcome to ARCHOVEX INFRA luxury home interiors.',
             cta_text: 'Book Free Consultation',
             cta_link: '#consultation',
-            bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80',
+            bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_5816194f.jpg',
           },
         ],
       };

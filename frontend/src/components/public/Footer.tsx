@@ -49,6 +49,15 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const DEFAULT_COMPANY = [
+  { label: 'Home', url: '/' },
+  { label: 'About Us', url: '/about-us' },
+  { label: 'Services', url: '/services' },
+  { label: 'Interior Designs', url: '/designs' },
+  { label: 'Our Blogs', url: '/blog' },
+  { label: 'Contact Us', url: '/contact-us' },
+];
+
 const DEFAULT_LOCATIONS = [
   { label: 'Interior Designers in Noida', url: '/locations/noida' },
   { label: 'Interior Designers in Greater Noida', url: '/locations/greater-noida' },
@@ -127,6 +136,7 @@ export default function Footer({ settings: initialSettings = {}, socialLinks: in
   const privacyUrl = siteSettings.footer_privacy_url || '/privacy-policy';
   const termsUrl = siteSettings.footer_terms_url || '/terms-and-conditions';
 
+  const companyList = parsePipeLinks(siteSettings.footer_company, DEFAULT_COMPANY);
   const locationsList = parsePipeLinks(siteSettings.footer_locations, DEFAULT_LOCATIONS);
   const servicesList = parsePipeLinks(siteSettings.footer_services, DEFAULT_SERVICES);
 
@@ -156,7 +166,7 @@ export default function Footer({ settings: initialSettings = {}, socialLinks: in
     });
     if (found?.url) rawWhatsapp = found.url;
   }
-  if (!rawWhatsapp) rawWhatsapp = '+919876543210';
+  if (!rawWhatsapp) rawWhatsapp = '+919217614436';
   const whatsappUrl = rawWhatsapp.startsWith('http')
     ? rawWhatsapp
     : `https://wa.me/${rawWhatsapp.replace(/[^0-9]/g, '')}`;
@@ -178,9 +188,9 @@ export default function Footer({ settings: initialSettings = {}, socialLinks: in
     <footer className="bg-[#FAF9F6] text-slate-800 pt-16 pb-12 border-t border-slate-200/90 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Main Footer Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-8">
           {/* Brand Info */}
-          <div className="space-y-4">
+          <div className="space-y-4 sm:col-span-2 md:col-span-3 lg:col-span-1">
             {footerLogo ? (
               <Link href="/" className="inline-block relative h-16 w-48">
                 <Image
@@ -214,6 +224,22 @@ export default function Footer({ settings: initialSettings = {}, socialLinks: in
                 </a>
               ))}
             </div>
+          </div>
+
+          {/* Company */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold tracking-wider text-slate-900 border-b border-slate-200 pb-2">
+              Company
+            </h4>
+            <ul className="space-y-2 text-xs font-bold text-slate-800">
+              {companyList.map((item, i) => (
+                <li key={i}>
+                  <Link href={item.url} className="hover:text-[#EA580C] transition-colors block py-0.5 tracking-wide">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* All Locations */}
@@ -264,12 +290,22 @@ export default function Footer({ settings: initialSettings = {}, socialLinks: in
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
+                <div className="p-2 bg-white rounded-lg border border-slate-200/80 shadow-2xs mt-0.5">
                   <Phone className="w-4 h-4 text-[#EA580C] flex-shrink-0" />
                 </div>
-                <div>
+                <div className="space-y-1">
                   <span className="text-[10px] text-slate-500 font-extrabold tracking-wider block mb-0.5">Direct Call</span>
-                  <a href={`tel:${phone.replace(/\s+/g, '')}`} className="text-slate-900 font-extrabold hover:text-[#EA580C] transition-colors">{phone}</a>
+                  <div className="flex flex-col space-y-1">
+                    <a href="tel:+919217614436" className="text-slate-900 font-extrabold hover:text-[#EA580C] transition-colors block">
+                      +91 92176 14436
+                    </a>
+                    <a href="tel:+918468926581" className="text-slate-900 font-extrabold hover:text-[#EA580C] transition-colors block">
+                      +91 84689 26581
+                    </a>
+                    <a href="tel:+917303490289" className="text-slate-900 font-extrabold hover:text-[#EA580C] transition-colors block">
+                      +91 73034 90289
+                    </a>
+                  </div>
                 </div>
               </div>
               <div className="flex items-start gap-3">

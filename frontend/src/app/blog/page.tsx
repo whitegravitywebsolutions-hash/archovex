@@ -6,6 +6,7 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import Breadcrumbs from '@/components/public/Breadcrumbs';
 import BlogIndexClient from './BlogIndexClient';
 import { fetchPublicData } from '@/lib/api';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: seo.meta_title,
       description: seo.meta_description || 'Interior Design Blog: Guides for NCR Homes | Archovex',
       alternates: { canonical: seo.canonical_url || '/blog' },
-      robots: seo.robots || 'index, follow',
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
@@ -37,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: ['/logo.png'],
     },
+    robots: getRobotsDirective(),
   };
 }
 
@@ -79,7 +81,7 @@ export default async function BlogIndexPage() {
     publisher: {
       '@type': 'Organization',
       name: 'ARCHOVEX INFRA PRIVATE LIMITED',
-      logo: 'https://archovex.vercel.app/logo.png',
+      logo: 'http://127.0.0.1:8005/storage/media/website/page_tsx_fe9d6266.png',
     },
     blogPost: blogs.map((b: any) => ({
       '@type': 'BlogPosting',

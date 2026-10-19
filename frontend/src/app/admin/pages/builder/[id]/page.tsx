@@ -195,7 +195,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         badge: 'Archovex Infra · Interior design and execution',
         cta_text: 'Get Free Consultation',
         cta_link: '#consultation',
-        bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
+        bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_8d41033e.jpg',
       },
     },
     {
@@ -226,7 +226,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         badge: 'PREMIUM INTERIOR FIRM',
         cta_text: 'Book Free Design Consultation',
         cta_link: '#consultation',
-        bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80',
+        bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_5816194f.jpg',
         theme: 'dark',
       },
     },
@@ -242,7 +242,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
           {
             title: 'LUXURY TURNKEY INTERIORS & ARCHITECTURE',
             subtitle: 'Bespoke modular kitchens, living room spaces, and custom wardrobes with German hardware & 10-year warranty.',
-            bg_image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80',
+            bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_13246fc0.jpg',
             cta_text: 'BOOK FREE CONSULTATION',
             cta_link: '',
             badge: 'ARCHOVEX LUXURY HOMES'
@@ -250,7 +250,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
           {
             title: 'CRAFTED IN AUTOMATED GERMAN FACTORIES',
             subtitle: 'Sub-millimeter precision woodworking with Boiling Water Resistant (BWR) plywood and 45-day guaranteed handover.',
-            bg_image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
+            bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_8d41033e.jpg',
             cta_text: 'EXPLORE DESIGNS',
             cta_link: '/designs',
             badge: '45-DAY HANDOVER GUARANTEE'
@@ -258,7 +258,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
           {
             title: 'PHOTOREALISTIC 3D DESIGN RENDERS',
             subtitle: 'Visualize your entire home in 3D before execution begins with complete line-item price transparency.',
-            bg_image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2000&q=80',
+            bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_f40680bb.jpg',
             cta_text: 'SEE RECENT PROJECTS',
             cta_link: '/designs',
             badge: '10-YEAR WARRANTY'
@@ -869,7 +869,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                                   onClick={() => addSectionArrayItem(sec.id, {
                                     title: 'NEW SLIDE TITLE',
                                     subtitle: 'Bespoke modular interior design with German hardware.',
-                                    bg_image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80',
+                                    bg_image: 'http://127.0.0.1:8005/storage/media/website/page_tsx_13246fc0.jpg',
                                     cta_text: 'BOOK CONSULTATION',
                                     cta_link: '',
                                     badge: 'EXCLUSIVE INTERIORS'

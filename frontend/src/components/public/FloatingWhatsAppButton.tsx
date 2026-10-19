@@ -9,7 +9,7 @@ interface FloatingWhatsAppProps {
 }
 
 export default function FloatingWhatsAppButton({
-  number = '+919876543210',
+  number = '+919217614436',
   message = 'Hello ARCHOVEX team! I am interested in interior design consultation.',
 }: FloatingWhatsAppProps) {
   const cleanNumber = number.replace(/[^0-9]/g, '');

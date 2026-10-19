@@ -15,16 +15,31 @@ class AdminMediaController extends Controller
 
         if ($request->has('search') && $request->search) {
             $s = $request->search;
-            $query->where('filename', 'like', "%{$s}%")
-                ->orWhere('original_name', 'like', "%{$s}%")
-                ->orWhere('alt_text', 'like', "%{$s}%");
+            $query->where(function($q) use ($s) {
+                $q->where('filename', 'like', "%{$s}%")
+                    ->orWhere('original_name', 'like', "%{$s}%")
+                    ->orWhere('alt_text', 'like', "%{$s}%")
+                    ->orWhere('title', 'like', "%{$s}%");
+            });
         }
 
-        if ($request->has('folder') && $request->folder) {
+        if ($request->has('folder') && $request->folder && $request->folder !== 'all') {
             $query->where('folder', $request->folder);
         }
 
-        $media = $query->orderBy('created_at', 'desc')->paginate(24);
+        if ($request->has('all') || $request->input('per_page') == -1) {
+            $media = $query->orderBy('created_at', 'desc')->get();
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'data' => $media,
+                    'total' => $media->count()
+                ]
+            ]);
+        }
+
+        $perPage = (int) $request->input('per_page', 500);
+        $media = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json(['success' => true, 'data' => $media]);
     }

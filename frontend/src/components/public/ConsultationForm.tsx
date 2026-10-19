@@ -31,7 +31,7 @@ export default function ConsultationForm({
     requirement: defaultRequirement || '',
   });
 
-  const [activeWhatsApp, setActiveWhatsApp] = useState(whatsappNumber || '+919876543210');
+  const [activeWhatsApp, setActiveWhatsApp] = useState(whatsappNumber || '+919217614436');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedWhatsAppUrl, setSubmittedWhatsAppUrl] = useState('');
@@ -66,21 +66,19 @@ export default function ConsultationForm({
     setError('');
 
     try {
-      if (isContactForm) {
-        // Contact form enquiry: goes to Customer Leads in Admin CRM
-        const res = await apiClient.post('/leads', {
-          ...formData,
-          type: 'contact',
-          source: 'contact_form',
-        });
-        if (res.data?.success) {
-          setSubmitted(true);
-          if (onSuccess) onSuccess();
-        } else {
-          setError(res.data?.message || 'Failed to submit enquiry.');
-        }
-      } else {
-        // Other consultation forms: go directly to WhatsApp Helpline
+      // Send enquiry details to backend (triggers email notification to whitegravitywebsolutions@gmail.com)
+      await apiClient.post('/enquiry', {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        requirement: formData.requirement,
+        source: isContactForm ? 'Contact Form' : 'Consultation Modal Form',
+        type: 'consultation',
+      });
+
+      if (!isContactForm) {
+        // Also open WhatsApp Helpline for direct architect chat
         const waUrl = createWhatsAppConsultationUrl({
           whatsappNumber: activeWhatsApp,
           name: formData.name,
@@ -94,9 +92,10 @@ export default function ConsultationForm({
         if (typeof window !== 'undefined') {
           window.open(waUrl, '_blank');
         }
-        setSubmitted(true);
-        if (onSuccess) onSuccess();
       }
+
+      setSubmitted(true);
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to submit request. Please try again.');
     } finally {

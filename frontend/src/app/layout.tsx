@@ -34,12 +34,26 @@ export async function generateMetadata(): Promise<Metadata> {
     ? process.env.NEXT_PUBLIC_SITE_URL 
     : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
+  const ogImageUrl = settings.og_image || settings.default_og_image || '/logo.png';
+
   return {
     metadataBase: new URL(siteUrl),
     title: settings.default_meta_title || "ARCHOVEX INFRA PRIVATE LIMITED | Premium Interior Design",
     description: settings.default_meta_description || "Luxury home interior design and turnkey execution across India.",
     alternates: {
       canonical: '/',
+    },
+    openGraph: {
+      title: settings.default_meta_title || "ARCHOVEX INFRA PRIVATE LIMITED | Premium Interior Design",
+      description: settings.default_meta_description || "Luxury home interior design and turnkey execution across India.",
+      siteName: settings.site_name || "ARCHOVEX INFRA PRIVATE LIMITED",
+      images: [{ url: ogImageUrl }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: settings.default_meta_title || "ARCHOVEX INFRA PRIVATE LIMITED | Premium Interior Design",
+      description: settings.default_meta_description || "Luxury home interior design and turnkey execution across India.",
+      images: [ogImageUrl],
     },
     icons: {
       icon: [
@@ -48,6 +62,19 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
       shortcut: '/icon.png',
       apple: '/icon.png',
+    },
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+        noimageindex: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'none',
+        'max-snippet': -1,
+      },
     },
   };
 }
@@ -71,7 +98,7 @@ export default async function RootLayout({
     name: 'Archovex Infra',
     legalName: '[REGISTERED NAME]',
     url: 'https://archovex.vercel.app',
-    logo: 'https://archovex.vercel.app/logo.png',
+    logo: 'http://127.0.0.1:8005/storage/media/website/page_tsx_fe9d6266.png',
     telephone: '[PHONE]',
     email: '[EMAIL]',
     address: '[ADDRESS]',
@@ -109,6 +136,8 @@ export default async function RootLayout({
       className={`${plusJakartaSans.variable} ${poppins.variable} ${playfairDisplay.variable} h-full antialiased`}
     >
       <head>
+        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+        <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLocalBusinessSchema) }}

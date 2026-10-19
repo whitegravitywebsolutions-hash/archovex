@@ -6,6 +6,8 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
 import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: seo.meta_title,
       description: seo.meta_description || 'Interior Design Services in Delhi NCR',
       alternates: { canonical: seo.canonical_url || '/services' },
-      robots: seo.robots || 'index, follow',
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
@@ -37,6 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: ['/logo.png'],
     },
+    robots: getRobotsDirective(),
   };
 }
 
@@ -45,6 +48,10 @@ export default async function ServicesHubPage() {
     fetchPublicData('/home').catch(() => null),
     fetchPublicData('/pages/services').catch(() => null),
   ]);
+
+  if (!customPage || customPage.status === 'draft') {
+    notFound();
+  }
 
   const cities = homeData?.cities || [];
   const settings = homeData?.settings || {};

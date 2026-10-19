@@ -97,7 +97,7 @@ export function createWhatsAppConsultationUrl({
   requirement?: string;
   sourceTitle?: string;
 }): string {
-  const cleanPhone = (whatsappNumber || '+919876543210').replace(/[^0-9]/g, '');
+  const cleanPhone = (whatsappNumber || '+919217614436').replace(/[^0-9]/g, '');
   const lines: string[] = [
     '👋 *Hello ARCHOVEX INFRA!*',
     sourceTitle

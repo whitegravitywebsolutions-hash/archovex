@@ -7,6 +7,7 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
 import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -39,11 +40,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
         images: seo.og_image ? [{ url: seo.og_image }] : ['/logo.png'],
       },
-      robots: seo.robots || 'index, follow',
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
-  return { title: 'Service | Archovex Infra' };
+  return { title: 'Service | Archovex Infra', robots: getRobotsDirective() };
 }
 
 export default async function ServicePageRouter({ params }: PageProps) {
@@ -55,7 +56,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
     fetchPublicData(`/pages/services/${slug}`).catch(() => null),
   ]);
 
-  if (!customPage) {
+  if (!customPage || customPage.status === 'draft') {
     notFound();
   }
 

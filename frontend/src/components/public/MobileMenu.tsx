@@ -11,6 +11,7 @@ interface MobileMenuProps {
   onClose: () => void;
   items: MenuItem[];
   cities?: City[];
+  phoneNumber?: string;
   onOpenConsultation: () => void;
 }
 
@@ -26,7 +27,7 @@ const DEFAULT_SERVICES_LIST = [
   { title: 'Turnkey Interior Design', slug: 'turnkey-interior-design' },
 ];
 
-export default function MobileMenu({ isOpen, onClose, items, cities = [], onOpenConsultation }: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose, items, cities = [], phoneNumber = '+91 98765 43210', onOpenConsultation }: MobileMenuProps) {
   const [openSubIndex, setOpenSubIndex] = useState<number | null>(null);
 
   if (!isOpen) return null;
@@ -137,10 +138,11 @@ export default function MobileMenu({ isOpen, onClose, items, cities = [], onOpen
           </button>
 
           <a
-            href="tel:+919876543210"
-            className="flex items-center justify-center gap-2 text-xs font-bold text-slate-700 hover:text-[#0C4A6E] py-2"
+            href={`tel:${phoneNumber.replace(/\s+/g, '')}`}
+            className="flex items-center justify-center gap-2 text-xs font-bold text-slate-700 hover:text-[#EA580C] py-2 transition-colors"
           >
-            <Phone className="w-4 h-4 text-[#F97316]" /> +91 98765 43210
+            <Phone className="w-4 h-4 text-[#EA580C]" />
+            <span>Call Now: {phoneNumber}</span>
           </a>
         </div>
       </div>

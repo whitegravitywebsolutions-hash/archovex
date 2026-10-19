@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Calendar, Search } from 'lucide-react';
+import { getImageUrl } from '@/lib/api';
 
 export interface DynamicBlogCategory {
   id: number;
@@ -109,7 +110,7 @@ export default function BlogIndexClient({
         slug: b.slug,
         readTime,
         desc: desc || 'Comprehensive interior design breakdown, material specifications, and execution advice from Archovex.',
-        image: b.featured_image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+        image: getImageUrl(b.featured_image),
         publishedDate: formattedDate,
       };
     });
@@ -188,8 +189,8 @@ export default function BlogIndexClient({
               <div className="lg:col-span-5 relative">
                 <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-slate-200/90 bg-white">
                   <Image
-                    src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80"
-                    alt="Designer's desk with samples, drawings and a laptop"
+                    src="/storage/media/website/interior_design_blog_practical_38aa3283.jpg"
+                    alt="Archovex Studio - Interior Design Architectural Blueprints and Material Samples"
                     fill
                     priority
                     className="object-cover"
@@ -289,8 +290,8 @@ export default function BlogIndexClient({
                       className="block relative aspect-[16/10] overflow-hidden bg-slate-900"
                     >
                       <Image
-                        src={art.image}
-                        alt={art.title}
+                        src={getImageUrl(art.image)}
+                        alt={`${art.title} - Archovex Infra Interior Design`}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -348,7 +349,7 @@ export default function BlogIndexClient({
       {ctaSection && ctaSection.content ? (
         <div
           dangerouslySetInnerHTML={{
-            __html: ctaSection.content.replace(/\[WHATSAPP\]/g, whatsappNumber || '919999999999'),
+            __html: ctaSection.content.replace(/\[WHATSAPP\]/g, whatsappNumber || '919217614436'),
           }}
           className="blog-cta-builder-container"
         />
@@ -363,7 +364,7 @@ export default function BlogIndexClient({
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href={`https://wa.me/${whatsappNumber || '919999999999'}?text=Hi%20Archovex,%20I%20have%20a%20question%20about%20my%20interior%20project.`}
+                href={`https://wa.me/${whatsappNumber || '919217614436'}?text=Hi%20Archovex,%20I%20have%20a%20question%20about%20my%20interior%20project.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl bg-[#EA580C] hover:bg-[#c2410c] text-white text-base font-bold shadow-xl shadow-orange-600/30 hover:shadow-orange-600/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"

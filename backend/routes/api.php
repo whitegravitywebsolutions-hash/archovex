@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\V1\AdminBlogController;
 use App\Http\Controllers\Api\V1\AdminBlogCategoryController;
 use App\Http\Controllers\Api\V1\AdminMenuController;
 use App\Http\Controllers\Api\V1\AdminMediaController;
-use App\Http\Controllers\Api\V1\AdminLeadController;
 use App\Http\Controllers\Api\V1\AdminSettingController;
 use App\Http\Controllers\Api\V1\AdminSeoController;
 use App\Http\Controllers\Api\V1\AdminPageController;
@@ -34,13 +33,15 @@ Route::prefix('v1')->group(function () {
     Route::get('/blogs', [PublicController::class, 'blogs']);
     Route::get('/blog-categories', [PublicController::class, 'blogCategories']);
     Route::get('/blogs/{slug}', [PublicController::class, 'blogBySlug'])->where('slug', '.*');
+    Route::get('/pages', [PublicController::class, 'pages']);
     Route::get('/pages/{slug}', [PublicController::class, 'pageBySlug'])->where('slug', '.*');
     Route::get('/settings', [PublicController::class, 'settings']);
     Route::get('/seo', [PublicController::class, 'seoByPath']);
     
-    // Leads
-    Route::post('/leads', [PublicController::class, 'submitLead']);
-    Route::post('/consultation', [PublicController::class, 'submitLead']);
+    // Enquiries & Consultation submissions (Sent to email)
+    Route::post('/enquiry', [PublicController::class, 'submitEnquiry']);
+    Route::post('/consultation', [PublicController::class, 'submitEnquiry']);
+    Route::post('/leads', [PublicController::class, 'submitEnquiry']);
 
     // 2. ADMIN AUTH ROUTES
     Route::post('/admin/login', [AuthController::class, 'login']);
@@ -91,11 +92,6 @@ Route::prefix('v1')->group(function () {
         Route::delete('/media/{id}', [AdminMediaController::class, 'destroy']);
 
 
-
-        // Leads CRM
-        Route::get('/leads', [AdminLeadController::class, 'index']);
-        Route::put('/leads/{id}', [AdminLeadController::class, 'updateStatus']);
-        Route::delete('/leads/{id}', [AdminLeadController::class, 'destroy']);
 
         // Settings
         Route::get('/settings', [AdminSettingController::class, 'index']);

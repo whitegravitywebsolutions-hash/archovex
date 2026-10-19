@@ -4,6 +4,7 @@ import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicPageClient from './DynamicPageClient';
 import { fetchPublicData } from '@/lib/api';
+import { getRobotsDirective } from '@/lib/seoConfig';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: DynamicPageProps) {
       siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: seo.og_image ? [{ url: seo.og_image }] : [],
     },
-    robots: seo.robots || 'index, follow',
+    robots: getRobotsDirective(seo.robots),
   };
 }
 

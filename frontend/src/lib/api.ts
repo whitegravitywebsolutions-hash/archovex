@@ -53,6 +53,9 @@ export async function fetchPublicData(endpoint: string) {
 
 export function getImageUrl(url?: string | null): string {
   if (!url) return '/placeholder.jpg';
+  if (url.includes('/storage/')) {
+    return url.substring(url.indexOf('/storage/'));
+  }
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }

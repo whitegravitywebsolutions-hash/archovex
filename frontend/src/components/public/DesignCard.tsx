@@ -23,7 +23,7 @@ export default function DesignCard({ post }: DesignCardProps) {
 
   const primaryImgUrl = rawImg
     ? getImageUrl(rawImg)
-    : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+    : 'http://127.0.0.1:8005/storage/media/website/turnkey_interior_design_in_del_1d0bb6fa.jpg';
 
   const categorySlug = post.category?.slug;
   const detailUrl = categorySlug ? `/blogs/${categorySlug}/${post.slug}` : `/blogs/${post.slug}`;

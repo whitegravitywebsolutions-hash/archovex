@@ -4,6 +4,7 @@ import Footer from '@/components/public/Footer';
 import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import HomepageClient from './HomepageClient';
 import { fetchPublicData } from '@/lib/api';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,13 @@ export async function generateMetadata() {
     ? process.env.NEXT_PUBLIC_SITE_URL 
     : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://archovex.vercel.app');
     
-  const pageData = await fetchPublicData('/pages/home');
+  const [pageData, homeData] = await Promise.all([
+    fetchPublicData('/pages/home'),
+    fetchPublicData('/home'),
+  ]);
+
+  const settings = homeData?.settings || {};
+  const defaultOg = settings.og_image || settings.default_og_image || '/logo.png';
 
   if (pageData?.seo_data?.meta_title) {
     const seo = pageData.seo_data;
@@ -28,27 +35,40 @@ export async function generateMetadata() {
         title: seo.og_title || seo.meta_title,
         description: seo.og_description || seo.meta_description,
         url: seo.og_url || seo.canonical_url || siteUrl,
-        siteName: seo.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
-        images: seo.og_image ? [{ url: seo.og_image }] : ['/logo.png'],
+        siteName: seo.og_site_name || settings.site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
+        images: seo.og_image ? [{ url: seo.og_image }] : [{ url: defaultOg }],
       },
-      robots: seo.robots || 'index, follow',
+      twitter: {
+        card: 'summary_large_image',
+        title: seo.og_title || seo.meta_title,
+        description: seo.og_description || seo.meta_description,
+        images: [seo.og_image || defaultOg],
+      },
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
   return {
     metadataBase: new URL(siteUrl),
-    title: 'Interior Designers in Delhi NCR | Archovex Infra',
-    description: 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
+    title: settings.default_meta_title || 'Interior Designers in Delhi NCR | Archovex Infra',
+    description: settings.default_meta_description || 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
     alternates: {
       canonical: '/',
     },
     openGraph: {
-      title: 'Interior Designers in Delhi NCR | Archovex Infra',
-      description: 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
+      title: settings.default_meta_title || 'Interior Designers in Delhi NCR | Archovex Infra',
+      description: settings.default_meta_description || 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
       url: '/',
-      siteName: 'ARCHOVEX INFRA PRIVATE LIMITED',
-      images: ['/logo.png'],
+      siteName: settings.site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
+      images: [{ url: defaultOg }],
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: settings.default_meta_title || 'Interior Designers in Delhi NCR | Archovex Infra',
+      description: settings.default_meta_description || 'Archovex Infra designs and builds home and office interiors in Noida, Greater Noida, Delhi, New Delhi and Gurgaon. Book a free consultation.',
+      images: [defaultOg],
+    },
+    robots: getRobotsDirective(),
   };
 }
 

@@ -6,6 +6,8 @@ import FloatingWhatsAppButton from '@/components/public/FloatingWhatsAppButton';
 import DynamicSectionRenderer from '@/components/public/sections/DynamicSectionRenderer';
 import Breadcrumbs from '@/components/public/Breadcrumbs';
 import { fetchPublicData } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { getRobotsDirective } from '@/lib/seoConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: seo.meta_title,
       description: seo.meta_description || 'Interior Design FAQs: Cost, Timeline | Archovex',
       alternates: { canonical: seo.canonical_url || '/faqs' },
-      robots: seo.robots || 'index, follow',
+      robots: getRobotsDirective(seo.robots),
     };
   }
 
@@ -37,6 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'ARCHOVEX INFRA PRIVATE LIMITED',
       images: ['/logo.png'],
     },
+    robots: getRobotsDirective(),
   };
 }
 
@@ -45,6 +48,10 @@ export default async function MasterFaqsPage() {
     fetchPublicData('/home').catch(() => null),
     fetchPublicData('/pages/faqs').catch(() => null),
   ]);
+
+  if (!customPage || customPage.status === 'draft') {
+    notFound();
+  }
 
   const cities = homeData?.cities || [];
   const settings = homeData?.settings || {};
@@ -190,7 +197,7 @@ export default async function MasterFaqsPage() {
         name: 'What happens if something needs fixing after handover?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Contact us through our dedicated support helpline at +91 99999 99999 or email support@archovex.com and describe the issue with photos. Items under warranty are repaired promptly as per terms. We aim to respond within 24 to 48 hours on working days.',
+          text: 'Contact us through our dedicated support helpline at +91 9217614436 or email support@archovex.com and describe the issue with photos. Items under warranty are repaired promptly as per terms. We aim to respond within 24 to 48 hours on working days.',
         },
       },
       {
