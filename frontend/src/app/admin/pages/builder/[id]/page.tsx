@@ -143,8 +143,9 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         setParentId(page.parent_id || null);
         setStatus(page.status);
         const rawSections = Array.isArray(page.sections) ? page.sections : [];
-        setSections(rawSections.map((s: any) => ({
+        setSections(rawSections.map((s: any, idx: number) => ({
           ...s,
+          id: s.id && typeof s.id === 'string' && s.id.trim() !== '' ? s.id : `sec_${page.id || pageId}_${idx}`,
           is_active: s.is_active !== false,
         })));
 
