@@ -32,6 +32,11 @@ interface SeoFormBlockProps {
 export default function SeoFormBlock({ data, onChange, onSave, saving = false }: SeoFormBlockProps) {
   const [isOpen, setIsOpen] = useState(true);
 
+  const siteOrigin = typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'https://www.archovexinfra.com';
+  const defaultPageUrl = `${siteOrigin}${data.path && data.path.startsWith('/') ? data.path : `/${data.path || ''}`}`;
+
   const handleChange = (field: keyof SeoData, value: any) => {
     onChange({
       ...data,
@@ -132,16 +137,26 @@ export default function SeoFormBlock({ data, onChange, onSave, saving = false }:
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-800 mb-1.5">
-                Canonical URL <span className="text-slate-400 font-normal">(canonicalURL)</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-800">
+                  Canonical URL <span className="text-slate-400 font-normal">(canonicalURL)</span>
+                </label>
+                {!data.canonical_url && (
+                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Auto-Dynamic
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 value={data.canonical_url || ''}
                 onChange={(e) => handleChange('canonical_url', e.target.value)}
-                placeholder="https://archovex.com/designs/modular-kitchen-designs"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none transition-all"
+                placeholder={defaultPageUrl}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400"
               />
+              <p className="mt-1 text-[10px] text-slate-400">
+                Leave empty to automatically point to current page URL (<span className="text-slate-600 font-mono">{defaultPageUrl}</span>)
+              </p>
             </div>
           </div>
 
@@ -244,16 +259,26 @@ export default function SeoFormBlock({ data, onChange, onSave, saving = false }:
           {/* Row 5: ogURL & ogType */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-800 mb-1.5">
-                OpenGraph URL <span className="text-slate-400 font-normal">(ogURL)</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-800">
+                  OpenGraph URL <span className="text-slate-400 font-normal">(ogURL)</span>
+                </label>
+                {!data.og_url && (
+                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Auto-Dynamic
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 value={data.og_url || ''}
                 onChange={(e) => handleChange('og_url', e.target.value)}
-                placeholder="https://archovex.com/designs"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none transition-all"
+                placeholder={defaultPageUrl}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400"
               />
+              <p className="mt-1 text-[10px] text-slate-400">
+                Leave empty to automatically point to current page URL (<span className="text-slate-600 font-mono">{defaultPageUrl}</span>)
+              </p>
             </div>
 
             <div>

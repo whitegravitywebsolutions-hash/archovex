@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { apiClient, getImageUrl } from '@/lib/api';
+import { apiClient, getImageUrl, getSiteBaseUrl } from '@/lib/api';
 import { 
   Search, 
   Save, 
@@ -88,17 +88,31 @@ export default function AdminSeoManagementPage() {
 
   const handleSelect = (rec: SeoRecord) => {
     setSelectedRecord(rec);
+    const siteBase = getSiteBaseUrl();
+    const normalizeUrl = (url?: string) => {
+      if (!url) return `${siteBase}${rec.path || '/'}`;
+      if (url.includes('vercel.app') || url.includes('archovex.com') || url.includes('localhost:') || url.includes('127.0.0.1:')) {
+        try {
+          const parsed = new URL(url);
+          return `${siteBase}${parsed.pathname}`;
+        } catch {
+          return `${siteBase}${rec.path || '/'}`;
+        }
+      }
+      return url;
+    };
+
     setForm({
       id: rec.id,
       path: rec.path || '/',
       meta_title: rec.meta_title || '',
       meta_description: rec.meta_description || '',
       focus_keyphrase: rec.focus_keyphrase || '',
-      canonical_url: rec.canonical_url || `https://archovex.com${rec.path}`,
+      canonical_url: normalizeUrl(rec.canonical_url),
       robots: rec.robots || 'index, follow',
       og_title: rec.og_title || rec.meta_title || '',
       og_description: rec.og_description || rec.meta_description || '',
-      og_url: rec.og_url || rec.canonical_url || `https://archovex.com${rec.path}`,
+      og_url: normalizeUrl(rec.og_url),
       og_type: rec.og_type || 'website',
       og_site_name: rec.og_site_name || 'ARCHOVEX INFRA PRIVATE LIMITED',
       og_image: rec.og_image || '',
@@ -115,11 +129,11 @@ export default function AdminSeoManagementPage() {
       meta_title: 'ARCHOVEX INFRA PRIVATE LIMITED | Luxury Interiors',
       meta_description: 'Custom luxury interior design & turn-key architectural execution solutions across India.',
       focus_keyphrase: 'luxury interior design',
-      canonical_url: 'https://archovex.com/new-page-path',
+      canonical_url: `${getSiteBaseUrl()}/new-page-path`,
       robots: 'index, follow',
       og_title: '',
       og_description: '',
-      og_url: '',
+      og_url: `${getSiteBaseUrl()}/new-page-path`,
       og_type: 'website',
       og_site_name: 'ARCHOVEX INFRA PRIVATE LIMITED',
       og_image: '',
@@ -302,7 +316,7 @@ export default function AdminSeoManagementPage() {
                 </span>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-1 shadow-xs">
                   <div className="text-[11px] text-emerald-700 font-mono truncate">
-                    {form.canonical_url || `https://archovex.com${form.path}`}
+                    {form.canonical_url || `${getSiteBaseUrl()}${form.path}`}
                   </div>
                   <h3 className="text-base font-medium text-blue-800 hover:underline cursor-pointer truncate">
                     {form.meta_title || 'Default Title | ARCHOVEX INFRA PRIVATE LIMITED'}

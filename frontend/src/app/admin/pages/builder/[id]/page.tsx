@@ -151,17 +151,28 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
 
         const path = page.slug === 'home' ? '/' : `/${page.slug}`;
         const siteBase = getSiteBaseUrl();
-        if (page.seo_data) {
-          let canonical = page.seo_data.canonical_url || '';
-          if (canonical.includes('archovex.com')) {
-            canonical = canonical.replace('https://archovex.com', siteBase).replace('http://archovex.com', siteBase);
-          } else if (!canonical) {
-            canonical = `${siteBase}${path}`;
+
+        const normalizeUrl = (url?: string) => {
+          if (!url) return `${siteBase}${path}`;
+          if (url.includes('vercel.app') || url.includes('archovex.com') || url.includes('localhost:') || url.includes('127.0.0.1:')) {
+            try {
+              const parsed = new URL(url);
+              return `${siteBase}${parsed.pathname}`;
+            } catch {
+              return `${siteBase}${path}`;
+            }
           }
+          return url;
+        };
+
+        if (page.seo_data) {
+          const canonical = normalizeUrl(page.seo_data.canonical_url);
+          const ogUrl = normalizeUrl(page.seo_data.og_url);
           setSeoData({
             ...page.seo_data,
             path,
             canonical_url: canonical,
+            og_url: ogUrl,
             robots_index: page.seo_data.robots_index ?? true,
             robots_follow: page.seo_data.robots_follow ?? true,
           });
@@ -170,6 +181,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
             ...prev,
             path,
             canonical_url: `${siteBase}${path}`,
+            og_url: `${siteBase}${path}`,
             meta_title: page.meta_title || page.title,
             meta_description: page.meta_description || '',
           }));
@@ -1541,6 +1553,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                         og_description: prev.og_description || `Luxury ${newTitle} interior design services by ARCHOVEX INFRA.`,
                         path: pagePath,
                         canonical_url: `${getSiteBaseUrl()}${pagePath}`,
+                        og_url: `${getSiteBaseUrl()}${pagePath}`,
                       }));
                     }
                   }}
@@ -1574,7 +1587,8 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                       setSeoData((prev) => ({
                         ...prev,
                         path: pagePath,
-                        canonical_url: `https://archovex.com${pagePath}`,
+                        canonical_url: `${getSiteBaseUrl()}${pagePath}`,
+                        og_url: `${getSiteBaseUrl()}${pagePath}`,
                       }));
                     }
                   }}
@@ -1601,7 +1615,8 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                       setSeoData((prev) => ({
                         ...prev,
                         path: pagePath,
-                        canonical_url: `https://archovex.com${pagePath}`,
+                        canonical_url: `${getSiteBaseUrl()}${pagePath}`,
+                        og_url: `${getSiteBaseUrl()}${pagePath}`,
                       }));
                     }}
                     placeholder="page-slug"
