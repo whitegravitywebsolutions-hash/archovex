@@ -142,7 +142,11 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
         setSlug(page.slug);
         setParentId(page.parent_id || null);
         setStatus(page.status);
-        setSections(Array.isArray(page.sections) ? page.sections : []);
+        const rawSections = Array.isArray(page.sections) ? page.sections : [];
+        setSections(rawSections.map((s: any) => ({
+          ...s,
+          is_active: s.is_active !== false,
+        })));
 
         const path = page.slug === 'home' ? '/' : `/${page.slug}`;
         const siteBase = getSiteBaseUrl();
@@ -467,7 +471,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
 
   const toggleSectionActive = (id: string) => {
     setSections(
-      sections.map((s) => (s.id === id ? { ...s, is_active: !s.is_active } : s))
+      sections.map((s) => (s.id === id ? { ...s, is_active: s.is_active === false } : s))
     );
   };
 
@@ -640,7 +644,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                     <div
                       key={sec.id}
                       className={`bg-white rounded-2xl border transition-all shadow-sm ${
-                        sec.is_active ? 'border-slate-200' : 'border-slate-200 opacity-60 bg-slate-50'
+                        sec.is_active !== false ? 'border-slate-200' : 'border-slate-200 opacity-60 bg-slate-50'
                       }`}
                     >
                       {/* Section Card Header & Control Bar */}
@@ -657,7 +661,7 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                               <span className="font-extrabold text-slate-900 text-xs">
                                 {index + 1}. {catInfo?.label || sec.type.toUpperCase()}
                               </span>
-                              {!sec.is_active && (
+                              {sec.is_active === false && (
                                 <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
                                   Disabled
                                 </span>
@@ -694,9 +698,9 @@ export default function VisualPageBuilderPage({ params }: PageProps) {
                             type="button"
                             onClick={() => toggleSectionActive(sec.id)}
                             className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg"
-                            title={sec.is_active ? 'Hide Section' : 'Show Section'}
+                            title={sec.is_active !== false ? 'Hide Section' : 'Show Section'}
                           >
-                            {sec.is_active ? <Eye className="w-3.5 h-3.5 text-emerald-600" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+                            {sec.is_active !== false ? <Eye className="w-3.5 h-3.5 text-emerald-600" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
                           </button>
 
                           <button
