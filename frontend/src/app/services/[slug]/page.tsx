@@ -123,7 +123,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
           name: 'How long does a full home interior project take?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'A typical full home project takes [TIMELINE – FULL HOME] from design approval to handover. The schedule depends on the number of rooms, civil work, approval speed and society rules. You get a written schedule before work begins.',
+            text: 'A typical full home project takes 15 to 20 days from design approval to handover. The schedule depends on the number of rooms, civil work, approval speed and society rules. You get a written schedule before work begins.',
           },
         },
         {
@@ -235,7 +235,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
           name: 'How long does a modular kitchen take to install?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'An Archovex kitchen typically takes [TIMELINE – KITCHEN] from design approval to installation. On-site fitting usually takes a few days once units arrive. Finishes like PU and special countertops can extend the schedule.',
+            text: 'An Archovex kitchen typically takes 15 to 20 days from design approval to installation. On-site fitting usually takes a few days once units arrive. Finishes like PU and special countertops can extend the schedule.',
           },
         },
         {
@@ -631,7 +631,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
           name: 'How long does an office fit-out take?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'An Archovex office project typically takes [TIMELINE – OFFICE] from design approval to handover. The schedule depends on size, building approvals, after-hours work rules and furniture lead times. You receive a written schedule before work begins.',
+            text: 'An Archovex office project typically takes 15 to 20 days from design approval to handover. The schedule depends on size, building approvals, after-hours work rules and furniture lead times. You receive a written schedule before work begins.',
           },
         },
         {
@@ -723,7 +723,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
           name: 'How long does a corporate office fit-out take?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'An Archovex corporate fit-out typically takes [TIMELINE – CORPORATE, by floor size] from design approval to handover. Timing depends on floor size, approvals with building management, services work and furniture lead times. We agree a programme before starting.',
+            text: 'An Archovex corporate fit-out typically takes 15 to 20 days from design approval to handover. Timing depends on floor size, approvals with building management, services work and furniture lead times. We agree a programme before starting.',
           },
         },
         {
@@ -807,7 +807,7 @@ export default async function ServicePageRouter({ params }: PageProps) {
           name: 'How long does a shop or showroom fit-out take?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'An Archovex commercial project typically takes [TIMELINE – COMMERCIAL, by type and size] from design approval to handover. Mall approvals, permitted work hours and custom fixtures affect timing. We plan the schedule backwards from your opening date.',
+            text: 'An Archovex commercial project typically takes 15 to 20 days from design approval to handover. Mall approvals, permitted work hours and custom fixtures affect timing. We plan the schedule backwards from your opening date.',
           },
         },
         {

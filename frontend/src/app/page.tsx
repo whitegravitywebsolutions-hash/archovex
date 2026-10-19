@@ -113,7 +113,7 @@ export default async function HomePage() {
         name: 'How long does a full home interior project take?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Timelines depend on the number of rooms, how much carpentry is involved and whether civil work is needed. A typical full home takes [TIMELINE]. We share a written schedule after design approval, and we update you at each stage.',
+          text: 'Timelines depend on the number of rooms, how much carpentry is involved and whether civil work is needed. A typical full home takes 15 to 20 days. We share a written schedule after design approval, and we update you at each stage.',
         },
       },
       {
