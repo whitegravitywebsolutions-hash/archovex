@@ -64,7 +64,7 @@ export default function BlogDetailClient({ post, related = [], cities = [] }: Bl
     setFormError('');
 
     try {
-      // 1. Submit enquiry to backend API -> sends email to whitegravitywebsolutions@gmail.com
+      // 1. Submit enquiry to backend API -> sends email to info@archovexinfra.com
       try {
         await apiClient.post('/enquiry', {
           name: formData.name.trim(),

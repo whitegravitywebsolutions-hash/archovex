@@ -66,7 +66,7 @@ export default function ConsultationForm({
     setError('');
 
     try {
-      // Send enquiry details to backend (triggers email notification to whitegravitywebsolutions@gmail.com)
+      // Send enquiry details to backend (triggers email notification to info@archovexinfra.com)
       await apiClient.post('/enquiry', {
         name: formData.name,
         phone: formData.phone,

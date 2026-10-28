@@ -615,7 +615,7 @@ class PublicController extends Controller
 
         // Format email subject & HTML body
         $subject = "New Enquiry: {$name} ({$phone}) - {$source}";
-        $recipient = env('ENQUIRY_NOTIFICATION_EMAIL', 'whitegravitywebsolutions@gmail.com');
+        $recipient = env('ENQUIRY_NOTIFICATION_EMAIL', 'info@archovexinfra.com');
         $submittedAt = now()->setTimezone('Asia/Kolkata')->format('d M Y, h:i A (T)');
         $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
         $waPhone = preg_replace('/[^0-9]/', '', $phone);

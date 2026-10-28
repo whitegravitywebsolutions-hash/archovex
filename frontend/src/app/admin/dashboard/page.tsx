@@ -264,7 +264,7 @@ export default function AdminDashboardPage() {
               All website enquiries from Home page, Contact Us, and Consultation modals are automatically delivered to:
             </p>
             <div className="p-2.5 bg-white/10 rounded-xl border border-white/15 text-xs font-mono font-bold text-amber-300 break-all">
-              whitegravitywebsolutions@gmail.com
+              info@archovexinfra.com
             </div>
           </div>
 
